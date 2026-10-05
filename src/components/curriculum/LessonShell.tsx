@@ -7,12 +7,15 @@ export interface LessonShellProps {
   lesson: Lesson;
   onOpenTest?: () => void;
   onExit?: () => void;
+  /** Optional renderer injected by the lesson layer to draw step content. */
+  renderStepContent?: (step: LessonStep) => React.ReactNode;
 }
 
 export const LessonShell: React.FC<LessonShellProps> = ({
   lesson,
   onOpenTest,
   onExit,
+  renderStepContent,
 }) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
@@ -104,7 +107,7 @@ export const LessonShell: React.FC<LessonShellProps> = ({
             </header>
 
             <div className="step-body-container">
-              {/* Educational step content rendered here */}
+              {renderStepContent ? renderStepContent(currentStep) : null}
             </div>
           </article>
         ) : (

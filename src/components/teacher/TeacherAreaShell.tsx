@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
-import { CurriculumRegistry, TeacherLessonGuide } from '../../types/curriculum';
+import { AssessmentTest, CurriculumRegistry, TeacherLessonGuide } from '../../types/curriculum';
 import { auditCurriculum, AuditReport } from '../../utils/audit';
 import { ArabicNumber, LatinText } from '../common/BiDi';
 
 export interface TeacherAreaShellProps {
   curriculum: CurriculumRegistry;
   teacherGuides?: TeacherLessonGuide[];
+  tests?: AssessmentTest[];
 }
 
 export const TeacherAreaShell: React.FC<TeacherAreaShellProps> = ({
   curriculum,
   teacherGuides = [],
+  tests = [],
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'audit' | 'solutions'>('overview');
 
-  const auditReport: AuditReport = auditCurriculum(curriculum);
+  const auditReport: AuditReport = auditCurriculum(curriculum, tests, teacherGuides);
 
   return (
     <section className="teacher-area-container" dir="rtl" aria-label="بوابة المعلم والإشراف">
@@ -101,7 +103,32 @@ export const TeacherAreaShell: React.FC<TeacherAreaShellProps> = ({
             </div>
           ) : (
             <div className="solutions-list">
-              {/* Guides would be listed here */}
+              {teacherGuides.map((guide) => (
+                <div key={guide.lessonId} className="teacher-guide">
+                  <h3 className="guide-title">دليل الدرس: الحلول النموذجية المفصلة</h3>
+                  <div className="guide-objectives">
+                    <h4>الأهداف التربوية</h4>
+                    <ul>
+                      {guide.pedagogicalObjectives.map((o, i) => (
+                        <li key={i}>{o}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  {guide.exerciseSolutions.map((sol, i) => (
+                    <article key={i} className="guide-solution-card">
+                      <header className="guide-solution-head">
+                        <span className="guide-ex-name">{sol.sourceExercise}</span>
+                        <span className="guide-page">صفحة <ArabicNumber value={sol.pageNumber} /></span>
+                      </header>
+                      <p className="guide-answer">الحل النموذجي: {sol.officialSolution}</p>
+                      <p className="guide-explain">الشرح التربوي: {sol.didacticExplanation}</p>
+                      {sol.commonStudentMistakes?.map((m, j) => (
+                        <p key={j} className="guide-mistake">⚠ {m}</p>
+                      ))}
+                    </article>
+                  ))}
+                </div>
+              ))}
             </div>
           )}
         </div>

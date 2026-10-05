@@ -4,6 +4,18 @@ import {
   TeacherLessonGuide,
 } from '../types/curriculum';
 
+/**
+ * Normalizes Arabic text for duplicate detection: strips diacritics/tatweel,
+ * unifies Arabic-Indic digits to Latin, and collapses whitespace.
+ */
+function normalizeArabic(text: string): string {
+  return text
+    .replace(/[ً-ْـ]/g, '')
+    .replace(/[٠-٩]/g, (d) => String('٠١٢٤٥٦٧٨٩'.indexOf(d)))
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export interface AuditIssue {
   severity: 'error' | 'warning' | 'info';
   category:
@@ -40,7 +52,7 @@ export interface AuditReport {
 export function auditCurriculum(
   curriculum: CurriculumRegistry,
   tests: AssessmentTest[] = [],
-  _teacherGuides: TeacherLessonGuide[] = []
+  teacherGuides: TeacherLessonGuide[] = []
 ): AuditReport {
   const issues: AuditIssue[] = [];
 
@@ -48,6 +60,7 @@ export function auditCurriculum(
   const seenLessonIds = new Set<string>();
   const seenTestIds = new Set<string>();
   const seenQuestionIds = new Set<string>();
+  const seenPrompts = new Map<string, string>();
 
   let totalLessons = 0;
 
@@ -170,6 +183,113 @@ export function auditCurriculum(
           message: `السؤال ${q.id} غير مرتبط بصفحة مصدرية محددة من الكتاب.`,
         });
       }
+
+      // Duplicate / numeric-normalized prompt detection
+      const normPrompt = normalizeArabic(q.prompt);
+      const prior = seenPrompts.get(normPrompt);
+      if (prior) {
+        issues.push({
+          severity: 'error',
+          category: 'unique_identifiers',
+          entityId: q.id,
+          message: `محتوى السؤال ${q.id} مكرر مع السؤال ${prior}.`,
+        });
+      } else {
+        seenPrompts.set(normPrompt, q.id);
+      }
+
+      // Answer-key validity per question type
+      if (
+        q.type === 'single_choice' ||
+        q.type === 'true_false' ||
+        q.type === 'reading_comprehension' ||
+        q.type === 'grammar_application' ||
+        q.type === 'vocabulary_in_context'
+      ) {
+        if (!q.choices.some((c) => c.id === q.correctChoiceId)) {
+          issues.push({
+            severity: 'error',
+            category: 'solution_key',
+            entityId: q.id,
+            message: `مفتاح الإجابة للسؤال ${q.id} لا يطابق أي خيار متاح.`,
+          });
+        }
+      } else if (q.type === 'multi_select') {
+        if (q.correctChoiceIds.length === 0 || !q.correctChoiceIds.every((id) => q.choices.some((c) => c.id === id))) {
+          issues.push({
+            severity: 'error',
+            category: 'solution_key',
+            entityId: q.id,
+            message: `مفاتيح الإجابة للسؤال ${q.id} غير صالحة.`,
+          });
+        }
+      } else if (q.type === 'fill_blank' || q.type === 'text_input' || q.type === 'sentence_correction') {
+        if (!q.acceptedAnswers || q.acceptedAnswers.length === 0) {
+          issues.push({
+            severity: 'error',
+            category: 'solution_key',
+            entityId: q.id,
+            message: `السؤال ${q.id} يفتقر إلى إجابات مقبولة.`,
+          });
+        }
+      } else if (q.type === 'ordering') {
+        const ids = q.items.map((i) => i.id).sort().join(',');
+        const ord = [...q.correctOrderIds].sort().join(',');
+        if (ids !== ord) {
+          issues.push({
+            severity: 'error',
+            category: 'solution_key',
+            entityId: q.id,
+            message: `ترتيب الإجابة للسؤال ${q.id} لا يطابق عناصره.`,
+          });
+        }
+      } else if (q.type === 'classification') {
+        if (!q.items.every((i) => q.categories.some((c) => c.id === i.correctCategoryId))) {
+          issues.push({
+            severity: 'error',
+            category: 'solution_key',
+            entityId: q.id,
+            message: `فئات التصنيف للسؤال ${q.id} غير صالحة.`,
+          });
+        }
+      }
+    }
+  }
+
+  // Teacher-guide ↔ test answer-key mapping
+  for (const guide of teacherGuides) {
+    const refTest = tests.find((t) => t.id === guide.lessonTestAnswerKeyRef);
+    if (!refTest) {
+      issues.push({
+        severity: 'warning',
+        category: 'solution_key',
+        entityId: guide.lessonId,
+        message: `دليل المعلم (${guide.lessonId}) يشير إلى اختبار غير مسجل (${guide.lessonTestAnswerKeyRef}).`,
+      });
+    }
+    if (guide.exerciseSolutions.length === 0) {
+      issues.push({
+        severity: 'warning',
+        category: 'solution_key',
+        entityId: guide.lessonId,
+        message: `دليل المعلم (${guide.lessonId}) لا يحتوي على حلول تدريبات.`,
+      });
+    }
+  }
+
+  // Source readability/uncertainty surfacing
+  for (const unit of curriculum.units) {
+    for (const lesson of unit.lessons) {
+      lesson.metadata.sources.forEach((s, idx) => {
+        if (s.uncertaintyNote) {
+          issues.push({
+            severity: 'warning',
+            category: 'source_traceability',
+            entityId: `${lesson.metadata.id}-src-${idx}`,
+            message: `صفحة ${s.pageNumber}: ${s.uncertaintyNote}`,
+          });
+        }
+      });
     }
   }
 

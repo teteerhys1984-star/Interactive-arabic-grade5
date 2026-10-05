@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import { curriculumRegistry, getAllUnits, getLessonById } from './data/curriculumRegistry';
+import { curriculumRegistry, getAllUnits, getLessonById, isUnitTestAvailable } from './data/curriculumRegistry';
+import { ALL_ASSESSMENTS, getLessonTestByLessonId } from './data/assessments';
+import { LESSON1_TEACHER_GUIDE } from './data/lesson1/teacherGuide';
 import { UnitCard } from './components/curriculum/UnitCard';
-import { LessonShell } from './components/curriculum/LessonShell';
+import { LessonFlow } from './components/curriculum/LessonFlow';
 import { TeacherAreaShell } from './components/teacher/TeacherAreaShell';
+import { AssessmentShell } from './components/assessment/AssessmentShell';
+import { TestSolutions } from './components/assessment/TestSolutions';
 import { LatinText } from './components/common/BiDi';
 
 type NavigationRoute =
@@ -10,21 +14,23 @@ type NavigationRoute =
   | { view: 'lesson'; lessonId: string }
   | { view: 'lesson_test'; lessonId: string }
   | { view: 'unit_test'; unitId: string }
-  | { view: 'teacher' };
+  | { view: 'teacher' }
+  | { view: 'solutions' };
+
+const TEACHER_GUIDES = [LESSON1_TEACHER_GUIDE];
 
 export const App: React.FC = () => {
   const [route, setRoute] = useState<NavigationRoute>({ view: 'home' });
 
   const units = getAllUnits();
 
-  // Navigation handlers
   const handleGoHome = () => setRoute({ view: 'home' });
   const handleSelectLesson = (lessonId: string) => setRoute({ view: 'lesson', lessonId });
   const handleOpenTeacher = () => setRoute({ view: 'teacher' });
+  const handleOpenSolutions = () => setRoute({ view: 'solutions' });
 
   return (
     <div className="app-root" dir="rtl" lang="ar">
-      {/* Platform Header */}
       <header className="app-header">
         <div className="header-container">
           <div className="brand-area" onClick={handleGoHome} style={{ cursor: 'pointer' }}>
@@ -45,6 +51,13 @@ export const App: React.FC = () => {
             </button>
             <button
               type="button"
+              className={`nav-link ${route.view === 'solutions' ? 'active' : ''}`}
+              onClick={handleOpenSolutions}
+            >
+              حلول الاختبارات
+            </button>
+            <button
+              type="button"
               className={`nav-link ${route.view === 'teacher' ? 'active' : ''}`}
               onClick={handleOpenTeacher}
             >
@@ -54,27 +67,9 @@ export const App: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Container */}
       <main className="app-main" id="main-content">
         {route.view === 'home' && (
           <section className="units-section">
-            {/* Foundation Status Banner */}
-            <div className="foundation-status-banner" role="status">
-              <span className="banner-icon" aria-hidden="true">🏛️</span>
-              <div className="banner-content">
-                <h2>مرحلة التأسيس الهيكلي والتقني (Foundation Phase)</h2>
-                <p>
-                  تم بناء وتأكيد البنية التحتية البرمجية، ونظام التحقق من المقروئية، ونظام الاختبارات (20 سؤالاً للدرس / 50-60 للوحدة)، وقواعد الاتجاه (RTL)، وهوية التصميم.
-                </p>
-                <ul className="banner-checklist">
-                  <li>✓ لا يوجد أي محتوى دراسي أو وحدات مفبركة</li>
-                  <li>✓ قاعدة اكتمال الوحدة الصريحة مشفرة بالكامل</li>
-                  <li>✓ مسار النشر لـ GitHub Pages (<LatinText>/Interactive-arabic-grade5/</LatinText>) مفعّل</li>
-                  <li>✓ بانتظار استلام صور ومسح صفحات الكتاب المدرسي الرسمي للبدء في تفريغ المحتوى</li>
-                </ul>
-              </div>
-            </div>
-
             <div className="section-header">
               <h2>خطة وحدات المنهج الدراسي</h2>
               <p>سجل الوحدات الدراسية المعتمدة المستخرجة من الكتاب المدرسي الرسمي.</p>
@@ -84,53 +79,87 @@ export const App: React.FC = () => {
               <div className="empty-state-card">
                 <span className="empty-icon" aria-hidden="true">📚</span>
                 <h3>في انتظار تزويد صفحات الكتاب المدرسي</h3>
-                <p>
-                  لم يتم إدراج أي دروس أو وحدات تخمينية أو وهمية التزاماً بالمعايير الصارمة لنزاهة المنهج. سيبدأ استخراج الهيكل الدراسي فور رفع صور الكتاب واعتماد تقرير المقروئية.
-                </p>
+                <p>لم يتم إدراج أي دروس أو وحدات تخمينية أو وهمية التزاماً بالمعايير الصارمة لنزاهة المنهج.</p>
               </div>
             ) : (
               <div className="units-grid">
                 {units.map((unit) => (
-                  <UnitCard
-                    key={unit.metadata.id}
-                    unit={unit}
-                    onSelectLesson={handleSelectLesson}
-                  />
+                  <UnitCard key={unit.metadata.id} unit={unit} onSelectLesson={handleSelectLesson} />
                 ))}
               </div>
             )}
           </section>
         )}
 
-        {route.view === 'lesson' && (
+        {route.view === 'lesson' &&
           (() => {
             const result = getLessonById(route.lessonId);
             if (!result) {
               return (
                 <div className="empty-state-card">
                   <h3>الدرس غير موجود</h3>
-                  <button type="button" className="btn btn-primary" onClick={handleGoHome}>
-                    العودة للقائمة
-                  </button>
+                  <button type="button" className="btn btn-primary" onClick={handleGoHome}>العودة للقائمة</button>
                 </div>
               );
             }
             return (
-              <LessonShell
+              <LessonFlow
                 lesson={result.lesson}
                 onExit={handleGoHome}
                 onOpenTest={() => setRoute({ view: 'lesson_test', lessonId: route.lessonId })}
               />
             );
-          })()
-        )}
+          })()}
+
+        {route.view === 'lesson_test' &&
+          (() => {
+            const test = getLessonTestByLessonId(route.lessonId);
+            if (!test) {
+              return (
+                <div className="empty-state-card">
+                  <h3>لا يتوفر اختبار لهذا الدرس</h3>
+                  <button type="button" className="btn btn-primary" onClick={handleGoHome}>العودة</button>
+                </div>
+              );
+            }
+            return (
+              <AssessmentShell
+                test={test}
+                onExit={() => setRoute({ view: 'lesson', lessonId: route.lessonId })}
+              />
+            );
+          })()}
+
+        {route.view === 'unit_test' &&
+          (() => {
+            if (!isUnitTestAvailable(route.unitId)) {
+              return (
+                <div className="empty-state-card">
+                  <h3>اختبار الوحدة غير مفعّل</h3>
+                  <p>لا يُتاح اختبار الوحدة إلا بعد إعلان المالك صراحةً أن الوحدة مكتملة.</p>
+                  <button type="button" className="btn btn-primary" onClick={handleGoHome}>العودة</button>
+                </div>
+              );
+            }
+            return null;
+          })()}
+
+        {route.view === 'solutions' &&
+          (() => {
+            const test = getLessonTestByLessonId('lesson1');
+            if (!test) return null;
+            return <TestSolutions test={test} onExit={handleGoHome} />;
+          })()}
 
         {route.view === 'teacher' && (
-          <TeacherAreaShell curriculum={curriculumRegistry} />
+          <TeacherAreaShell
+            curriculum={curriculumRegistry}
+            teacherGuides={TEACHER_GUIDES}
+            tests={ALL_ASSESSMENTS}
+          />
         )}
       </main>
 
-      {/* Footer */}
       <footer className="app-footer">
         <div className="footer-content">
           <p>© 2026 اللغة العربية التفاعلية - الصف الخامس الأساسي. جميع الحقوق محفوظة للمنهج المعتمد.</p>
