@@ -67,7 +67,7 @@ export const App: React.FC = () => {
         </div>
       </header>
 
-      <main className="app-main" id="main-content">
+      <main className={`app-main ${route.view === 'lesson' ? 'app-main-lesson' : ''}`} id="main-content">
         {route.view === 'home' && (
           <section className="units-section">
             <div className="section-header">
