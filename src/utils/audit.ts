@@ -24,7 +24,8 @@ export interface AuditIssue {
     | 'unique_identifiers'
     | 'solution_key'
     | 'source_traceability'
-    | 'unit_completion';
+    | 'unit_completion'
+    | 'activity_coverage';
   entityId: string;
   message: string;
 }
@@ -252,6 +253,30 @@ export function auditCurriculum(
             message: `فئات التصنيف للسؤال ${q.id} غير صالحة.`,
           });
         }
+      } else if (q.type === 'matching') {
+        const leftValues = q.pairs.map((pair) => pair.left);
+        const rightValues = q.pairs.map((pair) => pair.right);
+        if (
+          q.pairs.length === 0 ||
+          new Set(leftValues).size !== leftValues.length ||
+          new Set(rightValues).size !== rightValues.length
+        ) {
+          issues.push({
+            severity: 'error',
+            category: 'solution_key',
+            entityId: q.id,
+            message: `أزواج المطابقة للسؤال ${q.id} غير صالحة أو مكررة.`,
+          });
+        }
+      } else if (q.type === 'error_analysis') {
+        if (q.correctionOptions && (!q.correctOptionId || !q.correctionOptions.some((choice) => choice.id === q.correctOptionId))) {
+          issues.push({
+            severity: 'error',
+            category: 'solution_key',
+            entityId: q.id,
+            message: `خيار تصويب الخطأ للسؤال ${q.id} لا يطابق خياراته.`,
+          });
+        }
       }
     }
   }
@@ -274,6 +299,63 @@ export function auditCurriculum(
         entityId: guide.lessonId,
         message: `دليل المعلم (${guide.lessonId}) لا يحتوي على حلول تدريبات.`,
       });
+    }
+
+    if (guide.sourceCoverage) {
+      const solutionIds = guide.exerciseSolutions.map((solution) => solution.id).filter((id): id is string => Boolean(id));
+      const seenSourceActivityIds = new Set<string>();
+      const seenLessonActivityIds = new Set<string>();
+      const seenTeacherSolutionIds = new Set<string>();
+
+      guide.sourceCoverage.forEach((entry) => {
+        if (seenSourceActivityIds.has(entry.sourceActivityId)) {
+          issues.push({
+            severity: 'error',
+            category: 'activity_coverage',
+            entityId: guide.lessonId,
+            message: `سجل التغطية في ${guide.lessonId} يكرر نشاط المصدر ${entry.sourceActivityId}.`,
+          });
+        }
+        seenSourceActivityIds.add(entry.sourceActivityId);
+
+        if (seenLessonActivityIds.has(entry.lessonActivityId)) {
+          issues.push({
+            severity: 'error',
+            category: 'activity_coverage',
+            entityId: guide.lessonId,
+            message: `سجل التغطية في ${guide.lessonId} يكرر نشاط الطالب ${entry.lessonActivityId}.`,
+          });
+        }
+        seenLessonActivityIds.add(entry.lessonActivityId);
+
+        if (seenTeacherSolutionIds.has(entry.teacherSolutionId)) {
+          issues.push({
+            severity: 'error',
+            category: 'activity_coverage',
+            entityId: guide.lessonId,
+            message: `سجل التغطية في ${guide.lessonId} يكرر حل المعلم ${entry.teacherSolutionId}.`,
+          });
+        }
+        seenTeacherSolutionIds.add(entry.teacherSolutionId);
+
+        if (!solutionIds.includes(entry.teacherSolutionId)) {
+          issues.push({
+            severity: 'error',
+            category: 'activity_coverage',
+            entityId: guide.lessonId,
+            message: `نشاط المصدر ${entry.sourceActivityId} لا يرتبط بحل معلم موجود (${entry.teacherSolutionId}).`,
+          });
+        }
+      });
+
+      if (guide.sourceCoverage.length !== guide.exerciseSolutions.length) {
+        issues.push({
+          severity: 'error',
+          category: 'activity_coverage',
+          entityId: guide.lessonId,
+          message: `عدد سجلات تغطية المصدر (${guide.sourceCoverage.length}) لا يطابق عدد حلول المعلم (${guide.exerciseSolutions.length}).`,
+        });
+      }
     }
   }
 

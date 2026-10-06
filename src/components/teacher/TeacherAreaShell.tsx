@@ -7,16 +7,55 @@ export interface TeacherAreaShellProps {
   curriculum: CurriculumRegistry;
   teacherGuides?: TeacherLessonGuide[];
   tests?: AssessmentTest[];
+  /** Client-side access gate for the separate Teacher Area. */
+  accessPassword?: string;
 }
 
 export const TeacherAreaShell: React.FC<TeacherAreaShellProps> = ({
   curriculum,
   teacherGuides = [],
   tests = [],
+  accessPassword = 'somer173',
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'audit' | 'solutions'>('overview');
+  const [password, setPassword] = useState('');
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
 
   const auditReport: AuditReport = auditCurriculum(curriculum, tests, teacherGuides);
+
+  const handlePasswordSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (password === accessPassword) {
+      setIsAuthorized(true);
+      setPasswordError(false);
+    } else {
+      setPasswordError(true);
+    }
+  };
+
+  if (!isAuthorized) {
+    return (
+      <section className="teacher-login-card" dir="rtl" aria-label="دخول بوابة المعلم">
+        <div className="teacher-header-badge">بوابة المعلم والإشراف</div>
+        <h1 className="teacher-title">دخول منطقة المعلم</h1>
+        <p>هذه المنطقة منفصلة عن مساحة الطالب وتضم الحلول والتدقيق التربوي.</p>
+        <form className="teacher-login-form" onSubmit={handlePasswordSubmit}>
+          <label htmlFor="teacher-password">كلمة مرور المعلم</label>
+          <input
+            id="teacher-password"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            autoComplete="current-password"
+            aria-invalid={passwordError}
+          />
+          {passwordError && <p className="teacher-login-error" role="alert">كلمة المرور غير صحيحة.</p>}
+          <button className="btn btn-primary" type="submit">دخول بوابة المعلم</button>
+        </form>
+      </section>
+    );
+  }
 
   return (
     <section className="teacher-area-container" dir="rtl" aria-label="بوابة المعلم والإشراف">
@@ -114,6 +153,42 @@ export const TeacherAreaShell: React.FC<TeacherAreaShellProps> = ({
                       ))}
                     </ul>
                   </div>
+                  {guide.sourceCoverage && (
+                    <details className="teacher-coverage-ledger">
+                      <summary>
+                        سجل تغطية المصدر: <ArabicNumber value={guide.sourceCoverage.length} /> نشاطاً
+                      </summary>
+                      <p>
+                        يثبت هذا السجل المسار: نشاط المصدر ← خطوة الدرس/نشاط الطالب ← حل المعلم.
+                      </p>
+                      <div className="teacher-coverage-table-wrap">
+                        <table>
+                          <thead>
+                            <tr>
+                              <th scope="col">المصدر</th>
+                              <th scope="col">الصفحة</th>
+                              <th scope="col">خطوة الدرس</th>
+                              <th scope="col">نشاط الطالب</th>
+                              <th scope="col">حل المعلم</th>
+                              <th scope="col">الحالة</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {guide.sourceCoverage.map((entry) => (
+                              <tr key={entry.sourceActivityId}>
+                                <td>{entry.sourceActivityId}</td>
+                                <td><ArabicNumber value={entry.pageNumber} /></td>
+                                <td>{entry.lessonStepId}</td>
+                                <td>{entry.lessonActivityId}</td>
+                                <td>{entry.teacherSolutionId}</td>
+                                <td>{entry.availability === 'available' ? 'ممثل' : 'فجوة مصدر معلنة'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </details>
+                  )}
                   {guide.exerciseSolutions.map((sol, i) => (
                     <article key={i} className="guide-solution-card">
                       <header className="guide-solution-head">

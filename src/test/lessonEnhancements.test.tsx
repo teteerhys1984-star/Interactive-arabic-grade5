@@ -247,6 +247,8 @@ describe('Curriculum, assessment and source-fidelity checks', () => {
         tests={ALL_ASSESSMENTS}
       />,
     );
+    fireEvent.change(screen.getByLabelText('كلمة مرور المعلم'), { target: { value: 'somer173' } });
+    fireEvent.click(screen.getByRole('button', { name: 'دخول بوابة المعلم' }));
     fireEvent.click(screen.getByRole('tab', { name: 'الأدلة وحلول التدريبات' }));
     expect(screen.getAllByText(/الحل النموذجي:/)).toHaveLength(39);
     expect(screen.getByText('الأهداف التربوية')).toBeInTheDocument();

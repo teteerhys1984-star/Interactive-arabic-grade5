@@ -5,13 +5,11 @@ import { ArabicNumber } from '../common/BiDi';
 export interface UnitCardProps {
   unit: Unit;
   onSelectLesson: (lessonId: string) => void;
-  onOpenUnitTest?: (unitId: string) => void;
 }
 
 export const UnitCard: React.FC<UnitCardProps> = ({
   unit,
   onSelectLesson,
-  onOpenUnitTest,
 }) => {
   const { metadata, lessons } = unit;
   const isUnitComplete = metadata.isComplete;
@@ -65,23 +63,6 @@ export const UnitCard: React.FC<UnitCardProps> = ({
         )}
       </div>
 
-      {/* Unit Test Action - STRICT: only enabled if isComplete is true */}
-      <footer className="unit-card-footer">
-        {isUnitComplete ? (
-          <button
-            type="button"
-            className="btn btn-primary btn-block"
-            onClick={() => onOpenUnitTest && onOpenUnitTest(metadata.id)}
-          >
-            📋 اختبار الوحدة الشامل (50–60 سؤالاً)
-          </button>
-        ) : (
-          <div className="unit-test-locked-notice">
-            <span className="lock-icon">🔒</span>
-            <span>اختبار الوحدة غير متاح حالياً (يتطلب إعلان المالك اكتمال دروس الوحدة).</span>
-          </div>
-        )}
-      </footer>
     </article>
   );
 };
