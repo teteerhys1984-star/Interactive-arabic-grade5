@@ -36,6 +36,12 @@ export interface SourceReference {
   sourceType: SourceType;
   /** Verification flag confirming this page was reviewed for readability */
   readabilityVerified: boolean;
+  /**
+   * Optional note listing any token/region on this page that could not be read
+   * with confidence during inspection. Presence means a crop was requested and
+   * the affected content must NOT be treated as verified source wording.
+   */
+  uncertaintyNote?: string;
 }
 
 // ==========================================
@@ -167,6 +173,8 @@ export interface BaseQuestion {
   explanation: string;
   /** Target skill tested */
   testedSkill: string;
+  /** Blueprint difficulty level for lesson tests */
+  difficulty?: 'basic' | 'medium' | 'advanced' | 'thinking';
 }
 
 export interface SingleChoiceQuestion extends BaseQuestion {
