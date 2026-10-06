@@ -259,6 +259,11 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     source: src(8, 'textbook_grammar', 'التَّقْويمُ', 3),
   },
 
+  /*
+   * Page 9 source prompts/words remain unchanged. The platform answer key below
+   * corrects two inherited classifications: «إِسْهامِها» and «إِنْجازاتِهِمْ»
+   * are visibly written with hamza under alif, so they are hamzat qat‘.
+   */
   /* ---------------- page 9 ---------------- */
   {
     id: 'a-p9-1', page: 9, section: 'إملاء', printedNumber: '١',
@@ -290,9 +295,9 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     ], items: [
       { id: 'w1', text: 'أَرْغَبُ', correctCategoryId: 'qata' },
       { id: 'w2', text: 'اقْتِناءِ', correctCategoryId: 'wasl' },
-      { id: 'w3', text: 'إِسْهامِها', correctCategoryId: 'wasl' },
+      { id: 'w3', text: 'إِسْهامِها', correctCategoryId: 'qata' },
     ]},
-    solution: { answer: 'أَرْغَبُ: قَطْعٍ. اقْتِناءِ: وَصْلٍ. إِسْهامِها: وَصْلٍ.', explanation: 'تَمْييزُ نَوْعَي الهَمْزَةِ الأَوَّلِيَّةِ.' },
+    solution: { answer: 'أَرْغَبُ: قَطْعٍ. اقْتِناءِ: وَصْلٍ. إِسْهامِها: قَطْعٍ.', explanation: '«إِسْهامِها» تبدأ بهمزة مكسورة مرسومة تحت الألف، وتبقى منطوقة بعد واو العطف؛ فهي همزة قطع.' },
     source: src(9, 'textbook_spelling', 'أُطَبِّقُ', 4),
   },
   {
@@ -303,7 +308,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
       { id: 'c2', label: 'مَوْقِفُها بِالنِّسْبَةِ إلى الأَلِفِ' },
       { id: 'c3', label: 'هَمْزَةُ الوَصْلِ (مِثالانِ)' },
     ]},
-    solution: { answer: 'قَطْعٍ: أَبي، أَخْطائِهِمْ. وَصْلٍ: انْظُرْ، إِنْجازاتِهِمْ. المَوْقِفُ: فَوْقَ الأَلِفِ إِذا فُتِحَتْ أَوْ ضُمَّتْ، وَتَحْتَها إِذا كُسِرَتْ. (تَرْويسَةُ العَمودِ: «السَّبَبُ» كَما أَكَّدَ القَصُّ).', explanation: 'تَطْبيقُ قاعِدَةِ هَمْزَتَي القَطْعِ وَالوَصْلِ.' },
+    solution: { answer: 'قَطْعٍ (مِثالانِ): أَبي، أَخْطائِهِمْ. وَصْلٍ (مِثالانِ): انْظُرْ، اسْتَفِدْ. المَوْقِفُ: فَوْقَ الأَلِفِ إِذا فُتِحَتْ أَوْ ضُمَّتْ، وَتَحْتَها إِذا كُسِرَتْ.', explanation: '«إِنْجازاتِهِمْ» همزة قطع مكسورة تُكتب تحت الألف، وليست همزة وصل. من أمثلة الوصل في الفقرة «انْظُرْ» و«اسْتَفِدْ».' },
     source: src(9, 'textbook_spelling', 'التَّقْويمُ', 1),
   },
   {

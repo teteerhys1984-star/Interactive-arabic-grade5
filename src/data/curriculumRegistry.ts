@@ -31,7 +31,7 @@ const lesson1: Lesson = {
       src(8, 'textbook_grammar', 'قَواعِدُ اللُّغَةِ'),
       src(9, 'textbook_spelling', 'إملاء'),
       src(10, 'textbook_exercise', 'الخَطُّ وَالتَّعْبيرُ'),
-      src(11, 'activity_book', 'أَلْعَبُ وَأَتَعَلَّمُ'),
+      src(11, 'activity_book', 'أَلْعَبُ وَأَتَعَلَّمُ', undefined, 'صَفّا الرموز في النشاط الأول بحاجة إلى قصّ أدق لتحديد الجملتين'),
     ],
   },
   steps: LESSON1_STEPS,

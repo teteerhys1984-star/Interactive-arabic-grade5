@@ -2,14 +2,18 @@ import React, { useState } from 'react';
 import { LessonStep } from '../../types/curriculum';
 import { LESSON1_STEP_CONTENT, LessonBlock } from '../../data/lesson1/content';
 import { TEXTBOOK_ACTIVITIES, TextbookActivity } from '../../data/lesson1/activities';
-import { LESSON1_IRAB } from '../../data/lesson1/irab';
 import { SourceBadge } from '../common/SourceBadge';
 import { ArabicNumber } from '../common/BiDi';
+import {
+  Lesson1GrammarSupport,
+  SpellingExplanation,
+  VocabularyExplanation,
+} from './Lesson1Explanations';
 
 /**
  * StepRenderer — renders a lesson step's content blocks.
  * Source-derived blocks are labelled «النص الأصلي من الكتاب»; platform-added
- * explanation is rendered under a distinct «شرح تفاعلي» heading.
+ * explanation is rendered under a distinct «شرح المنصة» heading.
  */
 
 export const StepRenderer: React.FC<{ step: LessonStep }> = ({ step }) => {
@@ -21,9 +25,13 @@ export const StepRenderer: React.FC<{ step: LessonStep }> = ({ step }) => {
   return (
     <div className="step-renderer">
       {content.blocks.map((block, idx) => (
-        <BlockView key={idx} block={block} />
+        <React.Fragment key={`${step.id}-${idx}`}>
+          <BlockView block={block} />
+          {step.id === 'l1-s3' && block.kind === 'vocab' && <VocabularyExplanation />}
+          {step.id === 'l1-s6' && block.kind === 'rule' && <Lesson1GrammarSupport />}
+          {step.id === 'l1-s7' && block.kind === 'rule' && <SpellingExplanation />}
+        </React.Fragment>
       ))}
-      {step.id === 'l1-s6' && <IrabSection />}
     </div>
   );
 };
@@ -105,7 +113,7 @@ const BlockView: React.FC<{ block: LessonBlock }> = ({ block }) => {
     case 'explanation':
       return (
         <section className="block-explanation">
-          <span className="source-label-explain">شرح تفاعلي</span>
+          <span className="source-label-explain">شرح المنصة</span>
           {block.lines.map((l, i) => (
             <p key={i}>{l}</p>
           ))}
@@ -123,26 +131,6 @@ const BlockView: React.FC<{ block: LessonBlock }> = ({ block }) => {
 
 /* ------------------------------------------------------------------ */
 
-const IrabSection: React.FC = () => (
-  <section className="block-irab">
-    <span className="source-label-explain">شرح تفاعلي — الإعراب</span>
-    <h3 className="block-heading">إِعْرابُ الجُمَلِ الوارِدَةِ في الدَّرْسِ</h3>
-    <div className="irab-list">
-      {LESSON1_IRAB.map((r) => (
-        <div key={r.id} className="irab-card">
-          <p className="irab-sentence">{r.sentence}</p>
-          <p className="irab-focus">
-            «{r.focusWord}»: {r.role} {r.caseName}، وعَلَامَتُهُ {r.sign}.
-          </p>
-          <p className="irab-reason">{r.reason}</p>
-        </div>
-      ))}
-    </div>
-  </section>
-);
-
-/* ------------------------------------------------------------------ */
-
 const ActivityWidget: React.FC<{ activity: TextbookActivity }> = ({ activity }) => {
   const [showSolution, setShowSolution] = useState(false);
 
@@ -150,7 +138,7 @@ const ActivityWidget: React.FC<{ activity: TextbookActivity }> = ({ activity }) 
     <section className="activity-widget" aria-label={`نشاط ${activity.printedNumber}`}>
       <header className="activity-head">
         <span className="activity-number">
-          نشاط <ArabicNumber value={parseInt(activity.printedNumber, 10) || 1} />
+          نشاط <ArabicNumber value={activity.printedNumber} />
         </span>
         <SourceBadge source={activity.source} />
       </header>
@@ -174,7 +162,7 @@ const ActivityWidget: React.FC<{ activity: TextbookActivity }> = ({ activity }) 
       {showSolution && (
         <div className="activity-solution">
           <p className="solution-answer">{activity.solution.answer}</p>
-          <p className="solution-explain">شرح تفاعلي: {activity.solution.explanation}</p>
+          <p className="solution-explain"><span className="source-label-explain">شرح المنصة</span> {activity.solution.explanation}</p>
         </div>
       )}
     </section>
