@@ -53,7 +53,7 @@ export const TestSolutions: React.FC<{ test: AssessmentTest; onExit?: () => void
     <section className="test-solutions-container" dir="rtl" aria-label="حلول الاختبارات">
       <header className="test-solutions-header">
         <div className="teacher-header-badge">حلول الاختبارات</div>
-        <h1 className="teacher-title">حلول اختبار {test.title}</h1>
+        <h1 className="teacher-title">حلول {test.title}</h1>
         <p className="teacher-description">
           جميعُ الحلولِ (<ArabicNumber value={sorted.length} /> مِنْ <ArabicNumber value={sorted.length} />) مَعَ التَّعليلِ وَالمَفْهومِ المُخْتَبَرِ.
         </p>

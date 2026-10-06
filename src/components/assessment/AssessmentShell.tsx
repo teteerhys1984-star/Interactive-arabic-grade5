@@ -120,9 +120,9 @@ export const AssessmentShell: React.FC<AssessmentShellProps> = ({ test, onExit }
             </div>
 
             <div className="metric-card total-metric">
-              <span className="metric-label">إجمالي الأسئلة</span>
+              <span className="metric-label">الدرجة</span>
               <span className="metric-value">
-                <ArabicNumber value={evalResult.totalPossible} />
+                <ArabicNumber value={evalResult.score} /> / <ArabicNumber value={evalResult.totalPossible} />
               </span>
             </div>
           </div>

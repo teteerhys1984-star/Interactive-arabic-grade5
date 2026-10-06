@@ -274,19 +274,38 @@ export interface UserAssessmentAttempt {
 // 5. TEACHER AREA / SOLUTIONS MODEL
 // ==========================================
 
+export interface TeacherExerciseSolution {
+  /** Stable guide ID when a lesson has a source-coverage ledger. */
+  id?: string;
+  sourceExercise: string;
+  pageNumber: number;
+  officialSolution: string;
+  didacticExplanation: string;
+  commonStudentMistakes?: string[];
+}
+
+/**
+ * Auditable source-to-student-to-teacher chain for a locked lesson.
+ * The Lesson 2 guide uses one entry per source activity.
+ */
+export interface SourceCoverageEntry {
+  sourceActivityId: string;
+  lessonStepId: string;
+  lessonActivityId: string;
+  teacherSolutionId: string;
+  pageNumber: number;
+  availability: 'available' | 'gap';
+}
+
 export interface TeacherLessonGuide {
   lessonId: string;
   unitId: string;
   pedagogicalObjectives: string[];
   grammarNotes?: string[];
   spellingRules?: string[];
-  exerciseSolutions: {
-    sourceExercise: string;
-    pageNumber: number;
-    officialSolution: string;
-    didacticExplanation: string;
-    commonStudentMistakes?: string[];
-  }[];
+  exerciseSolutions: TeacherExerciseSolution[];
+  /** Optional explicit coverage ledger for a source-locked lesson. */
+  sourceCoverage?: SourceCoverageEntry[];
   lessonTestAnswerKeyRef: string;
 }
 

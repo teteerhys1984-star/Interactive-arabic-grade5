@@ -9,6 +9,7 @@ import {
   SpellingExplanation,
   VocabularyExplanation,
 } from './Lesson1Explanations';
+import { Lesson2StepRenderer } from './Lesson2StepRenderer';
 
 /**
  * StepRenderer — renders a lesson step's content blocks.
@@ -17,6 +18,10 @@ import {
  */
 
 export const StepRenderer: React.FC<{ step: LessonStep }> = ({ step }) => {
+  if (step.id.startsWith('l2-')) {
+    return <Lesson2StepRenderer step={step} />;
+  }
+
   const content = LESSON1_STEP_CONTENT[step.id];
   if (!content) {
     return <p className="step-empty-note">لا يوجد محتوى لهذه الخطوة بعد.</p>;

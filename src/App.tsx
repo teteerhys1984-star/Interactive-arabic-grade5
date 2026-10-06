@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { curriculumRegistry, getAllUnits, getLessonById, isUnitTestAvailable } from './data/curriculumRegistry';
+import { curriculumRegistry, getAllUnits, getLessonById } from './data/curriculumRegistry';
 import { ALL_ASSESSMENTS, getLessonTestByLessonId } from './data/assessments';
 import { LESSON1_TEACHER_GUIDE } from './data/lesson1/teacherGuide';
+import { LESSON2_TEACHER_GUIDE } from './data/lesson2/teacherGuide';
 import { UnitCard } from './components/curriculum/UnitCard';
 import { LessonFlow } from './components/curriculum/LessonFlow';
 import { TeacherAreaShell } from './components/teacher/TeacherAreaShell';
@@ -13,11 +14,10 @@ type NavigationRoute =
   | { view: 'home' }
   | { view: 'lesson'; lessonId: string }
   | { view: 'lesson_test'; lessonId: string }
-  | { view: 'unit_test'; unitId: string }
   | { view: 'teacher' }
-  | { view: 'solutions' };
+  | { view: 'solutions'; testId?: string };
 
-const TEACHER_GUIDES = [LESSON1_TEACHER_GUIDE];
+const TEACHER_GUIDES = [LESSON1_TEACHER_GUIDE, LESSON2_TEACHER_GUIDE];
 
 export const App: React.FC = () => {
   const [route, setRoute] = useState<NavigationRoute>({ view: 'home' });
@@ -130,25 +130,37 @@ export const App: React.FC = () => {
             );
           })()}
 
-        {route.view === 'unit_test' &&
-          (() => {
-            if (!isUnitTestAvailable(route.unitId)) {
-              return (
-                <div className="empty-state-card">
-                  <h3>اختبار الوحدة غير مفعّل</h3>
-                  <p>لا يُتاح اختبار الوحدة إلا بعد إعلان المالك صراحةً أن الوحدة مكتملة.</p>
-                  <button type="button" className="btn btn-primary" onClick={handleGoHome}>العودة</button>
-                </div>
-              );
-            }
-            return null;
-          })()}
-
         {route.view === 'solutions' &&
           (() => {
-            const test = getLessonTestByLessonId('lesson1');
+            const lessonTests = ALL_ASSESSMENTS.filter((assessment) => assessment.scope === 'lesson');
+            if (!route.testId) {
+              return (
+                <section className="test-solutions-hub" dir="rtl" aria-label="اختيار حلول اختبار الدرس">
+                  <header className="test-solutions-hub-header">
+                    <div className="teacher-header-badge">حلول الاختبارات</div>
+                    <h1>اختر اختبار الدرس</h1>
+                    <p>الحلول تفسيرية ومنفصلة عن واجهة الاختبار، ولا تظهر اختبارات الوحدة قبل اكتمال الوحدة رسمياً.</p>
+                  </header>
+                  <div className="test-solutions-hub-list">
+                    {lessonTests.map((test) => (
+                      <button
+                        key={test.id}
+                        type="button"
+                        className="test-solutions-hub-card"
+                        onClick={() => setRoute({ view: 'solutions', testId: test.id })}
+                      >
+                        <span>حلول اختبار الدرس</span>
+                        <strong>{test.title}</strong>
+                        <small>٢٠ سؤالاً مع تعليل</small>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              );
+            }
+            const test = ALL_ASSESSMENTS.find((assessment) => assessment.id === route.testId && assessment.scope === 'lesson');
             if (!test) return null;
-            return <TestSolutions test={test} onExit={handleGoHome} />;
+            return <TestSolutions test={test} onExit={() => setRoute({ view: 'solutions' })} />;
           })()}
 
         {route.view === 'teacher' && (
@@ -156,6 +168,7 @@ export const App: React.FC = () => {
             curriculum={curriculumRegistry}
             teacherGuides={TEACHER_GUIDES}
             tests={ALL_ASSESSMENTS}
+            accessPassword="somer173"
           />
         )}
       </main>
