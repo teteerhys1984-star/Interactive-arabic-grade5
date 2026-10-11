@@ -17,16 +17,16 @@ import { evaluateAssessmentAttempt } from '../utils/testEvaluator';
 afterEach(cleanup);
 
 describe('Lesson 2 — source-lock implementation', () => {
-  it('registers Lesson 2 inside Unit 1 with all pages 12–24 and no unit test', () => {
+  it('registers Lesson 2 inside Unit 1 with all pages 12–24; the unit test exists only after the owner completion declaration', () => {
     const result = getLessonById('lesson2');
     expect(result).not.toBeNull();
     expect(result?.lesson.metadata.title).toBe('بالرأي والرأي الآخر');
     expect(result?.lesson.metadata.sources.map((source) => source.pageNumber)).toEqual(Array.from({ length: 13 }, (_, index) => index + 12));
     expect(result?.lesson.steps).toHaveLength(9);
-    expect(result?.unit.metadata.isComplete).toBe(false);
-    expect(result?.unit.unitTestId).toBeUndefined();
-    expect(isUnitTestAvailable('unit1')).toBe(false);
-    expect(ALL_ASSESSMENTS.some((assessment) => assessment.scope === 'unit')).toBe(false);
+    expect(result?.unit.metadata.isComplete).toBe(true); // owner declared Lesson 3 last (2026-10-12)
+    expect(result?.unit.unitTestId).toBe('unit1-test');
+    expect(isUnitTestAvailable('unit1')).toBe(true);
+    expect(ALL_ASSESSMENTS.some((assessment) => assessment.scope === 'unit')).toBe(true);
   });
 
   it('maps exactly the 53 source-lock records to student activities, subparts, and teacher solutions', () => {

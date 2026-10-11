@@ -3,6 +3,8 @@ import { LESSON1_STEPS } from './lesson1/content';
 import { src } from './lesson1/sourceMeta';
 import { LESSON2_STEPS } from './lesson2/content';
 import { lesson2Src } from './lesson2/sourceMeta';
+import { LESSON3_STEPS } from './lesson3/content';
+import { lesson3Src } from './lesson3/sourceMeta';
 
 /**
  * Official Curriculum Registry for Grade 5 Arabic.
@@ -69,17 +71,51 @@ const lesson2: Lesson = {
   testId: 'lesson2-test',
 };
 
+const lesson3: Lesson = {
+  metadata: {
+    id: 'lesson3',
+    unitId: 'unit1',
+    order: 3,
+    title: 'لُغَتي',
+    subtitle: 'لغةُ الضَّادِ... إنَّهُ يَجمعُنا... فما السَّبيلُ إلى الحِفاظِ عليها؟',
+    primarySkill: 'literary_appreciation',
+    estimatedMinutes: 90,
+    sources: [
+      lesson3Src(25, 'textbook_exercise', 'أتأمل الصور والاستماع', undefined, 'الضمير في العبارة التمهيدية غير محسوم بصرياً؛ القراءة المعتمدة «إنَّهُ يَجمعُنا».'),
+      lesson3Src(26, 'textbook_poetry', 'أقرأ: قصيدة لغتي'),
+      lesson3Src(27, 'textbook_exercise', 'الفهم القرائي', undefined, 'فعل التكليف في البند ٩ غير محسوم بصرياً.'),
+      lesson3Src(28, 'textbook_expression', 'أتواصل شفهياً: إجراء حوار', undefined, undefined, 29),
+      lesson3Src(29, 'textbook_grammar', 'قواعد اللغة: أركان الجملة الفعلية', undefined, 'صيغة الإكمال الثالث في البند ٣ غير محسومة.'),
+      lesson3Src(30, 'textbook_spelling', 'إملاء: همزة الوصل', undefined, undefined, 32),
+      lesson3Src(31, 'textbook_spelling', 'استكمال همزة الوصل والتقويم', undefined, undefined, 32),
+      lesson3Src(32, 'textbook_spelling', 'استكمال تقويم همزة الوصل', undefined, 'رأس الجدول يظهر بعمودي «فعلٌ» في الطرفين.'),
+      lesson3Src(33, 'textbook_exercise', 'الخط: ب ت ث بخط الرقعة', undefined, 'الصف الثالث من كلمات الملاحظة غير محسوم بصرياً.', 34),
+      lesson3Src(34, 'textbook_expression', 'أعبر كتابياً: التقديم والتأخير', undefined, 'الكلمة الأولى في عنوان التطبيق غير محسومة (ريادة/زيادة).'),
+      lesson3Src(35, 'activity_book', 'ألعب وأتعلم'),
+    ],
+  },
+  steps: LESSON3_STEPS,
+  testId: 'lesson3-test',
+};
+
+/**
+ * COMPLETION DECLARATION (2026-10-12):
+ * The project owner explicitly declared Lesson 3 to be the LAST lesson of
+ * Unit 1 ("الدرس الثالث هو الدرس الأخير في الوحدة"). With Lesson 3 locked and
+ * audited, the unit is now complete and receives its unit test.
+ */
 const unit1: Unit = {
   metadata: {
     id: 'unit1',
     order: 1,
     title: 'الوحدة الأولى: أحلامي وطموحاتي',
     theme: 'أحلامي وطموحاتي',
-    isComplete: false, // NOT complete — owner has not declared the final lesson.
-    sourcePagesRange: { startPage: 4, endPage: 24 },
+    isComplete: true, // Owner declared Lesson 3 the final lesson of the unit (2026-10-12).
+    completionDeclarationDate: '2026-10-12',
+    sourcePagesRange: { startPage: 4, endPage: 35 },
   },
-  lessons: [lesson1, lesson2],
-  // unitTestId intentionally OMITTED while the unit is incomplete.
+  lessons: [lesson1, lesson2, lesson3],
+  unitTestId: 'unit1-test',
 };
 
 export const curriculumRegistry: CurriculumRegistry = {

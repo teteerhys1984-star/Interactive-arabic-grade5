@@ -10,16 +10,19 @@ import { LESSON1_TEACHER_GUIDE } from '../data/lesson1/teacherGuide';
 import { AssessmentTest, Unit } from '../types/curriculum';
 
 describe('Interactive Arabic Grade 5 - Lesson 1 & Foundation Contracts', () => {
-  it('Curriculum integrity: Unit 1 registered with Lesson 1, incomplete, and NO unit test', () => {
+  it('Curriculum integrity: Unit 1 holds three lessons and is complete only by the owner declaration of 2026-10-12', () => {
     expect(curriculumRegistry.grade).toBe(5);
     expect(curriculumRegistry.subject).toBe('اللغة العربية');
     expect(curriculumRegistry.units).toHaveLength(1);
 
     const unit1 = curriculumRegistry.units[0];
     expect(unit1.metadata.id).toBe('unit1');
-    expect(unit1.metadata.isComplete).toBe(false); // NOT complete
-    expect(unit1.unitTestId).toBeUndefined(); // unit test disabled
-    expect(isUnitTestAvailable('unit1')).toBe(false);
+    // The project owner declared Lesson 3 the last lesson of the unit; completion is recorded with its date.
+    expect(unit1.metadata.isComplete).toBe(true);
+    expect(unit1.metadata.completionDeclarationDate).toBe('2026-10-12');
+    expect(unit1.unitTestId).toBe('unit1-test');
+    expect(isUnitTestAvailable('unit1')).toBe(true);
+    expect(unit1.lessons.map((lesson) => lesson.metadata.id)).toEqual(['lesson1', 'lesson2', 'lesson3']);
 
     const lesson = getLessonById('lesson1');
     expect(lesson).not.toBeNull();

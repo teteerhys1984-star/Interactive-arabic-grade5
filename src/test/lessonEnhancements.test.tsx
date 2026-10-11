@@ -231,12 +231,12 @@ describe('Curriculum, assessment and source-fidelity checks', () => {
     expect(assessmentAudit.issues.some((issue) => issue.severity === 'warning' && issue.message.includes('صفحة 11'))).toBe(true);
   });
 
-  it('keeps the full Test Solutions content and does not mark Unit 1 complete', () => {
+  it('keeps the full Test Solutions content; Unit 1 completion stems from the owner declaration', () => {
     render(<TestSolutions test={LESSON1_TEST} />);
     expect(screen.getAllByText(/الإجابَةُ الصَّحيحَةُ:/)).toHaveLength(20);
     expect(screen.getAllByText(/التَّعليلُ:/)).toHaveLength(20);
-    expect(getLessonById('lesson1')!.unit.metadata.isComplete).toBe(false);
-    expect(getLessonById('lesson1')!.unit.unitTestId).toBeUndefined();
+    expect(getLessonById('lesson1')!.unit.metadata.isComplete).toBe(true);
+    expect(getLessonById('lesson1')!.unit.unitTestId).toBe('unit1-test');
   });
 
   it('retains every Teacher Area exercise solution and remains auditable', () => {
