@@ -112,6 +112,48 @@ export interface Unit {
    * Target: 50-60 questions.
    */
   unitTestId?: string;
+  /**
+   * Optional official unit review (textbook «تقويم الوحدة»).
+   *
+   * EXPLICIT RULE: a unit review is an assessment extension of the unit that
+   * follows its lessons. It is NEVER a lesson: it must not appear in
+   * `lessons`, must not take a lesson number, and must not change lesson count
+   * or order. Its content is registered separately as a UnitReview.
+   */
+  reviewId?: string;
+}
+
+// ==========================================
+// 2.b UNIT REVIEW (textbook «تقويم الوحدة»)
+// ==========================================
+
+export interface UnitReviewMetadata {
+  id: string;
+  unitId: string;
+  /** Explicit discriminator proving this element is not a lesson. */
+  kind: 'unit_review';
+  title: string;
+  /** Stable project identifier for the element («Unit 1 Review»). */
+  englishLabel: string;
+  description: string;
+  /** Printed pages covered by the review (outside the lesson page range). */
+  sourcePagesRange: { startPage: number; endPage: number };
+  /** Number of printed, numbered questions in the review. */
+  printedQuestions: number;
+  /** Number of printed branches (sub-questions) across those questions. */
+  printedBranches: number;
+  /** Number of printed source records locked by the source audit. */
+  sourceRecords: number;
+  source: SourceReference;
+  /** Documentation references proving coverage and auditability. */
+  coverageReportRef: string;
+  sourceAuditRef: string;
+  /** true once every printed record has a student element and a teacher solution. */
+  isCoverageVerified: boolean;
+}
+
+export interface UnitReview {
+  metadata: UnitReviewMetadata;
 }
 
 export interface CurriculumRegistry {

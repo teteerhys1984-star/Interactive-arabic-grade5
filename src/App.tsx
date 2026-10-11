@@ -1,11 +1,20 @@
 import React, { useState } from 'react';
-import { curriculumRegistry, getAllUnits, getLessonById, isUnitTestAvailable } from './data/curriculumRegistry';
+import {
+  curriculumRegistry,
+  getAllUnits,
+  getLessonById,
+  getUnitReviewByUnitId,
+  getUnitReviews,
+  isUnitTestAvailable,
+} from './data/curriculumRegistry';
 import { ALL_ASSESSMENTS, getLessonTestByLessonId, getUnitTestByUnitId } from './data/assessments';
 import { LESSON1_TEACHER_GUIDE } from './data/lesson1/teacherGuide';
 import { LESSON2_TEACHER_GUIDE } from './data/lesson2/teacherGuide';
 import { LESSON3_TEACHER_GUIDE } from './data/lesson3/teacherGuide';
 import { UnitCard } from './components/curriculum/UnitCard';
 import { LessonFlow } from './components/curriculum/LessonFlow';
+import { Unit1ReviewFlow } from './components/curriculum/Unit1ReviewFlow';
+import { Unit1ReviewSolutions } from './components/teacher/Unit1ReviewSolutions';
 import { TeacherAreaShell } from './components/teacher/TeacherAreaShell';
 import { AssessmentShell } from './components/assessment/AssessmentShell';
 import { TestSolutions } from './components/assessment/TestSolutions';
@@ -16,6 +25,7 @@ type NavigationRoute =
   | { view: 'lesson'; lessonId: string }
   | { view: 'lesson_test'; lessonId: string }
   | { view: 'unit_test'; unitId: string }
+  | { view: 'unit_review'; unitId: string }
   | { view: 'teacher' }
   | { view: 'solutions'; testId?: string };
 
@@ -162,18 +172,25 @@ export const App: React.FC = () => {
               </div>
             ) : (
               <div className="units-grid">
-                {units.map((unit) => (
-                  <UnitCard
-                    key={unit.metadata.id}
-                    unit={unit}
-                    onSelectLesson={handleSelectLesson}
-                    onOpenUnitTest={
-                      isUnitTestAvailable(unit.metadata.id)
-                        ? () => setRoute({ view: 'unit_test', unitId: unit.metadata.id })
-                        : undefined
-                    }
-                  />
-                ))}
+                {units.map((unit) => {
+                  const review = getUnitReviewByUnitId(unit.metadata.id);
+                  return (
+                    <UnitCard
+                      key={unit.metadata.id}
+                      unit={unit}
+                      onSelectLesson={handleSelectLesson}
+                      onOpenUnitTest={
+                        isUnitTestAvailable(unit.metadata.id)
+                          ? () => setRoute({ view: 'unit_test', unitId: unit.metadata.id })
+                          : undefined
+                      }
+                      review={review}
+                      onOpenReview={
+                        review ? () => setRoute({ view: 'unit_review', unitId: unit.metadata.id }) : undefined
+                      }
+                    />
+                  );
+                })}
               </div>
             )}
           </section>
@@ -238,6 +255,20 @@ export const App: React.FC = () => {
               );
             }
             return <AssessmentShell test={test} onExit={handleGoHome} />;
+          })()}
+
+        {route.view === 'unit_review' &&
+          (() => {
+            const review = getUnitReviewByUnitId(route.unitId);
+            if (!review) {
+              return (
+                <div className="empty-state-card">
+                  <h3>لا يتوفر تقويم رسمي مسجَّل لهذه الوحدة</h3>
+                  <button type="button" className="btn btn-primary" onClick={handleGoHome}>العودة للقائمة</button>
+                </div>
+              );
+            }
+            return <Unit1ReviewFlow review={review} onExit={handleGoHome} />;
           })()}
 
         {route.view === 'solutions' &&
@@ -313,6 +344,8 @@ export const App: React.FC = () => {
             teacherGuides={TEACHER_GUIDES}
             tests={ALL_ASSESSMENTS}
             accessPassword="somer173"
+            reviewSolutions={getUnitReviews().length > 0 ? <Unit1ReviewSolutions /> : undefined}
+            reviewSectionLabel="حلول تقويم الوحدة الأولى"
           />
         )}
       </main>

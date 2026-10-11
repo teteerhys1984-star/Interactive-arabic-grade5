@@ -1,18 +1,28 @@
 import React from 'react';
-import { Unit } from '../../types/curriculum';
-import { ArabicNumber } from '../common/BiDi';
+import { Unit, UnitReview } from '../../types/curriculum';
+import { ArabicNumber, LatinText } from '../common/BiDi';
+import { toArabicDigits } from '../../utils/arabicDigits';
 
 export interface UnitCardProps {
   unit: Unit;
   onSelectLesson: (lessonId: string) => void;
   /** Offered only when the unit is explicitly complete and its test is available. */
   onOpenUnitTest?: () => void;
+  /**
+   * Official unit review (textbook «تقويم الوحدة»).
+   * Shown in its own section AFTER the lessons list — never as a lesson and
+   * never inside the lessons list, so lesson count and order stay untouched.
+   */
+  review?: UnitReview;
+  onOpenReview?: () => void;
 }
 
 export const UnitCard: React.FC<UnitCardProps> = ({
   unit,
   onSelectLesson,
   onOpenUnitTest,
+  review,
+  onOpenReview,
 }) => {
   const { metadata, lessons } = unit;
   const isUnitComplete = metadata.isComplete;
@@ -74,6 +84,37 @@ export const UnitCard: React.FC<UnitCardProps> = ({
           </ul>
         )}
       </div>
+
+      {/* Unit review section — separate from the lessons list on purpose */}
+      {review && onOpenReview && (
+        <section className="unit-review-section" aria-labelledby={`unit-review-title-${review.metadata.id}`}>
+          <div className="unit-review-kicker">
+            مراجعة الوحدة · <LatinText>{review.metadata.englishLabel}</LatinText>
+          </div>
+          <h3 id={`unit-review-title-${review.metadata.id}`} className="unit-review-title">
+            {review.metadata.title}
+          </h3>
+          <p className="unit-review-description">{review.metadata.description}</p>
+          <ul className="unit-review-facts">
+            <li>
+              الأسئلة المرقّمة: <ArabicNumber value={toArabicDigits(review.metadata.printedQuestions)} />
+            </li>
+            <li>
+              الفروع: <ArabicNumber value={toArabicDigits(review.metadata.printedBranches)} />
+            </li>
+            <li>
+              صفحات الكتاب <ArabicNumber value={toArabicDigits(review.metadata.sourcePagesRange.startPage)} />–
+              <ArabicNumber value={toArabicDigits(review.metadata.sourcePagesRange.endPage)} />
+            </li>
+          </ul>
+          <p className="unit-review-note">
+            تقويم رسمي لمراجعة دروس الوحدة، وليس درساً رابعاً، ولا يُلغي اختبار الوحدة الشامل.
+          </p>
+          <button type="button" className="btn btn-secondary unit-review-button" onClick={onOpenReview}>
+            ابدأ تقويم الوحدة الأولى <span aria-hidden="true" className="lesson-btn-arrow">←</span>
+          </button>
+        </section>
+      )}
 
     </article>
   );
