@@ -1,17 +1,24 @@
 import { AssessmentQuestion, AssessmentTest } from '../types/curriculum';
 
 /**
- * Cross-test duplication guard.
+ * Cross-test duplication guard — a LEXICAL regression guard, not a semantic one.
  *
  * A unit test is an independent instrument: it must not re-ask the lesson tests'
- * questions. This audit flags a unit question when BOTH of the following hold
- * against some lesson-test question:
- *   1. the normalized prompts share a high proportion of content tokens, and
- *   2. the normalized correct answers are substantively the same.
+ * questions. This audit flags a unit question when, against some lesson-test
+ * question, EITHER of the following holds:
+ *   1. the normalized prompts share a high proportion of content tokens AND the
+ *      normalized correct answers are substantially the same (near-verbatim
+ *      duplication), or
+ *   2. the normalized correct answers are near-identical (≥ 0.8 token overlap
+ *      with at least 2 content tokens) even under a reworded prompt.
  *
- * Matching on skill alone is intentionally NOT flagged — testing the same skill
- * with different material is legitimate. Only near-identical question + answer
- * pairs are reported.
+ * KNOWN LIMITATION (proven by test): a question re-expressed in different
+ * words is NOT detected, even when it measures the same idea — e.g. a
+ * paraphrase of one lesson question keeps passing this audit. Matching on
+ * skill alone is also intentionally not flagged. This tool therefore guards
+ * against verbatim drift and answer-text reuse only; SEMANTIC duplication
+ * still requires manual human review and targeted tests. Do not describe it
+ * as preventing substantive/semantic duplication.
  */
 
 const TATWEEL_AND_DIACRITICS = /[\u064B-\u0652\u0640\u0670\u0653-\u065F]/g;

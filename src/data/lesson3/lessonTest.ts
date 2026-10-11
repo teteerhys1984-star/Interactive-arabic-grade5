@@ -57,7 +57,7 @@ export const LESSON3_TEST: AssessmentTest = {
       id: 'l3-t-05', order: 5, type: 'fill_blank', difficulty: 'basic',
       prompt: 'أكمل: الفعل الماضي الذي الأمر منه «اعلمْ» هو …',
       caseSensitive: true,
-      acceptedAnswers: ['عَلِمَ', 'عَلِمَ', 'عَلِمَ', 'علم', 'العلم'],
+      acceptedAnswers: ['عَلِمَ', 'علم'],
       explanation: 'أمر الثلاثي «اعلمْ» يبدأ بهمزة وصل، وماضيه الثلاثي «عَلِمَ» (بكسر اللام).',
       testedSkill: 'همزة الوصل في أمر الثلاثي', source: lesson3Src(30, 'textbook_spelling', 'إملاء: همزة الوصل', 1),
     },

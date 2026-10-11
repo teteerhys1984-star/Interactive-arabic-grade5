@@ -42,15 +42,22 @@ describe('Audit fix 1a — u1-t-33 must not accept a word absent from the senten
     expect(scoreOne(UNIT1_TEST, 'u1-t-33', 'اشتراك')).toBe(0);
     expect(scoreOne(UNIT1_TEST, 'u1-t-33', 'الاشتراك')).toBe(0);
   });
+
+  it('accepts only the masdar itself, not the masdar with its adjective', () => {
+    const question = unitQuestion('u1-t-33');
+    expect(question.type === 'fill_blank' && question.acceptedAnswers).not.toContain('الإذاعة المدرسية');
+    expect(scoreOne(UNIT1_TEST, 'u1-t-33', 'الإذاعة المدرسية')).toBe(0);
+  });
 });
 
-describe('Audit fix 1b — u1-t-48 rebuilt on locked text with a correct reference', () => {
-  it('quotes only the locked sentence and cites page 31 examples', () => {
+describe('Audit fix 1b — u1-t-48 rebuilt on the source-reading-phase sentence with a correct reference', () => {
+  it('quotes only that sentence, cites page 31 examples, and keeps an honest origin wording', () => {
     const question = unitQuestion('u1-t-48');
     expect(question.passageContext).toBe('«أنا حريصٌ على إعلاءِ اسمِ بلادي.»');
     expect(question.passageContext).not.toContain('ابن');
     expect(question.source.pageNumber).toBe(31);
     expect(question.source.sectionName).toBe('أقرأ الأمثلة');
+    expect(question.explanation).toContain('المدوّنة من مرحلة قراءة المصدر');
   });
 });
 
@@ -90,6 +97,12 @@ describe('Audit fix — l3-t-05 no longer accepts the wrong verb form', () => {
     expect(scoreOne(LESSON3_TEST, 'l3-t-05', 'عَلِمَ')).toBe(1);
     expect(scoreOne(LESSON3_TEST, 'l3-t-05', 'علم')).toBe(1);
     expect(scoreOne(LESSON3_TEST, 'l3-t-05', 'عَلَمَ')).toBe(0);
+  });
+
+  it('rejects the nominal form and keeps the acceptance list free of duplicates', () => {
+    expect(scoreOne(LESSON3_TEST, 'l3-t-05', 'العلم')).toBe(0);
+    const question = LESSON3_TEST.questions.find((entry) => entry.id === 'l3-t-05')!;
+    expect(question.type === 'fill_blank' && question.acceptedAnswers).toEqual(['عَلِمَ', 'علم']);
   });
 });
 
@@ -145,6 +158,57 @@ describe('Audit fix 2 — cross-test duplication guard', () => {
     };
     const report = auditCrossTestDuplication(syntheticUnit, [LESSON1_TEST]);
     expect(report.passed).toBe(false);
+  });
+
+  it('does not flag different questions that merely share common words', () => {
+    const syntheticUnit: AssessmentTest = {
+      ...UNIT1_TEST,
+      id: 'synthetic-unit-3',
+      questions: [
+        {
+          id: 'syn-03', order: 1, type: 'single_choice', difficulty: 'basic',
+          prompt: 'ما لون مياه البحر في الصباح الباكر؟',
+          choices: [
+            { id: 'a', text: 'أزرق' },
+            { id: 'b', text: 'أخضر' },
+          ],
+          correctChoiceId: 'a',
+          explanation: 'سؤال مختلف يشترك مع غيره في كلمات عامة فقط.',
+          testedSkill: 'فهم',
+          source: UNIT1_TEST.questions[0].source,
+        },
+      ],
+    };
+    const report = auditCrossTestDuplication(syntheticUnit, [LESSON1_TEST, LESSON2_TEST, LESSON3_TEST]);
+    expect(report.passed).toBe(true);
+    expect(report.findings).toEqual([]);
+  });
+
+  it('KNOWN LIMIT: does not detect a semantic duplicate rephrased in different words', () => {
+    // The pre-fix u1-t-01 asked the same idea as l1-t-02 in different words.
+    // The guard is lexical: this case passes it undetected, which is why
+    // semantic duplication still requires manual review and targeted tests.
+    const syntheticUnit: AssessmentTest = {
+      ...UNIT1_TEST,
+      id: 'synthetic-unit-4',
+      questions: [
+        {
+          id: 'syn-04', order: 1, type: 'single_choice', difficulty: 'basic',
+          prompt: 'بماذا كان يحلم الصياد أن يظفر ليشتري بثمنه زورقاً؟',
+          choices: [
+            { id: 'a', text: 'بسمكة ذهبية' },
+            { id: 'b', text: 'بكنز غارق' },
+          ],
+          correctChoiceId: 'a',
+          explanation: 'إعادة صياغة جوهر سؤال قائم بصياغة مختلفة.',
+          testedSkill: 'استرجاع',
+          source: UNIT1_TEST.questions[0].source,
+        },
+      ],
+    };
+    const report = auditCrossTestDuplication(syntheticUnit, [LESSON1_TEST]);
+    expect(report.passed).toBe(true);
+    expect(report.findings).toEqual([]);
   });
 });
 
@@ -217,6 +281,43 @@ describe('Audit fix 3 — real draft saving and restoration (Lesson 3)', () => {
     fireEvent.change(input, { target: { value: 'محاولة' } });
     fireEvent.click(widget.getByRole('button', { name: 'حفظ مسودة إجابتي' }));
     expect(widget.getByRole('alert')).toHaveTextContent('تعذّر حفظ المسودة');
+  });
+});
+
+describe('Audit fix — Lesson 2 draft persistence through the student UI', () => {
+  // jsdom-only: this exercises the real widget path (type → save → navigate →
+  // remount → restore) but cannot perform a real page reload.
+  it('saves, isolates, and restores Lesson 2 activity drafts when navigating steps', () => {
+    const lesson2 = getLessonById('lesson2')!.lesson;
+    render(<LessonFlow lesson={lesson2} />);
+
+    // Step 3 (الفهم القرائي) holds both activities.
+    fireEvent.click(screen.getByRole('button', { name: /الانتقال إلى الخطوة 2/ }));
+    fireEvent.click(screen.getByRole('button', { name: /الانتقال إلى الخطوة 3/ }));
+
+    const firstActivity = within(screen.getByLabelText('نشاط المصدر L2-14-01'));
+    fireEvent.change(firstActivity.getByLabelText('جمع «تاج»'), { target: { value: 'تيجان' } });
+
+    const secondActivity = within(screen.getByLabelText('نشاط المصدر L2-14-02'));
+    fireEvent.change(secondActivity.getByLabelText('معنى «تنضج» في جملة الحكمة'), {
+      target: { value: 'تنمو وتزداد' },
+    });
+
+    // Keys are namespaced per lesson and per activity; nothing leaks into lesson 3.
+    expect(readDraft('lesson2', 'L2-14-01')).toEqual({ 'plural-taj': 'تيجان' });
+    expect(readDraft('lesson2', 'L2-14-02')).toEqual({ wisdom: 'تنمو وتزداد' });
+    expect(readDraft('lesson3', 'L2-14-01')).toEqual({});
+
+    // Leave the step and come back: drafts must be restored from storage.
+    fireEvent.click(screen.getByRole('button', { name: /الانتقال إلى الخطوة 4/ }));
+    fireEvent.click(screen.getByRole('button', { name: /العودة إلى الخطوة 3/ }));
+
+    const firstAgain = within(screen.getByLabelText('نشاط المصدر L2-14-01'));
+    expect((firstAgain.getByLabelText('جمع «تاج»') as HTMLInputElement).value).toBe('تيجان');
+    const secondAgain = within(screen.getByLabelText('نشاط المصدر L2-14-02'));
+    expect((secondAgain.getByLabelText('معنى «تنضج» في جملة الحكمة') as HTMLTextAreaElement).value).toBe(
+      'تنمو وتزداد',
+    );
   });
 });
 
