@@ -39,15 +39,26 @@ function correctAnswerText(q: AssessmentQuestion): string {
   }
 }
 
-const GROUPS: { label: string; from: number; to: number }[] = [
-  { label: 'الأسئلة ١–٥', from: 1, to: 5 },
-  { label: 'الأسئلة ٦–١٠', from: 6, to: 10 },
-  { label: 'الأسئلة ١١–١٥', from: 11, to: 15 },
-  { label: 'الأسئلة ١٦–٢٠', from: 16, to: 20 },
-];
+const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
+function toArabicDigits(value: number | string): string {
+  return String(value).replace(/\d/g, (digit) => ARABIC_DIGITS[Number(digit)]);
+}
+
+/** Lesson tests keep their 5-question groups; the 50-question unit test is grouped by tens. */
+function buildGroups(test: AssessmentTest): { label: string; from: number; to: number }[] {
+  const size = test.scope === 'unit' ? 10 : 5;
+  const total = test.questions.length;
+  const groups: { label: string; from: number; to: number }[] = [];
+  for (let from = 1; from <= total; from += size) {
+    const to = Math.min(from + size - 1, total);
+    groups.push({ label: `الأسئلة ${toArabicDigits(from)}–${toArabicDigits(to)}`, from, to });
+  }
+  return groups;
+}
 
 export const TestSolutions: React.FC<{ test: AssessmentTest; onExit?: () => void }> = ({ test, onExit }) => {
   const sorted = [...test.questions].sort((a, b) => a.order - b.order);
+  const GROUPS = buildGroups(test);
 
   return (
     <section className="test-solutions-container" dir="rtl" aria-label="حلول الاختبارات">

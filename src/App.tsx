@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { curriculumRegistry, getAllUnits, getLessonById } from './data/curriculumRegistry';
-import { ALL_ASSESSMENTS, getLessonTestByLessonId } from './data/assessments';
+import { curriculumRegistry, getAllUnits, getLessonById, isUnitTestAvailable } from './data/curriculumRegistry';
+import { ALL_ASSESSMENTS, getLessonTestByLessonId, getUnitTestByUnitId } from './data/assessments';
 import { LESSON1_TEACHER_GUIDE } from './data/lesson1/teacherGuide';
 import { LESSON2_TEACHER_GUIDE } from './data/lesson2/teacherGuide';
+import { LESSON3_TEACHER_GUIDE } from './data/lesson3/teacherGuide';
 import { UnitCard } from './components/curriculum/UnitCard';
 import { LessonFlow } from './components/curriculum/LessonFlow';
 import { TeacherAreaShell } from './components/teacher/TeacherAreaShell';
@@ -14,10 +15,15 @@ type NavigationRoute =
   | { view: 'home' }
   | { view: 'lesson'; lessonId: string }
   | { view: 'lesson_test'; lessonId: string }
+  | { view: 'unit_test'; unitId: string }
   | { view: 'teacher' }
   | { view: 'solutions'; testId?: string };
 
-const TEACHER_GUIDES = [LESSON1_TEACHER_GUIDE, LESSON2_TEACHER_GUIDE];
+const TEACHER_GUIDES = [LESSON1_TEACHER_GUIDE, LESSON2_TEACHER_GUIDE, LESSON3_TEACHER_GUIDE];
+
+const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
+const toArabicDigits = (value: number | string): string =>
+  String(value).replace(/\d/g, (digit) => ARABIC_DIGITS[Number(digit)]);
 
 export const App: React.FC = () => {
   const [route, setRoute] = useState<NavigationRoute>({ view: 'home' });
@@ -84,7 +90,16 @@ export const App: React.FC = () => {
             ) : (
               <div className="units-grid">
                 {units.map((unit) => (
-                  <UnitCard key={unit.metadata.id} unit={unit} onSelectLesson={handleSelectLesson} />
+                  <UnitCard
+                    key={unit.metadata.id}
+                    unit={unit}
+                    onSelectLesson={handleSelectLesson}
+                    onOpenUnitTest={
+                      isUnitTestAvailable(unit.metadata.id)
+                        ? () => setRoute({ view: 'unit_test', unitId: unit.metadata.id })
+                        : undefined
+                    }
+                  />
                 ))}
               </div>
             )}
@@ -130,9 +145,34 @@ export const App: React.FC = () => {
             );
           })()}
 
+        {route.view === 'unit_test' &&
+          (() => {
+            if (!isUnitTestAvailable(route.unitId)) {
+              return (
+                <div className="empty-state-card">
+                  <h3>اختبار الوحدة غير متاح قبل اكتمال الوحدة رسمياً</h3>
+                  <button type="button" className="btn btn-primary" onClick={handleGoHome}>العودة</button>
+                </div>
+              );
+            }
+            const test = getUnitTestByUnitId(route.unitId);
+            if (!test) {
+              return (
+                <div className="empty-state-card">
+                  <h3>لا يتوفر اختبار لهذه الوحدة</h3>
+                  <button type="button" className="btn btn-primary" onClick={handleGoHome}>العودة</button>
+                </div>
+              );
+            }
+            return <AssessmentShell test={test} onExit={handleGoHome} />;
+          })()}
+
         {route.view === 'solutions' &&
           (() => {
             const lessonTests = ALL_ASSESSMENTS.filter((assessment) => assessment.scope === 'lesson');
+            const unitTests = ALL_ASSESSMENTS.filter(
+              (assessment) => assessment.scope === 'unit' && isUnitTestAvailable(assessment.unitId),
+            );
             if (!route.testId) {
               return (
                 <section className="test-solutions-hub" dir="rtl" aria-label="اختيار حلول اختبار الدرس">
@@ -151,14 +191,35 @@ export const App: React.FC = () => {
                       >
                         <span>حلول اختبار الدرس</span>
                         <strong>{test.title}</strong>
-                        <small>٢٠ سؤالاً مع تعليل</small>
+                        <small>{toArabicDigits(test.questions.length)} سؤالاً مع تعليل</small>
                       </button>
                     ))}
                   </div>
+                  {unitTests.length > 0 && (
+                    <div className="test-solutions-hub-list">
+                      <h2 className="solutions-group-title">منطقة مستقلة: حلول اختبار الوحدة</h2>
+                      {unitTests.map((test) => (
+                        <button
+                          key={test.id}
+                          type="button"
+                          className="test-solutions-hub-card"
+                          onClick={() => setRoute({ view: 'solutions', testId: test.id })}
+                        >
+                          <span>حلول اختبار الوحدة الأولى</span>
+                          <strong>{test.title}</strong>
+                          <small>{toArabicDigits(test.questions.length)} سؤالاً مع تعليل ومرجع الدرس</small>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </section>
               );
             }
-            const test = ALL_ASSESSMENTS.find((assessment) => assessment.id === route.testId && assessment.scope === 'lesson');
+            const test = ALL_ASSESSMENTS.find(
+              (assessment) =>
+                assessment.id === route.testId &&
+                (assessment.scope === 'lesson' || (assessment.scope === 'unit' && isUnitTestAvailable(assessment.unitId))),
+            );
             if (!test) return null;
             return <TestSolutions test={test} onExit={() => setRoute({ view: 'solutions' })} />;
           })()}

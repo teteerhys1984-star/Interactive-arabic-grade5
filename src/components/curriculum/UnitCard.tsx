@@ -5,11 +5,14 @@ import { ArabicNumber } from '../common/BiDi';
 export interface UnitCardProps {
   unit: Unit;
   onSelectLesson: (lessonId: string) => void;
+  /** Offered only when the unit is explicitly complete and its test is available. */
+  onOpenUnitTest?: () => void;
 }
 
 export const UnitCard: React.FC<UnitCardProps> = ({
   unit,
   onSelectLesson,
+  onOpenUnitTest,
 }) => {
   const { metadata, lessons } = unit;
   const isUnitComplete = metadata.isComplete;
@@ -34,6 +37,15 @@ export const UnitCard: React.FC<UnitCardProps> = ({
         </h2>
         {metadata.theme && <p className="unit-theme">{metadata.theme}</p>}
       </header>
+
+      {/* Unit test — offered only after the explicit completion declaration */}
+      {isUnitComplete && onOpenUnitTest && (
+        <div className="unit-test-section">
+          <button type="button" className="btn btn-accent lesson-test-button" onClick={onOpenUnitTest}>
+            اختبار الوحدة الأولى الشامل (٥٠ سؤالاً)
+          </button>
+        </div>
+      )}
 
       {/* Lessons List in this Unit */}
       <div className="unit-lessons-section">
