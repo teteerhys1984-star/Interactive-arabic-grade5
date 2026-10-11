@@ -3,6 +3,9 @@ import { LessonStep } from '../../types/curriculum';
 import { SourceBadge } from '../common/SourceBadge';
 import { getLesson3Activity, Lesson3Activity, Lesson3Interaction } from '../../data/lesson3/activities';
 import { LESSON3_STEP_CONTENT, Lesson3Block } from '../../data/lesson3/content';
+import { clearDraft, readDraft, writeDraft } from '../../utils/draftStorage';
+
+const LESSON3_DRAFT_SCOPE = 'lesson3';
 
 /**
  * Lesson 3 renderer.
@@ -118,12 +121,37 @@ const Lesson3BlockView: React.FC<{ block: Lesson3Block }> = ({ block }) => {
 };
 
 const Lesson3ActivityWidget: React.FC<{ activity: Lesson3Activity }> = ({ activity }) => {
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Record<string, string>>(() =>
+    readDraft(LESSON3_DRAFT_SCOPE, activity.sourceActivityId),
+  );
   const [saved, setSaved] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
+  const [cleared, setCleared] = useState(false);
 
   const update = (id: string, value: string) => {
     setSaved(false);
-    setValues((current) => ({ ...current, [id]: value }));
+    setSaveFailed(false);
+    setCleared(false);
+    setValues((current) => {
+      const next = { ...current, [id]: value };
+      writeDraft(LESSON3_DRAFT_SCOPE, activity.sourceActivityId, next);
+      return next;
+    });
+  };
+
+  const handleSave = () => {
+    const persisted = writeDraft(LESSON3_DRAFT_SCOPE, activity.sourceActivityId, values);
+    setSaved(persisted);
+    setSaveFailed(!persisted);
+    setCleared(false);
+  };
+
+  const handleReset = () => {
+    clearDraft(LESSON3_DRAFT_SCOPE, activity.sourceActivityId);
+    setValues({});
+    setSaved(false);
+    setSaveFailed(false);
+    setCleared(true);
   };
 
   return (
@@ -146,10 +174,27 @@ const Lesson3ActivityWidget: React.FC<{ activity: Lesson3Activity }> = ({ activi
       )}
       <Lesson3InteractionView interaction={activity.interaction} values={values} update={update} />
       <footer className="l2-activity-footer">
-        <button type="button" className="btn btn-secondary btn-small" onClick={() => setSaved(true)}>
+        <button type="button" className="btn btn-secondary btn-small" onClick={handleSave}>
           حفظ مسودة إجابتي
         </button>
-        {saved && <span className="l2-saved-status" role="status">حُفظت مسودتك في هذه الجلسة؛ راجعها مع معلمك.</span>}
+        <button type="button" className="btn btn-ghost btn-small" onClick={handleReset}>
+          مسح مسودتي
+        </button>
+        {saved && (
+          <span className="l2-saved-status" role="status">
+            حُفظت مسودتك في هذا المتصفح وتُستعاد عند العودة إلى النشاط أو إعادة تحميل الصفحة.
+          </span>
+        )}
+        {saveFailed && (
+          <span className="l2-saved-status" role="alert">
+            تعذّر حفظ المسودة في هذا المتصفح؛ انسخ إجابتك قبل مغادرة الصفحة.
+          </span>
+        )}
+        {cleared && (
+          <span className="l2-saved-status" role="status">
+            مُسحت مسودة هذا النشاط.
+          </span>
+        )}
       </footer>
     </section>
   );

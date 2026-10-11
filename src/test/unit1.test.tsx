@@ -10,6 +10,7 @@ import { LESSON2_TEST } from '../data/lesson2/lessonTest';
 import { LESSON3_TEST } from '../data/lesson3/lessonTest';
 import { UNIT1_TEST } from '../data/unit1/unitTest';
 import { auditCurriculum } from '../utils/audit';
+import { auditCrossTestDuplication } from '../utils/testDuplicationAudit';
 import { evaluateAssessmentAttempt } from '../utils/testEvaluator';
 import { LESSON1_TEACHER_GUIDE } from '../data/lesson1/teacherGuide';
 import { LESSON2_TEACHER_GUIDE } from '../data/lesson2/teacherGuide';
@@ -50,11 +51,15 @@ describe('Unit 1 comprehensive test and its independent solutions area', () => {
     // The unit test is an independent instrument: no question ID overlaps a lesson test.
     const lessonQuestionIds = new Set([...LESSON1_TEST.questions, ...LESSON2_TEST.questions, ...LESSON3_TEST.questions].map((question) => question.id));
     expect(UNIT1_TEST.questions.every((question) => !lessonQuestionIds.has(question.id))).toBe(true);
+    // Textual/substantive duplication guard: no near-identical prompt+answer or reused answer.
+    const duplication = auditCrossTestDuplication(UNIT1_TEST, [LESSON1_TEST, LESSON2_TEST, LESSON3_TEST]);
+    expect(duplication.findings).toEqual([]);
+    expect(duplication.passed).toBe(true);
   });
 
   it('scores complex answer shapes correctly through the shared evaluator', () => {
     const answers = {
-      'u1-t-05': { s1: 'nom', s2: 'ver', s3: 'ver' },
+      'u1-t-05': { s1: 'nom', s2: 'ver', s3: 'nom' },
       'u1-t-11': ['a', 'c'],
       'u1-t-23': { ishtarak: 'verb', ishtirak: 'masdar', intashar: 'verb', intishar: 'masdar' },
       'u1-t-30': { 'الترحيب بالضيف وشكره': 'افتتاح مهذب وخاتمة لائقة', 'تحضير أسئلة قصيرة مباشرة': 'إبقاء الحوار في الموضوع', 'إعطاء الضيف وقتاً كافياً': 'إتاحة الرأي للضيف' },

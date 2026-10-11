@@ -56,8 +56,9 @@ export const LESSON3_TEST: AssessmentTest = {
     {
       id: 'l3-t-05', order: 5, type: 'fill_blank', difficulty: 'basic',
       prompt: 'أكمل: الفعل الماضي الذي الأمر منه «اعلمْ» هو …',
-      acceptedAnswers: ['علم', 'عَلِمَ', 'علمَ'],
-      explanation: 'أمر الثلاثي «اعلمْ» يبدأ بهمزة وصل، وماضيه الثلاثي «عَلِمَ».',
+      caseSensitive: true,
+      acceptedAnswers: ['عَلِمَ', 'عَلِمَ', 'عَلِمَ', 'علم', 'العلم'],
+      explanation: 'أمر الثلاثي «اعلمْ» يبدأ بهمزة وصل، وماضيه الثلاثي «عَلِمَ» (بكسر اللام).',
       testedSkill: 'همزة الوصل في أمر الثلاثي', source: lesson3Src(30, 'textbook_spelling', 'إملاء: همزة الوصل', 1),
     },
     {
@@ -170,14 +171,14 @@ export const LESSON3_TEST: AssessmentTest = {
     },
     {
       id: 'l3-t-16', order: 16, type: 'grammar_application', difficulty: 'advanced',
-      prompt: 'أي الجمل الآتية فعلية مكتملة الأركان الثلاثة (فعل وفاعل ومفعول به)؟',
+      prompt: 'أي الجمل الآتية فعلية وتتضمن أركانها الثلاثة ظاهرة: فعلاً ففاعلاً فمفعولاً به؟',
       choices: [
         { id: 'a', text: 'تجمعُ اللغةُ أبناءَها.' },
         { id: 'b', text: 'ازدهرتِ اللغةُ.' },
         { id: 'c', text: 'اللغةُ سجلُّ الأمةِ.' },
-        { id: 'd', text: 'ما أجملَ اللغةَ!' },
+        { id: 'd', text: 'العلمُ نورٌ.' },
       ],
-      correctChoiceId: 'a', explanation: '«تجمعُ» فعل و«اللغةُ» فاعل و«أبناءَها» مفعول به؛ أما «ازدهرت» فبلا مفعول، والثالثة اسمية.',
+      correctChoiceId: 'a', explanation: '«تجمعُ» فعل و«اللغةُ» فاعل و«أبناءَها» مفعول به، فجميع الأركان ظاهرة؛ أما «ازدهرتِ اللغةُ» ففعلية بلا مفعول، و«اللغةُ سجلُّ الأمةِ» و«العلمُ نورٌ» فجملتان اسميتان (مبتدأ وخبر) لا فعل فيهما.',
       testedSkill: 'تحليل الأركان', source: lesson3Src(29, 'textbook_grammar', 'التقويم النهائي', 1),
     },
     {

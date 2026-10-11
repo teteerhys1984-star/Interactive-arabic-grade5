@@ -44,6 +44,14 @@ function toArabicDigits(value: number | string): string {
   return String(value).replace(/\d/g, (digit) => ARABIC_DIGITS[Number(digit)]);
 }
 
+/** Unit-test solutions also name the lesson each question belongs to (by its source page). */
+function lessonNameForPage(test: AssessmentTest, pageNumber: number): string {
+  if (test.scope !== 'unit') return '';
+  if (pageNumber <= 11) return 'الدرس الأول';
+  if (pageNumber <= 24) return 'الدرس الثاني';
+  return 'الدرس الثالث';
+}
+
 /** Lesson tests keep their 5-question groups; the 50-question unit test is grouped by tens. */
 function buildGroups(test: AssessmentTest): { label: string; from: number; to: number }[] {
   const size = test.scope === 'unit' ? 10 : 5;
@@ -91,7 +99,8 @@ export const TestSolutions: React.FC<{ test: AssessmentTest; onExit?: () => void
                 <p className="solution-answer">✔ الإجابَةُ الصَّحيحَةُ: {correctAnswerText(q)}</p>
                 <p className="solution-explanation">التَّعليلُ: {q.explanation}</p>
                 <p className="solution-source">
-                  المَرْجِعُ: صفحة <ArabicNumber value={q.source.pageNumber} />
+                  المَرْجِعُ: {lessonNameForPage(test, q.source.pageNumber) && `${lessonNameForPage(test, q.source.pageNumber)} — `}
+                  صفحة <ArabicNumber value={q.source.pageNumber} />
                   {q.source.sectionName ? ` — ${q.source.sectionName}` : ''} <LatinText>({q.id})</LatinText>
                 </p>
               </article>

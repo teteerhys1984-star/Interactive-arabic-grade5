@@ -25,8 +25,81 @@ const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
 const toArabicDigits = (value: number | string): string =>
   String(value).replace(/\d/g, (digit) => ARABIC_DIGITS[Number(digit)]);
 
+/**
+ * Test-solutions gateway.
+ *
+ * SECURITY LIMIT (documented honestly): this is a static app published on
+ * GitHub Pages. The password check below is a front-end gate only — anyone
+ * with access to the JavaScript bundle can still read every answer key. It
+ * keeps casual browsing away from the solutions UI; it is NOT a security
+ * boundary. The teacher area (`somer173`) is a separate gate with its own key.
+ */
+const SOLUTIONS_ACCESS_PASSWORD = 'st12';
+const SOLUTIONS_UNLOCK_KEY = 'arabic-grade5-solutions-unlocked-v1';
+
+function readSolutionsUnlock(): boolean {
+  try {
+    return typeof window !== 'undefined' && window.sessionStorage.getItem(SOLUTIONS_UNLOCK_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function persistSolutionsUnlock(unlocked: boolean): void {
+  try {
+    if (unlocked) window.sessionStorage.setItem(SOLUTIONS_UNLOCK_KEY, 'true');
+    else window.sessionStorage.removeItem(SOLUTIONS_UNLOCK_KEY);
+  } catch {
+    /* storage unavailable — gate stays per-render */
+  }
+}
+
+const SolutionsGate: React.FC<{ onUnlock: () => void }> = ({ onUnlock }) => {
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(false);
+
+  const handleEnter = () => {
+    if (password === SOLUTIONS_ACCESS_PASSWORD) {
+      persistSolutionsUnlock(true);
+      setError(false);
+      onUnlock();
+    } else {
+      setError(true);
+    }
+  };
+
+  return (
+    <section className="teacher-login-card" dir="rtl" aria-label="دخول منطقة الحلول">
+      <div className="teacher-header-badge">منطقة الحلول</div>
+      <h1 className="teacher-title">بوابة حلول الاختبارات</h1>
+      <p>أدخل كلمة المرور لعرض حلول اختبارات الدروس واختبار الوحدة.</p>
+      <form
+        className="teacher-login-form"
+        onSubmit={(event) => { event.preventDefault(); handleEnter(); }}
+      >
+        <label htmlFor="solutions-password">كلمة مرور الحلول</label>
+        <input
+          id="solutions-password"
+          type="password"
+          value={password}
+          onChange={(event) => { setPassword(event.target.value); setError(false); }}
+          autoComplete="off"
+          aria-invalid={error}
+        />
+        {error && <p className="teacher-login-error" role="alert">كلمة المرور غير صحيحة</p>}
+        <button className="btn btn-primary" type="submit">دخول منطقة الحلول</button>
+      </form>
+      <p role="note">
+        تنبيه: هذه حماية واجهية فقط في تطبيق ثابت؛ فالمفاتيح موجودة في ملفات
+        جافاسكربت المنشورة ويمكن لشخص تقني استخراجها، ولا تُعد حماية أمنية حقيقية.
+      </p>
+    </section>
+  );
+};
+
 export const App: React.FC = () => {
   const [route, setRoute] = useState<NavigationRoute>({ view: 'home' });
+  const [solutionsUnlocked, setSolutionsUnlocked] = useState<boolean>(() => readSolutionsUnlock());
 
   const units = getAllUnits();
 
@@ -169,17 +242,27 @@ export const App: React.FC = () => {
 
         {route.view === 'solutions' &&
           (() => {
+            if (!solutionsUnlocked) {
+              return <SolutionsGate onUnlock={() => setSolutionsUnlocked(true)} />;
+            }
             const lessonTests = ALL_ASSESSMENTS.filter((assessment) => assessment.scope === 'lesson');
             const unitTests = ALL_ASSESSMENTS.filter(
               (assessment) => assessment.scope === 'unit' && isUnitTestAvailable(assessment.unitId),
             );
+            const handleLock = () => {
+              persistSolutionsUnlock(false);
+              setSolutionsUnlocked(false);
+            };
             if (!route.testId) {
               return (
                 <section className="test-solutions-hub" dir="rtl" aria-label="اختيار حلول اختبار الدرس">
                   <header className="test-solutions-hub-header">
                     <div className="teacher-header-badge">حلول الاختبارات</div>
                     <h1>اختر اختبار الدرس</h1>
-                    <p>الحلول تفسيرية ومنفصلة عن واجهة الاختبار، ولا تظهر اختبارات الوحدة قبل اكتمال الوحدة رسمياً.</p>
+                    <p>الحلول تفسيرية ومنفصلة عن واجهة الاختبار، ولا تظهر اختبارات الوحدة قبل اكتمال الوحدة رسمياً. الحماية واجهية فقط في تطبيق ثابت.</p>
+                    <button type="button" className="btn btn-ghost" onClick={handleLock}>
+                      🔒 قفل منطقة الحلول
+                    </button>
                   </header>
                   <div className="test-solutions-hub-list">
                     {lessonTests.map((test) => (
