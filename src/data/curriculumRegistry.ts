@@ -1,10 +1,17 @@
-import { CurriculumRegistry, Lesson, Unit } from '../types/curriculum';
+import { CurriculumRegistry, Lesson, Unit, UnitReview } from '../types/curriculum';
 import { LESSON1_STEPS } from './lesson1/content';
 import { src } from './lesson1/sourceMeta';
 import { LESSON2_STEPS } from './lesson2/content';
 import { lesson2Src } from './lesson2/sourceMeta';
 import { LESSON3_STEPS } from './lesson3/content';
 import { lesson3Src } from './lesson3/sourceMeta';
+import {
+  UNIT1_REVIEW_ANSWERABLE_BRANCHES,
+  UNIT1_REVIEW_QUESTIONS,
+} from './unit1Review/reviewItems';
+import { UNIT1_REVIEW_SOURCE_LOCK } from './unit1Review/sourceAudit';
+import { UNIT1_REVIEW_TEACHER_GUIDE } from './unit1Review/teacherGuide';
+import { UNIT1_REVIEW_DOCUMENT_TITLE } from './unit1Review/sourceMeta';
 
 /**
  * Official Curriculum Registry for Grade 5 Arabic.
@@ -112,11 +119,53 @@ const unit1: Unit = {
     theme: 'أحلامي وطموحاتي',
     isComplete: true, // Owner declared Lesson 3 the final lesson of the unit (2026-10-12).
     completionDeclarationDate: '2026-10-12',
+    // Documents the three lesson pages (4–35). The official unit review lives on
+    // pages 36–38 and is registered separately in `unit1Review` below.
     sourcePagesRange: { startPage: 4, endPage: 35 },
   },
   lessons: [lesson1, lesson2, lesson3],
   unitTestId: 'unit1-test',
+  // Official textbook unit review («تقويم الوحدة الأولى»): an assessment
+  // extension of the unit, NOT a lesson and NOT a replacement for unit1-test.
+  reviewId: 'unit1-review',
 };
+
+/**
+ * «تقويم الوحدة الأولى» — official unit review registration.
+ *
+ * It is linked to Unit 1 through `unit1.reviewId`, keeps the printed page range
+ * (36–38), and stays out of `unit1.lessons` on purpose so lesson count, order
+ * and content are untouched.
+ */
+const unit1Review: UnitReview = {
+  metadata: {
+    id: 'unit1-review',
+    unitId: 'unit1',
+    kind: 'unit_review',
+    title: 'تقويم الوحدة الأولى',
+    englishLabel: 'Unit 1 Review',
+    description:
+      'مراجعة شاملة لما تعلّمه الطالب في دروس الوحدة الأولى الثلاثة، وفق صفحات التقويم الرسمية الثلاث من الكتاب المدرسي.',
+    sourcePagesRange: { startPage: 36, endPage: 38 },
+    printedQuestions: UNIT1_REVIEW_QUESTIONS.length,
+    printedBranches: UNIT1_REVIEW_ANSWERABLE_BRANCHES,
+    sourceRecords: UNIT1_REVIEW_SOURCE_LOCK.length,
+    source: {
+      documentTitle: UNIT1_REVIEW_DOCUMENT_TITLE,
+      term: 1,
+      pageNumber: 36,
+      pageEndNumber: 38,
+      sectionName: 'تقويم الوحدة',
+      sourceType: 'textbook_exercise',
+      readabilityVerified: true,
+    },
+    coverageReportRef: 'docs/coverage/unit-1-review-coverage-report.md',
+    sourceAuditRef: 'docs/source-audits/unit-1-review-pages-36-38.md',
+    isCoverageVerified: UNIT1_REVIEW_TEACHER_GUIDE.audit.status === 'passed',
+  },
+};
+
+export const unitReviews: UnitReview[] = [unit1Review];
 
 export const curriculumRegistry: CurriculumRegistry = {
   grade: 5,
@@ -153,4 +202,28 @@ export function getLessonById(lessonId: string) {
 export function isUnitTestAvailable(unitId: string): boolean {
   const unit = getUnitById(unitId);
   return Boolean(unit && unit.metadata.isComplete && unit.unitTestId);
+}
+
+/**
+ * Unit review accessors.
+ * A unit review is offered in the Student Area after the unit's lessons and is
+ * never part of the lessons list.
+ */
+export function getUnitReviews(): UnitReview[] {
+  return unitReviews;
+}
+
+export function getUnitReviewById(reviewId: string): UnitReview | undefined {
+  return unitReviews.find((review) => review.metadata.id === reviewId);
+}
+
+export function getUnitReviewByUnitId(unitId: string): UnitReview | undefined {
+  const unit = getUnitById(unitId);
+  if (!unit?.reviewId) return undefined;
+  return getUnitReviewById(unit.reviewId);
+}
+
+/** True only when the unit review is registered on the unit itself. */
+export function isUnitReviewAvailable(unitId: string): boolean {
+  return Boolean(getUnitReviewByUnitId(unitId));
 }

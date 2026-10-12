@@ -87,6 +87,17 @@ export function auditCurriculum(
       });
     }
 
+    // Unit review rule: the official unit review (تقويم الوحدة) is never a
+    // lesson — its identifier must not appear in the lessons list.
+    if (unit.reviewId && unit.lessons.some((lesson) => lesson.metadata.id === unit.reviewId)) {
+      issues.push({
+        severity: 'error',
+        category: 'curriculum_integrity',
+        entityId: unit.metadata.id,
+        message: `تقويم الوحدة (${unit.reviewId}) مسجَّل كدرس في الوحدة (${unit.metadata.id})؛ التقويم عنصر تقويمي مستقل وليس درساً.`,
+      });
+    }
+
     // Inspect lessons in unit
     for (const lesson of unit.lessons) {
       totalLessons++;

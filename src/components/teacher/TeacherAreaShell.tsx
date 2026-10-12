@@ -9,6 +9,13 @@ export interface TeacherAreaShellProps {
   tests?: AssessmentTest[];
   /** Client-side access gate for the separate Teacher Area. */
   accessPassword?: string;
+  /**
+   * Optional independent section for the official unit review solutions
+   * (textbook «تقويم الوحدة»). Rendered as its own tab so the established
+   * lesson guides / audit tabs keep their current behaviour unchanged.
+   */
+  reviewSolutions?: React.ReactNode;
+  reviewSectionLabel?: string;
 }
 
 export const TeacherAreaShell: React.FC<TeacherAreaShellProps> = ({
@@ -16,8 +23,10 @@ export const TeacherAreaShell: React.FC<TeacherAreaShellProps> = ({
   teacherGuides = [],
   tests = [],
   accessPassword = 'somer173',
+  reviewSolutions,
+  reviewSectionLabel = 'حلول تقويم الوحدة الأولى',
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'audit' | 'solutions'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'audit' | 'solutions' | 'review'>('overview');
   const [password, setPassword] = useState('');
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
@@ -93,6 +102,16 @@ export const TeacherAreaShell: React.FC<TeacherAreaShellProps> = ({
           >
             مدقق الجودة والنزاهة ({auditReport.issues.length})
           </button>
+          {reviewSolutions && (
+            <button
+              role="tab"
+              aria-selected={activeTab === 'review'}
+              className={`tab-btn ${activeTab === 'review' ? 'tab-active' : ''}`}
+              onClick={() => setActiveTab('review')}
+            >
+              {reviewSectionLabel}
+            </button>
+          )}
         </nav>
       </header>
 
@@ -127,6 +146,11 @@ export const TeacherAreaShell: React.FC<TeacherAreaShellProps> = ({
             </p>
           </div>
         </div>
+      )}
+
+      {/* Separate section: official unit review solutions (تقويم الوحدة) */}
+      {activeTab === 'review' && reviewSolutions && (
+        <div className="teacher-tab-content">{reviewSolutions}</div>
       )}
 
       {/* Tab 2: Solutions */}
