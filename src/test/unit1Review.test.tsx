@@ -22,7 +22,11 @@ import {
 } from '../data/unit1Review/reviewItems';
 import { UNIT1_REVIEW_SOURCE_LOCK, auditUnit1ReviewCoverage } from '../data/unit1Review/sourceAudit';
 import { UNIT1_REVIEW_TEACHER_GUIDE } from '../data/unit1Review/teacherGuide';
-import { REVIEW_SOURCE_UNCERTAINTIES } from '../data/unit1Review/sourceMeta';
+import {
+  PENDING_SOURCE_RECORD_IDS,
+  PENDING_SOURCE_SUBPART_IDS,
+  REVIEW_SOURCE_UNCERTAINTIES,
+} from '../data/unit1Review/sourceMeta';
 import { auditCurriculum } from '../utils/audit';
 import { CurriculumRegistry } from '../types/curriculum';
 import { toArabicDigits } from '../utils/arabicDigits';
@@ -147,6 +151,10 @@ describe('Unit 1 review (تقويم الوحدة الأولى) — structure and
     expect(report.branchCountMismatch).toEqual([]);
     expect(report.subpartsMissingTeacherSolution).toEqual([]);
     expect(report.teacherSolutionsMissingModelAnswer).toEqual([]);
+    // Structural coverage passes, but the source is NOT fully verified yet.
+    expect(report.sourceVerified).toBe(false);
+    expect(report.pendingSourceRecords).toEqual(['U1R-36-03', 'U1R-37-06', 'U1R-38-08']);
+    expect(report.pendingSubparts).toHaveLength(8);
     expect(report.teacherSolutionsMissingSteps).toEqual([]);
     expect(report.emptyStudentPrompts).toEqual([]);
     expect(UNIT1_REVIEW_TEACHER_GUIDE.audit.status).toBe('passed');
@@ -156,21 +164,26 @@ describe('Unit 1 review (تقويم الوحدة الأولى) — structure and
     expect(REVIEW_SOURCE_UNCERTAINTIES).toHaveLength(8);
     expect(REVIEW_SOURCE_UNCERTAINTIES.every((limit) => limit.cropNeeded.length > 0)).toBe(true);
 
-    // The coloured words of ص٣٧ could not be verified: the student side asks the
-    // learner to point at the coloured word instead of inventing one.
+    // The coloured words of ص٣٧ could not be verified. The printed requirement is
+    // kept unchanged (classify the coloured word) and no word is invented for it.
     const q4 = UNIT1_REVIEW_QUESTIONS.find((question) => question.printedNumber === '٤')!;
     q4.subparts.forEach((subpart) => {
-      expect(subpart.interaction.kind).toBe('pick_and_classify');
-      if (subpart.interaction.kind === 'pick_and_classify') {
-        expect(subpart.interaction.gapNote).toContain('لم يتيسّر التحقق');
-        expect(subpart.interaction.words.length).toBeGreaterThan(1);
+      expect(subpart.interaction.kind).toBe('single_choice');
+      if (subpart.interaction.kind === 'single_choice') {
+        expect(subpart.interaction.choices.map((choice) => choice.id)).toEqual(['ism', 'fil', 'harf']);
       }
-      expect(subpart.teacher.ambiguity).toBeDefined();
+      expect(q4.instruction).toContain('أُصَنِّفُ الكَلِماتَ المُلَوَّنَةَ');
+      expect(subpart.teacher.ambiguity).toMatch(/لم يتيسّر التحقق|لا يمكن التحقق/);
     });
+    expect(q4.kindNote ?? '').toContain('تصنيفُ الكلمةِ الملوّنةِ');
+    expect(JSON.stringify(q4)).not.toContain('pick_and_classify');
 
-    // The central word of ص٣٨ is declared with its alternative reading.
+    // The central word of ص٣٨ stays declared as unverified: the map is not settled.
     const q6 = UNIT1_REVIEW_QUESTIONS.find((question) => question.printedNumber === '٦')!;
+    expect(q6.wordMap?.centerVerified).toBe(false);
+    expect(q6.wordMap?.centerNote).toContain('إعلام');
     expect(q6.subparts.every((subpart) => (subpart.teacher.ambiguity || '').length > 0)).toBe(true);
+    expect(q6.subparts[0].teacher.modelAnswer).toContain('أَعْلَمَ');
 
     // The clock label of ص٣٦ stays marked as a source limit.
     expect(UNIT1_REVIEW_TIMING.uncertaintyNote).toContain('البدا');
@@ -271,17 +284,23 @@ describe('Unit 1 review — Student Area', () => {
     const { container } = render(<App />);
     fireEvent.click(screen.getByRole('button', { name: /ابدأ تقويم الوحدة الأولى/ }));
 
-    // Question ٤: the learner points at the coloured word of their own book.
+    // Question ٤ keeps the printed requirement (classify the coloured word) and
+    // states the declared limit instead of naming any word.
     fireEvent.click(screen.getByRole('button', { name: /السؤال ٤:/ }));
-    expect(screen.getByText(/حدّ مصدر معلن/)).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'في' }).length).toBeGreaterThan(0);
-    expect(screen.getByRole('radio', { name: 'اسمٌ' })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: 'فعلٌ' })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: 'حرفٌ' })).toBeInTheDocument();
+    expect(screen.getAllByText(/حدّ مصدر معلن/).length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('.u1r-subpart-pending-note')).toHaveLength(1);
+    expect(screen.getAllByText(/قيد التحقق المصدري/).length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole('button', { name: 'عرض كل فروع السؤال' }));
+    expect(container.querySelectorAll('.u1r-subpart-pending-note')).toHaveLength(4);
+    expect(screen.getAllByRole('radio', { name: 'اسمٌ' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('radio', { name: 'فعلٌ' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('radio', { name: 'حرفٌ' }).length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('.u1r-word-picker')).toHaveLength(0);
 
-    // Question ٦ keeps the printed four-circle map, question ٧ the inline blanks.
+    // Question ٦ keeps the printed four-circle map but not an unverified word.
     fireEvent.click(screen.getByRole('button', { name: /السؤال ٦:/ }));
-    expect(container.querySelector('.u1r-map-center')?.textContent).toBe('إعلان');
+    expect(container.querySelector('.u1r-map-center')?.textContent).toBe('الكلمة المطبوعة في مركز المخطط');
+    expect(container.querySelectorAll('.u1r-map-pending-note')).toHaveLength(1);
     expect(screen.getAllByText('فعلُها').length).toBeGreaterThan(0);
     expect(screen.getAllByText('نوعُها').length).toBeGreaterThan(0);
     expect(screen.getAllByText('معناها').length).toBeGreaterThan(0);
@@ -301,6 +320,7 @@ describe('Unit 1 review — Student Area', () => {
       'الإعراب الكامل',
       'نموذج استرشادي من إعداد المنصة',
       'أَعْلَنَ',
+      'أَعْلَمَ',
       'التصويبُ:',
     ].forEach((teacherOnly) => {
       expect(studentText).not.toContain(teacherOnly);
@@ -387,5 +407,40 @@ describe('Unit 1 review — Teacher Area', () => {
     UNIT1_REVIEW_QUESTIONS.forEach((question) => {
       expect(screen.getAllByText(new RegExp(`صفحة ${toArabicDigits(question.page)}`)).length).toBeGreaterThan(0);
     });
+  });
+
+  it('never reports the pending source records as complete (pages 36–38 limits)', () => {
+    const { container } = render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'بوابة المعلم والإشراف' }));
+    openTeacherArea();
+    fireEvent.click(screen.getByRole('tab', { name: 'حلول تقويم الوحدة الأولى' }));
+
+    // Eight student elements stay pending until the crops arrive.
+    expect(PENDING_SOURCE_SUBPART_IDS).toHaveLength(8);
+    expect(container.querySelectorAll('.u1r-solution-card-pending')).toHaveLength(8);
+    expect(screen.getAllByText('قيد التحقق المصدري — غير مكتمل').length).toBe(8);
+
+    // The audit banner says plainly that source verification is unfinished.
+    expect(screen.getByText(/التحقق المصدري لم يكتمل/)).toBeInTheDocument();
+
+    // The three answer-affecting records are marked in the coverage ledger.
+    expect(PENDING_SOURCE_RECORD_IDS).toEqual(['U1R-36-03', 'U1R-37-06', 'U1R-38-08']);
+    expect(container.querySelectorAll('.u1r-coverage-row-pending')).toHaveLength(3);
+    expect(screen.getAllByText(/قيد التحقق المصدري — غير مكتمل \(بانتظار قصّ أوضح\)/).length).toBe(3);
+
+    // The source-limits table states the effect on the answer, and Q4/Q6 keep the printed task.
+    const limitsTable = container.querySelector('.u1r-limits-table');
+    const limitRows = within(limitsTable as HTMLElement).getAllByRole('row');
+    expect(limitRows).toHaveLength(REVIEW_SOURCE_UNCERTAINTIES.length + 1);
+    expect(container.querySelectorAll('.u1r-limit-row-blocking')).toHaveLength(3);
+    expect(within(limitsTable as HTMLElement).getAllByText(/معلَّق — لا يُعدّ/).length).toBe(3);
+
+    // Q4 still asks for the classification of the coloured word, Q6 for the four circles.
+    const q4Card = container.querySelector('[aria-label="حل الجملة ١"]') as HTMLElement;
+    expect(q4Card.textContent).toContain('اسمٌ');
+    expect(q4Card.textContent).toContain('قيد التحقق المصدري');
+    const q6Card = container.querySelector('[aria-label="حل فعلُها"]') as HTMLElement;
+    expect(q6Card.textContent).toContain('أَعْلَمَ');
+    expect(q6Card.textContent).toContain('أَعْلَنَ');
   });
 });

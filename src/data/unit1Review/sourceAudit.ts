@@ -1,4 +1,8 @@
 import {
+  PENDING_SOURCE_RECORD_IDS,
+  PENDING_SOURCE_SUBPART_IDS,
+} from './sourceMeta';
+import {
   UNIT1_REVIEW_ALL_SUBPARTS,
   UNIT1_REVIEW_ANSWERABLE_BRANCHES,
   UNIT1_REVIEW_CLOSING,
@@ -26,19 +30,25 @@ export interface ReviewSourceLockEntry {
   /** Printed question number when the record is a numbered question. */
   printedNumber?: string;
   branchCount: number;
+  /**
+   * `pending_source` = structurally covered, but at least one printed region of
+   * this record could not be verified yet, so it must not be reported as fully
+   * verified/complete. See REVIEW_SOURCE_UNCERTAINTIES.
+   */
+  verification: 'verified' | 'pending_source';
 }
 
 export const UNIT1_REVIEW_SOURCE_LOCK: ReviewSourceLockEntry[] = [
-  { id: 'U1R-36-01', page: 36, label: 'مهمة ضبط الوقت (الساعتان)', role: 'timing', branchCount: 3 },
-  { id: 'U1R-36-02', page: 36, label: 'تعليمات التقويم', role: 'instructions', branchCount: 4 },
-  { id: 'U1R-36-03', page: 36, label: 'السؤال ١: تمييز العبارة الصحيحة من غير الصحيحة', role: 'question', printedNumber: '١', branchCount: 4 },
-  { id: 'U1R-37-04', page: 37, label: 'السؤال ٢: اختيار الإجابة الصحيحة', role: 'question', printedNumber: '٢', branchCount: 4 },
-  { id: 'U1R-37-05', page: 37, label: 'السؤال ٣: استعمال التراكيب في فقرة', role: 'question', printedNumber: '٣', branchCount: 1 },
-  { id: 'U1R-37-06', page: 37, label: 'السؤال ٤: تصنيف الكلمات الملوّنة', role: 'question', printedNumber: '٤', branchCount: 4 },
-  { id: 'U1R-37-07', page: 37, label: 'السؤال ٥: السبب والنتيجتان', role: 'question', printedNumber: '٥', branchCount: 3 },
-  { id: 'U1R-38-08', page: 38, label: 'السؤال ٦: إكمال المخطط (إعلان)', role: 'question', printedNumber: '٦', branchCount: 4 },
-  { id: 'U1R-38-09', page: 38, label: 'السؤال ٧: إكمال الفراغ (الهمزة)', role: 'question', printedNumber: '٧', branchCount: 3 },
-  { id: 'U1R-38-10', page: 38, label: 'خاتمة الوحدة (بندان)', role: 'closing', branchCount: 2 },
+  { id: 'U1R-36-01', page: 36, label: 'مهمة ضبط الوقت (الساعتان)', role: 'timing', branchCount: 3 , verification: 'verified' },
+  { id: 'U1R-36-02', page: 36, label: 'تعليمات التقويم', role: 'instructions', branchCount: 4 , verification: 'verified' },
+  { id: 'U1R-36-03', page: 36, label: 'السؤال ١: تمييز العبارة الصحيحة من غير الصحيحة', role: 'question', printedNumber: '١', branchCount: 4 , verification: 'pending_source' },
+  { id: 'U1R-37-04', page: 37, label: 'السؤال ٢: اختيار الإجابة الصحيحة', role: 'question', printedNumber: '٢', branchCount: 4 , verification: 'verified' },
+  { id: 'U1R-37-05', page: 37, label: 'السؤال ٣: استعمال التراكيب في فقرة', role: 'question', printedNumber: '٣', branchCount: 1 , verification: 'verified' },
+  { id: 'U1R-37-06', page: 37, label: 'السؤال ٤: تصنيف الكلمات الملوّنة', role: 'question', printedNumber: '٤', branchCount: 4 , verification: 'pending_source' },
+  { id: 'U1R-37-07', page: 37, label: 'السؤال ٥: السبب والنتيجتان', role: 'question', printedNumber: '٥', branchCount: 3 , verification: 'verified' },
+  { id: 'U1R-38-08', page: 38, label: 'السؤال ٦: إكمال المخطط (إعلان)', role: 'question', printedNumber: '٦', branchCount: 4 , verification: 'pending_source' },
+  { id: 'U1R-38-09', page: 38, label: 'السؤال ٧: إكمال الفراغ (الهمزة)', role: 'question', printedNumber: '٧', branchCount: 3 , verification: 'verified' },
+  { id: 'U1R-38-10', page: 38, label: 'خاتمة الوحدة (بندان)', role: 'closing', branchCount: 2 , verification: 'verified' },
 ];
 
 export interface ReviewCoverageAuditReport {
@@ -57,6 +67,14 @@ export interface ReviewCoverageAuditReport {
   teacherSolutionsMissingModelAnswer: string[];
   teacherSolutionsMissingSteps: string[];
   emptyStudentPrompts: string[];
+  /**
+   * true only when EVERY printed record is fully verified against the source.
+   * Structural coverage can be complete while this stays false: see
+   * pendingSourceRecords / pendingSubparts.
+   */
+  sourceVerified: boolean;
+  pendingSourceRecords: string[];
+  pendingSubparts: string[];
   status: 'passed' | 'failed';
 }
 
@@ -105,6 +123,12 @@ export function auditUnit1ReviewCoverage(
 
   const gradedSubparts = subparts.filter((subpart) => subpart.graded).length;
   const lockedBranches = UNIT1_REVIEW_SOURCE_LOCK.reduce((total, entry) => total + entry.branchCount, 0);
+  const pendingSourceRecords = UNIT1_REVIEW_SOURCE_LOCK
+    .filter((entry) => entry.verification === 'pending_source')
+    .map((entry) => entry.id);
+  const pendingSubparts = subparts
+    .filter((subpart) => PENDING_SOURCE_SUBPART_IDS.includes(subpart.id))
+    .map((subpart) => subpart.id);
 
   const status =
     missingRecords.length === 0 &&
@@ -117,6 +141,7 @@ export function auditUnit1ReviewCoverage(
     teacherSolutionsMissingSteps.length === 0 &&
     emptyStudentPrompts.length === 0 &&
     lockedBranches === subparts.length &&
+    pendingSourceRecords.length === PENDING_SOURCE_RECORD_IDS.length &&
     UNIT1_REVIEW_ANSWERABLE_BRANCHES === 23 &&
     UNIT1_REVIEW_QUESTIONS.length === 7 &&
     UNIT1_REVIEW_TIMING.subparts.length === 3 &&
@@ -141,6 +166,9 @@ export function auditUnit1ReviewCoverage(
     teacherSolutionsMissingModelAnswer,
     teacherSolutionsMissingSteps,
     emptyStudentPrompts,
+    sourceVerified: pendingSourceRecords.length === 0,
+    pendingSourceRecords,
+    pendingSubparts,
     status,
   };
 }

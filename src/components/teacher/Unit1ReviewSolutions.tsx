@@ -9,6 +9,11 @@ import {
   ReviewTeacherSolution,
 } from '../../data/unit1Review/reviewItems';
 import { UNIT1_REVIEW_TIMING, UNIT1_REVIEW_INSTRUCTIONS, UNIT1_REVIEW_CLOSING } from '../../data/unit1Review/reviewItems';
+import {
+  PENDING_SOURCE_RECORD_IDS,
+  isSubpartPendingSourceVerification,
+  reviewUncertaintyForSubpart,
+} from '../../data/unit1Review/sourceMeta';
 
 /**
  * Teacher Area section: «حلول تقويم الوحدة الأولى».
@@ -19,12 +24,30 @@ import { UNIT1_REVIEW_TIMING, UNIT1_REVIEW_INSTRUCTIONS, UNIT1_REVIEW_CLOSING } 
  * source ambiguity — organised as openable cards, never one long text block.
  */
 
-const SolutionCard: React.FC<{ solution: ReviewTeacherSolution; label: string }> = ({ solution, label }) => (
-  <article className="u1r-solution-card" aria-label={`حل ${label}`}>
+const SolutionCard: React.FC<{ solution: ReviewTeacherSolution; label: string; subpartId?: string }> = ({
+  solution,
+  label,
+  subpartId,
+}) => {
+  const pendingLimit =
+    subpartId && isSubpartPendingSourceVerification(subpartId)
+      ? reviewUncertaintyForSubpart(subpartId)
+      : undefined;
+
+  return (
+  <article className={`u1r-solution-card ${pendingLimit ? 'u1r-solution-card-pending' : ''}`} aria-label={`حل ${label}`}>
     <header className="u1r-solution-head">
       <span className="u1r-solution-label">{label}</span>
       <span className="u1r-solution-ref">{solution.printedRef}</span>
+      {pendingLimit && <span className="u1r-solution-pending-tag">قيد التحقق المصدري — غير مكتمل</span>}
     </header>
+
+    {pendingLimit && (
+      <aside className="u1r-gap-notice" role="note">
+        <strong>لم يكتمل هذا الحلّ:</strong> {pendingLimit.issue} المطلوب المطبوع يبقى كما هو (لا يُستبدل ولا
+        يُخمَّن). ولا يُعتمد هذا الحلّ نهائيًّا قبل: {pendingLimit.cropNeeded}
+      </aside>
+    )}
 
     <p className="u1r-solution-question">
       <strong>نصّ المطلوب:</strong> {solution.questionText}
@@ -116,7 +139,8 @@ const SolutionCard: React.FC<{ solution: ReviewTeacherSolution; label: string }>
       </ul>
     )}
   </article>
-);
+  );
+};
 
 const QuestionSolutions: React.FC<{ question: ReviewQuestion }> = ({ question }) => (
   <details className="u1r-teacher-question" open>
@@ -126,6 +150,9 @@ const QuestionSolutions: React.FC<{ question: ReviewQuestion }> = ({ question })
       <span className="u1r-teacher-question-page">
         صفحة <ArabicNumber value={toArabicDigits(question.page)} /> · <ArabicNumber value={toArabicDigits(question.subparts.length)} /> فرعاً
       </span>
+      {PENDING_SOURCE_RECORD_IDS.includes(question.sourceRecordId) && (
+        <span className="u1r-solution-pending-tag">قيد التحقق المصدري</span>
+      )}
     </summary>
 
     <p className="u1r-teacher-instruction">
@@ -136,7 +163,12 @@ const QuestionSolutions: React.FC<{ question: ReviewQuestion }> = ({ question })
 
     <div className="u1r-teacher-subparts">
       {question.subparts.map((subpart: ReviewSubpart) => (
-        <SolutionCard key={subpart.teacher.id} solution={subpart.teacher} label={subpart.label} />
+        <SolutionCard
+          key={subpart.teacher.id}
+          solution={subpart.teacher}
+          label={subpart.label}
+          subpartId={subpart.id}
+        />
       ))}
     </div>
   </details>
@@ -178,8 +210,19 @@ export const Unit1ReviewSolutions: React.FC = () => {
       </div>
 
       <div className={audit.status === 'passed' ? 'audit-success-banner' : 'audit-issues-list'}>
-        {audit.status === 'passed' ? (
-          <>✓ تدقيق التغطية: كل سجل مصدري في الصفحات ٣٦–٣٨ ممثَّل في منطقة الطالب وله حل كامل في منطقة المعلم.</>
+        {audit.status === 'passed' && audit.sourceVerified ? (
+          <>✓ تدقيق التغطية: كل سجل مصدري في الصفحات ٣٦–٣٨ ممثَّل في منطقة الطالب وله حل كامل في منطقة المعلم، والتحقق المصدري مكتمل.</>
+        ) : audit.status === 'passed' ? (
+          <div className="audit-issue-card issue-warning">
+            <span className="issue-severity-badge">قيد التحقق المصدري</span>
+            <p className="issue-msg">
+              تدقيق البنية اجتاز: كل سجل مصدري في الصفحات ٣٦–٣٨ ممثَّل في منطقة الطالب وله حلٌّ في منطقة
+              المعلم. لكن <strong>التحقق المصدري لم يكتمل</strong>: السجلات{' '}
+              {audit.pendingSourceRecords.join('، ')} (و<ArabicNumber value={toArabicDigits(audit.pendingSubparts.length)} /> عناصر
+              طالب) معلّقة على قصّ أوضح، والحلول المتصلة بها موسومة «قيد التحقق المصدري — غير مكتمل»، فالعنصر
+              لا يُعدّ مكتملًا قبل التحقق من الصورة.
+            </p>
+          </div>
         ) : (
           <div className="audit-issue-card issue-error">
             <span className="issue-severity-badge">خطأ حرج</span>
@@ -223,15 +266,22 @@ export const Unit1ReviewSolutions: React.FC = () => {
                       ? UNIT1_REVIEW_INSTRUCTIONS.subparts.length
                       : UNIT1_REVIEW_CLOSING.subparts.length;
                   return { id: record.id, label: record.title, page: page.page, count };
-                })].map((row) => (
-                  <tr key={row.id}>
-                    <td><ArabicNumber value={toArabicDigits(row.page)} /></td>
-                    <td>{row.label}</td>
-                    <td><ArabicNumber value={toArabicDigits(row.count)} /></td>
-                    <td><ArabicNumber value={toArabicDigits(row.count)} /></td>
-                    <td>ممثل ومغطى بحل كامل</td>
-                  </tr>
-                )),
+                })].map((row) => {
+                  const pending = PENDING_SOURCE_RECORD_IDS.includes(row.id);
+                  return (
+                    <tr key={row.id} className={pending ? 'u1r-coverage-row-pending' : ''}>
+                      <td><ArabicNumber value={toArabicDigits(row.page)} /></td>
+                      <td>{row.label}</td>
+                      <td><ArabicNumber value={toArabicDigits(row.count)} /></td>
+                      <td><ArabicNumber value={toArabicDigits(row.count)} /></td>
+                      <td>
+                        {pending
+                          ? 'قيد التحقق المصدري — غير مكتمل (بانتظار قصّ أوضح)'
+                          : 'ممثل ومغطى بحل كامل'}
+                      </td>
+                    </tr>
+                  );
+                }),
               )}
             </tbody>
           </table>
@@ -291,17 +341,29 @@ export const Unit1ReviewSolutions: React.FC = () => {
                 <th scope="col">الصفحة</th>
                 <th scope="col">الموضع</th>
                 <th scope="col">ما لم يُحسم</th>
-                <th scope="col">أثره</th>
-                <th scope="col">المطلوب</th>
+                <th scope="col">أثره على الإجابة</th>
+                <th scope="col">الحالة</th>
+                <th scope="col">المطلوب لرفع القيد</th>
               </tr>
             </thead>
             <tbody>
               {guide.sourceLimits.map((limit) => (
-                <tr key={`${limit.recordId}-${limit.region}`}>
+                <tr
+                  key={`${limit.recordId}-${limit.region}`}
+                  className={limit.affectsAnswer ? 'u1r-limit-row-blocking' : ''}
+                >
                   <td><ArabicNumber value={toArabicDigits(limit.page)} /></td>
                   <td>{limit.region}</td>
                   <td>{limit.issue}</td>
-                  <td>{limit.whyItMatters}</td>
+                  <td>
+                    {limit.affectsAnswer ? 'يمسّ نصّ السؤال أو الإجابة النموذجية. ' : 'لا يمسّ الإجابة. '}
+                    {limit.whyItMatters}
+                  </td>
+                  <td>
+                    {limit.blocking
+                      ? `معلَّق — لا يُعدّ ${limit.recordId} مكتملًا`
+                      : 'مسجَّل — لا يوقف الاعتماد'}
+                  </td>
                   <td>{limit.cropNeeded}</td>
                 </tr>
               ))}
@@ -333,7 +395,12 @@ export const Unit1ReviewSolutions: React.FC = () => {
                   </summary>
                   <div className="u1r-teacher-subparts">
                     {subparts.map((subpart) => (
-                      <SolutionCard key={subpart.teacher.id} solution={subpart.teacher} label={subpart.label} />
+                      <SolutionCard
+                        key={subpart.teacher.id}
+                        solution={subpart.teacher}
+                        label={subpart.label}
+                        subpartId={subpart.id}
+                      />
                     ))}
                   </div>
                 </details>

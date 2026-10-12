@@ -22,8 +22,6 @@ export function answerFieldsOf(interaction: ReviewInteraction): string[] {
       return ['judge', 'correction'];
     case 'single_choice':
       return ['choice'];
-    case 'pick_and_classify':
-      return ['pick', 'type'];
     case 'time_field':
     case 'writing_field':
     case 'short_field':
@@ -178,54 +176,6 @@ export const ReviewInteractionView: React.FC<ReviewInteractionViewProps> = ({ su
           </label>
         </div>
       );
-
-    case 'pick_and_classify': {
-      const { words, categories, gapNote } = subpart.interaction;
-      const picked = get('pick');
-      return (
-        <div className="u1r-classify">
-          <aside className="u1r-gap-notice" role="note">
-            <strong>حدّ مصدر معلن:</strong> {gapNote}
-          </aside>
-          <fieldset className="u1r-word-picker">
-            <legend>١) أشيرُ إلى الكلمة الملوّنة في كتابي:</legend>
-            <div className="u1r-word-grid">
-              {words.map((word) => (
-                <button
-                  key={word}
-                  type="button"
-                  className={`u1r-word ${picked === word ? 'is-selected' : ''}`}
-                  aria-pressed={picked === word}
-                  onClick={() => update(field('pick'), picked === word ? '' : word)}
-                >
-                  {word}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-          <fieldset className="u1r-classify-choice">
-            <legend>٢) أصنِّفُها:</legend>
-            <div className="u1r-options" role="radiogroup" aria-label={`تصنيف ${subpart.label}`}>
-              {categories.map((category) => (
-                <label
-                  key={category.id}
-                  className={`u1r-option ${get('type') === category.id ? 'is-selected' : ''}`}
-                >
-                  <input
-                    type="radio"
-                    name={field('type')}
-                    value={category.id}
-                    checked={get('type') === category.id}
-                    onChange={() => update(field('type'), category.id)}
-                  />
-                  <span>{category.label}</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-        </div>
-      );
-    }
 
     case 'inline_blank':
       return (

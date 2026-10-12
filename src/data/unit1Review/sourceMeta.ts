@@ -39,88 +39,191 @@ export function reviewSrc(
 }
 
 /**
- * Declared source limits for this section.
+ * How an unverified printed region affects the teaching material.
  *
- * Every entry below is a region that could NOT be read with full confidence in
- * the available scan. The affected content is presented as a declared limit and
- * is neither invented nor silently normalized. Each limit lists the clearer crop
- * that is requested from the project owner.
+ * - `answer_and_solution`: it can change the correct answer and/or the model
+ *   solution → the affected record must stay OUT of the "complete" state.
+ * - `solution_evidence`: the verdict stands on stable linguistic knowledge, but
+ *   the printed evidence behind it is not in our hands yet.
+ * - `question_wording`: only the transcribed wording of the question is at stake.
+ * - `label_wording`: only a printed label/heading of a non-graded element.
+ * - `vocalisation_only`: only diacritics of a non-graded element.
  */
+export type ReviewLimitImpact =
+  | 'answer_and_solution'
+  | 'solution_evidence'
+  | 'question_wording'
+  | 'label_wording'
+  | 'vocalisation_only';
+
 export interface ReviewSourceUncertainty {
+  id: string;
   page: number;
   recordId: string;
   region: string;
   issue: string;
+  impact: ReviewLimitImpact;
+  /** true when the correct answer / model solution cannot be settled without the crop. */
+  affectsAnswer: boolean;
+  /** true when the affected record must not be treated as fully verified yet. */
+  blocking: boolean;
+  /** Student elements whose answer depends on this region (or [] when none). */
+  pendingSubpartIds: string[];
   whyItMatters: string;
+  /** Precise, minimal crop request addressed to the project owner. */
   cropNeeded: string;
+  /**
+   * Short, answer-neutral wording for the Student Area (no reading, no answer).
+   * Used in the declared-limits panel so that the learner knows the spot is
+   * declared while nothing about the missing content is asserted.
+   */
+  studentLabel?: string;
 }
 
 export const REVIEW_SOURCE_UNCERTAINTIES: ReviewSourceUncertainty[] = [
   {
+    id: 'LIM-01',
     page: 36,
     recordId: 'U1R-36-01',
     region: 'لافتتا الساعتين',
-    issue: 'آخر كلمة في لافتة الساعة اليمنى مقطوعة في النسخة المتاحة «وقتُ البدا…»، ولا تُحسم (البدء؟)، بينما لافتة «وقتُ الانتهاء» واضحة.',
-    whyItMatters: 'يحدد التسمية المطبوعة لحقل زمن البداية في مهمة ضبط الوقت.',
-    cropNeeded: 'قصّ مكبّر للافتتين مع الساعتين في أعلى الصفحة',
+    issue: 'آخر كلمة في لافتة الساعة اليمنى مقطوعة في النسخة المتاحة «وقتُ البدا…»، ولا تُحسم (البدء؟ البداية؟)، بينما لافتة «وقتُ الانتهاء» واضحة.',
+    impact: 'label_wording',
+    affectsAnswer: false,
+    blocking: false,
+    pendingSubpartIds: [],
+    whyItMatters: 'تسمية اللافتة المطبوعة فقط؛ ومهمة ضبط الوقت إجرائية غير مقوَّمة ولا تمسّ أي إجابة.',
+    cropNeeded: 'قصّ مكبّر للافتتين مع الساعتين في أعلى ص٣٦ (منطقة العنوان قبل السؤال ١).',
   },
   {
+    id: 'LIM-02',
     page: 36,
     recordId: 'U1R-36-02',
     region: 'صندوق تعليمات التقويم — البند ٤',
-    issue: 'التشكيل الكامل لبعض كلمات البند الرابع غير محسوم في النسخة المتاحة (المعنى واضح).',
-    whyItMatters: 'لا يمسّ صحة أي إجابة؛ يمسّ ضبط الشكل فقط.',
-    cropNeeded: 'قصّ مكبّر لصندوق التعليمات كاملاً',
+    issue: 'التشكيل الكامل لبعض كلمات البند الرابع غير محسوم في النسخة المتاحة (المعنى واضح تماماً).',
+    impact: 'vocalisation_only',
+    affectsAnswer: false,
+    blocking: false,
+    pendingSubpartIds: [],
+    whyItMatters: 'تعليمة تنفيذية غير مقوَّمة؛ الشكل لا يؤثر في أي إجابة أو حل.',
+    cropNeeded: 'قصّ مكبّر لصندوق التعليمات كاملاً (الشكل التام فقط).',
   },
   {
+    id: 'LIM-03',
     page: 36,
     recordId: 'U1R-36-03',
     region: 'السؤال ١ — العبارة ١',
-    issue: 'الكلمة قبل «السَّمَكَةِ الذَّهَبِيَّةِ» غير محسومة بصرياً: «مركَب» أم «مركز»؛ والقراءة المقفولة في الدرس الأول تسجّل تسمية المركب «مركز السمكة الذهبية».',
-    whyItMatters: 'يحدد تسمية فقط، ولا يغيّر حكم العبارة (خيالية) ولا تصويبها.',
-    cropNeeded: 'قصّ مكبّر للعبارة الأولى',
+    issue: 'الكلمة قبل «السَّمَكَةِ الذَّهَبِيَّةِ» غير محسومة بصرياً: «مركَب» أم «مركز»؛ والقراءة المقفولة في الدرس الأول (ص٥) تسجّل «مَرْكَزِ السَّمَكَةِ الذَّهَبِيَّةِ».',
+    impact: 'question_wording',
+    affectsAnswer: false,
+    blocking: false,
+    pendingSubpartIds: [],
+    whyItMatters: 'صياغة العبارة المطبوعة فقط؛ حكمها (قصّة خيالية) لا يتغيّر بأي من القراءتين، ولا تصويب مطلوباً عليها.',
+    cropNeeded: 'قصّ مكبّر للعبارة ١ (ص٣٦) مع السطر الأخير من نصّ الدرس الأول (ص٥) للمقارنة.',
   },
   {
+    id: 'LIM-04',
+    studentLabel: 'السؤال ١ — عبارة فيها كلمة مطبوعة لم يُتحقق من رسمها في النسخة المتاحة',
     page: 36,
     recordId: 'U1R-36-03',
     region: 'السؤال ١ — العبارة ٣',
-    issue: 'كلمة «رَوَتْ» لم تُعثر بنصّها في النصوص المقفولة المتاحة للدروس الثلاثة (الوارد في الدرس الأول «رَواها»).',
-    whyItMatters: 'تقييم العبارة يعتمد على دلالة الفعل المعجمية المستقرة (روى = حكى وقصّ)، ويُسجَّل الموضع الأصلي بوصفه حدّاً مصدرياً.',
-    cropNeeded: 'قصّ مكبّر للعبارة الثالثة مع نصّ الدرس الذي وردت فيه الكلمة',
+    issue:
+      'كلمة «رَوَتْ» لم تُعثر بنصّها في النصوص المقفولة المتاحة (الوارد في الدرس الأول: «رَواها»)، ويحتمل رسمها قراءةً أخرى («رَأَتْ») بفارق نقطة/رسم في النسخة الممسوحة.',
+    impact: 'answer_and_solution',
+    affectsAnswer: true,
+    blocking: true,
+    pendingSubpartIds: ['u1r-q1-s3'],
+    whyItMatters:
+      'لو كانت المطبوعة «رَوَتْ» فمعناها «قصّت» والعبارة صحيحة؛ ولو كانت «رَأَتْ» فمعناها «أبصرت» والعبارة غير صحيحة والتصويب مختلف تماماً.',
+    cropNeeded: 'قصّ مكبّر عالي الدقة لكلمة العبارة ٣ وحدها (ص٣٦) + الصفحة التي وردت فيها الكلمة في النصّ (لتحديد موضعها).',
   },
   {
+    id: 'LIM-05',
+    studentLabel: 'السؤال ٤ — تمييزُ الكلمات الملوّنة (لا يمكن التحقق من اللون في النسخة المتاحة)',
     page: 37,
     recordId: 'U1R-37-06',
-    region: 'السؤال ٤ — الكلمات الملوّنة',
-    issue: 'لا يمكن التحقق من تمييز الكلمات الملوّنة في الجمل الأربع بثقة في النسخة المتاحة، فلا يُجزم بأي كلمة مقصودة.',
-    whyItMatters: 'يحدد الكلمة المطلوب تصنيفها (اسم/فعل/حرف) في كل جملة.',
-    cropNeeded: 'قصّ مكبّر عالي الدقة للجمل الأربع لأجل تحديد اللون في كل جملة',
+    region: 'السؤال ٤ — الكلمات الملوّنة في الجمل الأربع',
+    issue:
+      'لا يمكن التحقق من تمييز الكلمات الملوّنة في النسخة المتاحة، فلا يُجزم بأي كلمة مقصودة في كل جملة. المطلوب الأصلي يبقى كما هو: تصنيف الكلمة الملوّنة (اسم/فعل/حرف)، ولا يُستبدل بمهمة أخرى.',
+    impact: 'answer_and_solution',
+    affectsAnswer: true,
+    blocking: true,
+    pendingSubpartIds: ['u1r-q4-s1', 'u1r-q4-s2', 'u1r-q4-s3', 'u1r-q4-s4'],
+    whyItMatters: 'يحدد الكلمة المطلوب تصنيفها، ومن ثمّ الإجابة الصحيحة في البنود الأربعة كلها.',
+    cropNeeded: 'قصّ مكبّر عالي الدقة (طبعة ملوّنة أو ٦٠٠ نقطة/بوصة على الأقل) للجمل الأربع في السؤال ٤، مع ظهور اللون في كل جملة.',
   },
   {
+    id: 'LIM-06',
     page: 37,
     recordId: 'U1R-37-07',
-    region: 'السؤال ٥ — لافتات السبب والنتيجة',
+    region: 'السؤال ٥ — لافتتا السبب والنتيجة',
     issue: 'تسميات اللافتات المطبوعة («السَّبَبُ (١)» و«نتيجته (١)» و«نتيجته (٢)») وألوانها غير محسومة بثقة؛ ونصّ السؤال يعلن سبباً واحداً ونتيجتين.',
-    whyItMatters: 'يحدد عدد خانات الإجابة وتسميتها؛ اعتُمدت خانة للسبب وخانتان للنتيجتين وفق نصّ السؤال.',
-    cropNeeded: 'قصّ مكبّر لمنطقة اللافتتين في أسفل الصفحة',
+    impact: 'label_wording',
+    affectsAnswer: false,
+    blocking: false,
+    pendingSubpartIds: [],
+    whyItMatters:
+      'التسميات والألوان فقط؛ فالسبب والنتيجتان مستخرجان من نصّ العبارة المطبوعة الواضحة، وعدد الخانات محسوم بنصّ السؤال نفسه.',
+    cropNeeded: 'قصّ مكبّر لمنطقة اللافتتين أسفل ص٣٧ (مع اللونين الأصفر والوردي).',
   },
   {
+    id: 'LIM-07',
+    studentLabel: 'السؤال ٦ — الكلمة المطبوعة في مركز المخطط',
     page: 38,
     recordId: 'U1R-38-08',
     region: 'السؤال ٦ — الكلمة المركزية في المخطط',
-    issue: 'الكلمة المركزية تُقرأ «إعلان»، ويحتمل رسمها قراءةً أخرى («إعلام»).',
-    whyItMatters: 'يحدد فعل الكلمة ونوعها ومعناها وضدّها في فروع المخطط الأربعة.',
-    cropNeeded: 'قصّ مكبّر للدائرة المركزية',
+    issue: 'الكلمة المركزية تُقرأ «إعلان»، ويحتمل رسمها قراءةً أخرى («إعلام»)؛ والكلمتان تختلفان في الفعل والمعنى والضدّ.',
+    impact: 'answer_and_solution',
+    affectsAnswer: true,
+    blocking: true,
+    pendingSubpartIds: ['u1r-q6-s1', 'u1r-q6-s3', 'u1r-q6-s4'],
+    whyItMatters:
+      'يحدد فعل الكلمة ومعناها وضدّها في دوائر المخطط؛ أما «نوعها» فيبقى «اسماً» في القراءتين، فلا يتوقف على القراءة.',
+    cropNeeded: 'قصّ مكبّر عالي الدقة للدائرة المركزية وحدها في مخطط ص٣٨ (الكلمة فقط، بلا الدوائر الفرعية).',
   },
   {
+    id: 'LIM-08',
     page: 38,
     recordId: 'U1R-38-10',
     region: 'بند خاتمة الوحدة الثاني',
     issue: 'تشكيل «أُتْقِنُها» غير محسوم تماماً في النسخة المتاحة.',
-    whyItMatters: 'لا يمسّ المعنى؛ يمسّ ضبط الشكل فقط.',
-    cropNeeded: 'قصّ مكبّر لسطر «المهارة التي…»',
+    impact: 'vocalisation_only',
+    affectsAnswer: false,
+    blocking: false,
+    pendingSubpartIds: [],
+    whyItMatters: 'بند تقويم ذاتي غير مقوَّم، والشكل لا يؤثر في أي إجابة.',
+    cropNeeded: 'قصّ مكبّر لسطر «المهارة التي…» أسفل ص٣٨.',
   },
 ];
+
+/** Source records that must not be treated as fully verified yet. */
+export const PENDING_SOURCE_RECORD_IDS: string[] = [
+  ...new Set(REVIEW_SOURCE_UNCERTAINTIES.filter((entry) => entry.blocking).map((entry) => entry.recordId)),
+];
+
+/** Student elements whose answer depends on a pending crop. */
+export const PENDING_SOURCE_SUBPART_IDS: string[] = [
+  ...new Set(REVIEW_SOURCE_UNCERTAINTIES.flatMap((entry) => entry.pendingSubpartIds)),
+];
+
+export function isSubpartPendingSourceVerification(subpartId: string): boolean {
+  return PENDING_SOURCE_SUBPART_IDS.includes(subpartId);
+}
+
+/** Helper: the uncertainty that keeps one student element pending (if any). */
+export function reviewUncertaintyForSubpart(subpartId: string): ReviewSourceUncertainty | undefined {
+  return REVIEW_SOURCE_UNCERTAINTIES.find((entry) => entry.pendingSubpartIds.includes(subpartId));
+}
+
+/**
+ * Student-facing wording for a declared limit: states the unverified printed
+ * region and keeps the printed requirement — never guesses the missing content
+ * and never reveals a model answer.
+ */
+export function studentSourceLimitNotice(subpartId: string): string | undefined {
+  const limit = reviewUncertaintyForSubpart(subpartId);
+  if (!limit) return undefined;
+  return `لم يُتحقَّق بعدُ في النسخة المتاحة من المنصة من: ${limit.studentLabel ?? limit.region}؛ فلا تجزم المنصة بمحتواه. اعتمد النصّ المطبوع في كتابك، والمطلوب المطبوع يبقى كما هو، ويبقى هذا الموضع مسجّلًا «قيد التحقق المصدري» حتى وصول قصّ واضح.`;
+}
 
 /** Helper: the uncertainty notes for one source record. */
 export function reviewUncertaintiesFor(recordId: string): ReviewSourceUncertainty[] {

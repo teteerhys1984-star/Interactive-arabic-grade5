@@ -13,6 +13,11 @@ import {
   ReviewSubpart,
 } from '../../data/unit1Review/reviewItems';
 import { ReviewInteractionView, answerKey, isSubpartAnswered } from './ReviewInteractionView';
+import {
+  REVIEW_SOURCE_UNCERTAINTIES,
+  isSubpartPendingSourceVerification,
+  studentSourceLimitNotice,
+} from '../../data/unit1Review/sourceMeta';
 import { toArabicDigits } from '../../utils/arabicDigits';
 
 /**
@@ -64,13 +69,6 @@ function describeAnswer(subpart: ReviewSubpart, values: Record<string, string>):
     case 'single_choice': {
       const chosen = interaction.choices.find((choice) => choice.id === get('choice'));
       return [{ label: 'اختيارك', value: chosen ? chosen.text : 'لم تختر بعد' }];
-    }
-    case 'pick_and_classify': {
-      const category = interaction.categories.find((entry) => entry.id === get('type'));
-      return [
-        { label: 'الكلمة التي أشَرتَ إليها', value: get('pick') || 'لم تُشِر بعد' },
-        { label: 'تصنيفك', value: category ? category.label : 'لم تصنّف بعد' },
-      ];
     }
     case 'paragraph':
       return [{ label: 'فقرتك', value: get('text') || 'لم تكتب بعد' }];
@@ -213,23 +211,42 @@ export const Unit1ReviewFlow: React.FC<Unit1ReviewFlowProps> = ({ review, onExit
   /* Subpart card                                                       */
   /* ------------------------------------------------------------------ */
 
-  const renderSubpartCard = (subpart: ReviewSubpart, index: number, total: number) => (
-    <article className="u1r-branch-card" key={subpart.id} aria-label={subpart.label}>
-      <header className="u1r-branch-head">
-        <span className="u1r-branch-badge">{subpart.label}</span>
-        {total > 1 && (
-          <span className="u1r-branch-counter">
-            البند <ArabicNumber value={toArabicDigits(index + 1)} /> من <ArabicNumber value={toArabicDigits(total)} />
-          </span>
+  const renderSubpartCard = (
+    subpart: ReviewSubpart,
+    index: number,
+    total: number,
+    options: { suppressPendingNotice?: boolean } = {},
+  ) => {
+    const pendingNotice = options.suppressPendingNotice
+      ? undefined
+      : isSubpartPendingSourceVerification(subpart.id)
+        ? studentSourceLimitNotice(subpart.id)
+        : undefined;
+
+    return (
+      <article className="u1r-branch-card" key={subpart.id} aria-label={subpart.label}>
+        <header className="u1r-branch-head">
+          <span className="u1r-branch-badge">{subpart.label}</span>
+          {total > 1 && (
+            <span className="u1r-branch-counter">
+              البند <ArabicNumber value={toArabicDigits(index + 1)} /> من <ArabicNumber value={toArabicDigits(total)} />
+            </span>
+          )}
+          {!subpart.graded && <span className="u1r-branch-tag">تعليمة تنفيذية غير مقوَّمة</span>}
+          {pendingNotice && <span className="u1r-branch-pending-tag">قيد التحقق المصدري</span>}
+        </header>
+        {pendingNotice && (
+          <aside className="u1r-gap-notice u1r-subpart-pending-note" role="note">
+            <strong>حدّ مصدر معلن:</strong> {pendingNotice}
+          </aside>
         )}
-        {!subpart.graded && <span className="u1r-branch-tag">تعليمة تنفيذية غير مقوَّمة</span>}
-      </header>
-      {subpart.prompt && subpart.interaction.kind !== 'inline_blank' && (
-        <p className="u1r-branch-prompt">{subpart.prompt}</p>
-      )}
-      <ReviewInteractionView subpart={subpart} values={values} update={update} />
-    </article>
-  );
+        {subpart.prompt && subpart.interaction.kind !== 'inline_blank' && (
+          <p className="u1r-branch-prompt">{subpart.prompt}</p>
+        )}
+        <ReviewInteractionView subpart={subpart} values={values} update={update} />
+      </article>
+    );
+  };
 
   const renderQuestionBody = (question: ReviewQuestion) => {
     const subparts = question.subparts;
@@ -237,13 +254,26 @@ export const Unit1ReviewFlow: React.FC<Unit1ReviewFlowProps> = ({ review, onExit
 
     /* The four-circle map of question 6 is one printed diagram: it stays whole. */
     if (question.layout === 'word_map') {
-      const centerWord = subparts[0].prompt?.match(/«(.+?)»/)?.[1] || 'إعلان';
+      const map = question.wordMap;
+      const centerSettled = Boolean(map?.centerVerified);
       return (
         <div className="u1r-word-map">
-          <div className="u1r-map-center">{centerWord}</div>
-          <div className="u1r-map-nodes">
-            {subparts.map((subpart, index) => renderSubpartCard(subpart, index, subparts.length))}
+          <div
+            className={`u1r-map-center ${centerSettled ? '' : 'u1r-map-center-pending'}`}
+            aria-label={centerSettled ? `الكلمة المركزية: ${map?.centerReading}` : 'الكلمة المركزية غير محسومة في النسخة المتاحة'}
+          >
+            {centerSettled ? map?.centerReading : 'الكلمة المطبوعة في مركز المخطط'}
           </div>
+          <div className="u1r-map-nodes">
+            {subparts.map((subpart, index) =>
+              renderSubpartCard(subpart, index, subparts.length, { suppressPendingNotice: true }),
+            )}
+          </div>
+          {!centerSettled && map && (
+            <aside className="u1r-gap-notice u1r-map-pending-note" role="note">
+              <strong>حدّ مصدر معلن:</strong> {map.centerNote}
+            </aside>
+          )}
         </div>
       );
     }
@@ -345,6 +375,24 @@ export const Unit1ReviewFlow: React.FC<Unit1ReviewFlowProps> = ({ review, onExit
         </ol>
         <p className="u1r-lead-in">{UNIT1_REVIEW_INSTRUCTIONS.leadIn}</p>
       </section>
+
+      <details className="u1r-panel u1r-student-limits">
+        <summary>حدود مصدر معلنة في هذا التقويم ({REVIEW_SOURCE_UNCERTAINTIES.length})</summary>
+        <p className="u1r-helper">
+          بعض التفاصيل المطبوعة في الصفحات ٣٦–٣٨ لم تُحسم في النسخة المتاحة من المصدر (خاصّةً تمييز
+          الكلمة الملوّنة في السؤال ٤، والكلمة المطبوعة في مركز مخطط السؤال ٦). لا تخمّن المنصة هذه
+          التفاصيل: اقرأها من كتابك. وتفصيل المواضع وحلولها في منطقة المعلم.
+        </p>
+        <ul className="u1r-student-limits-list">
+          {REVIEW_SOURCE_UNCERTAINTIES.filter((limit) => limit.blocking).map((limit) => (
+            <li key={limit.id}>
+              <span className="u1r-branch-badge">ص <ArabicNumber value={toArabicDigits(limit.page)} /></span>
+              <span className="u1r-limit-region">{limit.studentLabel ?? limit.region}</span>
+              <span className="u1r-limit-impact">قيد التحقق المصدري — يبقى المطلوب المطبوع كما هو.</span>
+            </li>
+          ))}
+        </ul>
+      </details>
     </div>
   );
 
