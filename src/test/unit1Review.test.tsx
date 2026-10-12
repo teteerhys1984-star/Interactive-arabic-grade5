@@ -23,6 +23,7 @@ import {
 import { UNIT1_REVIEW_SOURCE_LOCK, auditUnit1ReviewCoverage } from '../data/unit1Review/sourceAudit';
 import { UNIT1_REVIEW_TEACHER_GUIDE } from '../data/unit1Review/teacherGuide';
 import {
+  OPEN_SOURCE_LIMIT_IDS,
   PENDING_SOURCE_RECORD_IDS,
   PENDING_SOURCE_SUBPART_IDS,
   REVIEW_SOURCE_UNCERTAINTIES,
@@ -151,41 +152,82 @@ describe('Unit 1 review (تقويم الوحدة الأولى) — structure and
     expect(report.branchCountMismatch).toEqual([]);
     expect(report.subpartsMissingTeacherSolution).toEqual([]);
     expect(report.teacherSolutionsMissingModelAnswer).toEqual([]);
-    // Structural coverage passes, but the source is NOT fully verified yet.
-    expect(report.sourceVerified).toBe(false);
-    expect(report.pendingSourceRecords).toEqual(['U1R-36-03', 'U1R-37-06', 'U1R-38-08']);
-    expect(report.pendingSubparts).toHaveLength(8);
+    // The three answer-affecting spots are settled by the owner's crops…
+    expect(report.sourceVerified).toBe(true);
+    expect(report.pendingSourceRecords).toEqual([]);
+    expect(report.pendingSubparts).toEqual([]);
+    // …while the five limits that do not touch any answer stay declared and open.
+    expect(report.openNonBlockingLimits).toEqual(['LIM-01', 'LIM-02', 'LIM-03', 'LIM-06', 'LIM-08']);
     expect(report.teacherSolutionsMissingSteps).toEqual([]);
     expect(report.emptyStudentPrompts).toEqual([]);
     expect(UNIT1_REVIEW_TEACHER_GUIDE.audit.status).toBe('passed');
   });
 
-  it('declares every source limit instead of inventing unreadable content', () => {
+  it('declares every source limit: three settled by the owner crops, five still open', () => {
     expect(REVIEW_SOURCE_UNCERTAINTIES).toHaveLength(8);
     expect(REVIEW_SOURCE_UNCERTAINTIES.every((limit) => limit.cropNeeded.length > 0)).toBe(true);
+    expect(REVIEW_SOURCE_UNCERTAINTIES.filter((limit) => limit.status === 'resolved').map((limit) => limit.id)).toEqual([
+      'LIM-04',
+      'LIM-05',
+      'LIM-07',
+    ]);
+    expect(OPEN_SOURCE_LIMIT_IDS).toEqual(['LIM-01', 'LIM-02', 'LIM-03', 'LIM-06', 'LIM-08']);
+    // Every settled limit records what settled it and on which crop.
+    REVIEW_SOURCE_UNCERTAINTIES.filter((limit) => limit.status === 'resolved').forEach((limit) => {
+      expect((limit.resolution || '').length).toBeGreaterThan(20);
+      expect(limit.evidence).toContain('٢٠٢٦-١٠-١٢');
+      expect(limit.blocking).toBe(false);
+      expect(limit.pendingSubpartIds).toEqual([]);
+    });
 
-    // The coloured words of ص٣٧ could not be verified. The printed requirement is
-    // kept unchanged (classify the coloured word) and no word is invented for it.
+    // ص٣٦ / السؤال ١ — العبارة ٣: the printed word is «رَوَتْ», so the verdict is settled.
+    const q1 = UNIT1_REVIEW_QUESTIONS.find((question) => question.printedNumber === '١')!;
+    const statement3 = q1.subparts[2];
+    expect(statement3.id).toBe('u1r-q1-s3');
+    expect(statement3.teacher.ambiguity).toBeUndefined();
+    expect(statement3.teacher.modelAnswer).toContain('صَحيحة');
+    expect(JSON.stringify(statement3)).not.toContain('رَأَتْ');
+    // العبارة ١ keeps the still-open wording limit (LIM-03) only.
+    expect(q1.subparts[0].teacher.ambiguity).toContain('مَرْكَزِ');
+    expect(q1.subparts[1].teacher.ambiguity).toBeUndefined();
+
+    // ص٣٧ / السؤال ٤: the coloured words are the ones the owner's crop shows.
     const q4 = UNIT1_REVIEW_QUESTIONS.find((question) => question.printedNumber === '٤')!;
+    expect(q4.subparts.map((subpart) => subpart.colouredWord?.word)).toEqual([
+      'في',
+      'الطِّفْلُ',
+      'زَرَعَ',
+      'الحِكْمَةُ',
+    ]);
+    expect(q4.subparts.map((subpart) => subpart.teacher.modelAnswer)).toEqual([
+      expect.stringContaining('حرفٌ'),
+      expect.stringContaining('اسمٌ'),
+      expect.stringContaining('فعلٌ'),
+      expect.stringContaining('اسمٌ'),
+    ]);
     q4.subparts.forEach((subpart) => {
       expect(subpart.interaction.kind).toBe('single_choice');
       if (subpart.interaction.kind === 'single_choice') {
         expect(subpart.interaction.choices.map((choice) => choice.id)).toEqual(['ism', 'fil', 'harf']);
       }
+      // Nothing is left pending, and the printed requirement is unchanged.
+      expect(subpart.teacher.ambiguity).toBeUndefined();
       expect(q4.instruction).toContain('أُصَنِّفُ الكَلِماتَ المُلَوَّنَةَ');
-      expect(subpart.teacher.ambiguity).toMatch(/لم يتيسّر التحقق|لا يمكن التحقق/);
     });
-    expect(q4.kindNote ?? '').toContain('تصنيفُ الكلمةِ الملوّنةِ');
-    expect(JSON.stringify(q4)).not.toContain('pick_and_classify');
+    expect(q4.kindNote ?? '').toContain('محسومة ببيّنة المالك');
 
-    // The central word of ص٣٨ stays declared as unverified: the map is not settled.
+    // ص٣٨ / السؤال ٦: the central printed word is «إعلان», and the answers follow it.
     const q6 = UNIT1_REVIEW_QUESTIONS.find((question) => question.printedNumber === '٦')!;
-    expect(q6.wordMap?.centerVerified).toBe(false);
-    expect(q6.wordMap?.centerNote).toContain('إعلام');
-    expect(q6.subparts.every((subpart) => (subpart.teacher.ambiguity || '').length > 0)).toBe(true);
-    expect(q6.subparts[0].teacher.modelAnswer).toContain('أَعْلَمَ');
+    expect(q6.wordMap?.centerReading).toBe('إعلان');
+    expect(q6.wordMap?.centerVerified).toBe(true);
+    expect(q6.subparts.every((subpart) => subpart.teacher.ambiguity === undefined)).toBe(true);
+    expect(q6.subparts[0].teacher.modelAnswer).toContain('أَعْلَنَ');
+    expect(q6.subparts[1].teacher.modelAnswer).toContain('اسمٌ');
+    // The closed reading is recorded once, and no answer is built on it.
+    expect(q6.kindNote ?? '').toContain('إعلام');
+    expect(JSON.stringify(q6.subparts)).not.toContain('إعلام');
 
-    // The clock label of ص٣٦ stays marked as a source limit.
+    // Limits of untouched records stay declared.
     expect(UNIT1_REVIEW_TIMING.uncertaintyNote).toContain('البدا');
     expect(UNIT1_REVIEW_TIMING.subparts).toHaveLength(3);
     expect(UNIT1_REVIEW_INSTRUCTIONS.subparts).toHaveLength(4);
@@ -280,27 +322,36 @@ describe('Unit 1 review — Student Area', () => {
     expect(progressNote).toContain('٢٣');
   });
 
-  it('renders the printed branches (including the declared-gap branch) without any solution', () => {
+  it('renders the printed branches with the verified coloured words and no solution', () => {
     const { container } = render(<App />);
     fireEvent.click(screen.getByRole('button', { name: /ابدأ تقويم الوحدة الأولى/ }));
 
-    // Question ٤ keeps the printed requirement (classify the coloured word) and
-    // states the declared limit instead of naming any word.
+    // Question ٤ shows the printed sentence with the verified coloured word in green.
     fireEvent.click(screen.getByRole('button', { name: /السؤال ٤:/ }));
-    expect(screen.getAllByText(/حدّ مصدر معلن/).length).toBeGreaterThan(0);
-    expect(container.querySelectorAll('.u1r-subpart-pending-note')).toHaveLength(1);
-    expect(screen.getAllByText(/قيد التحقق المصدري/).length).toBeGreaterThan(0);
-    fireEvent.click(screen.getByRole('button', { name: 'عرض كل فروع السؤال' }));
-    expect(container.querySelectorAll('.u1r-subpart-pending-note')).toHaveLength(4);
+    expect(container.querySelectorAll('.u1r-coloured-word')).toHaveLength(1);
+    expect(container.querySelector('.u1r-coloured-word')?.textContent).toBe('في');
     expect(screen.getAllByRole('radio', { name: 'اسمٌ' }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole('radio', { name: 'فعلٌ' }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole('radio', { name: 'حرفٌ' }).length).toBeGreaterThan(0);
     expect(container.querySelectorAll('.u1r-word-picker')).toHaveLength(0);
+    // Nothing is declared pending any more, and no limit notice is shown to the learner.
+    expect(container.querySelectorAll('.u1r-subpart-pending-note')).toHaveLength(0);
+    expect(container.querySelectorAll('.u1r-student-limits')).toHaveLength(0);
+    expect(screen.queryByText(/حدّ مصدر معلن/)).toBeNull();
 
-    // Question ٦ keeps the printed four-circle map but not an unverified word.
+    fireEvent.click(screen.getByRole('button', { name: 'عرض كل فروع السؤال' }));
+    expect(Array.from(container.querySelectorAll('.u1r-coloured-word')).map((node) => node.textContent)).toEqual([
+      'في',
+      'الطِّفْلُ',
+      'زَرَعَ',
+      'الحِكْمَةُ',
+    ]);
+    expect(container.querySelectorAll('.u1r-subpart-pending-note')).toHaveLength(0);
+
+    // Question ٦ shows the settled printed word in the centre of the four-circle map.
     fireEvent.click(screen.getByRole('button', { name: /السؤال ٦:/ }));
-    expect(container.querySelector('.u1r-map-center')?.textContent).toBe('الكلمة المطبوعة في مركز المخطط');
-    expect(container.querySelectorAll('.u1r-map-pending-note')).toHaveLength(1);
+    expect(container.querySelector('.u1r-map-center')?.textContent).toBe('إعلان');
+    expect(container.querySelectorAll('.u1r-map-pending-note')).toHaveLength(0);
     expect(screen.getAllByText('فعلُها').length).toBeGreaterThan(0);
     expect(screen.getAllByText('نوعُها').length).toBeGreaterThan(0);
     expect(screen.getAllByText('معناها').length).toBeGreaterThan(0);
@@ -396,7 +447,8 @@ describe('Unit 1 review — Teacher Area', () => {
     // Complete i‘rab, accepted alternatives/limits and declared limits are present.
     expect(screen.getAllByText('الإعراب الكامل').length).toBeGreaterThanOrEqual(5);
     expect(screen.getAllByText('الإجابات البديلة وحدود المقبول').length).toBeGreaterThan(10);
-    expect(screen.getAllByText('غموض مصدر معلن:').length).toBeGreaterThanOrEqual(6);
+    // Declared limits remain on the five records that still carry an open (non-answer) limit.
+    expect(screen.getAllByText('غموض مصدر معلن:').length).toBe(5);
     expect(screen.getByText(/حدود المصدر المعلنة/)).toBeInTheDocument();
 
     // Coverage ledger rows = the ten locked records.
@@ -409,38 +461,46 @@ describe('Unit 1 review — Teacher Area', () => {
     });
   });
 
-  it('never reports the pending source records as complete (pages 36–38 limits)', () => {
+  it('marks the three settled spots as complete and keeps the five open limits declared', () => {
     const { container } = render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'بوابة المعلم والإشراف' }));
     openTeacherArea();
     fireEvent.click(screen.getByRole('tab', { name: 'حلول تقويم الوحدة الأولى' }));
 
-    // Eight student elements stay pending until the crops arrive.
-    expect(PENDING_SOURCE_SUBPART_IDS).toHaveLength(8);
-    expect(container.querySelectorAll('.u1r-solution-card-pending')).toHaveLength(8);
-    expect(screen.getAllByText('قيد التحقق المصدري — غير مكتمل').length).toBe(8);
+    // Nothing is pending any more: no card, record or row is marked incomplete.
+    expect(PENDING_SOURCE_SUBPART_IDS).toEqual([]);
+    expect(PENDING_SOURCE_RECORD_IDS).toEqual([]);
+    expect(container.querySelectorAll('.u1r-solution-card-pending')).toHaveLength(0);
+    expect(container.querySelectorAll('.u1r-coverage-row-pending')).toHaveLength(0);
+    expect(container.querySelectorAll('.u1r-limit-row-blocking')).toHaveLength(0);
+    expect(container.querySelectorAll('.u1r-limit-row-settled')).toHaveLength(3);
+    expect(screen.queryByText(/قيد التحقق المصدري — غير مكتمل/)).toBeNull();
 
-    // The audit banner says plainly that source verification is unfinished.
-    expect(screen.getByText(/التحقق المصدري لم يكتمل/)).toBeInTheDocument();
+    // The audit banner states exactly what was settled and what stays declared.
+    const banner = container.querySelector('.audit-success-banner') as HTMLElement;
+    expect(banner.textContent).toContain('محسومة');
+    ['LIM-04', 'LIM-05', 'LIM-07', 'LIM-01', 'LIM-02', 'LIM-03', 'LIM-06', 'LIM-08'].forEach((limitId) => {
+      expect(banner.textContent).toContain(limitId);
+    });
 
-    // The three answer-affecting records are marked in the coverage ledger.
-    expect(PENDING_SOURCE_RECORD_IDS).toEqual(['U1R-36-03', 'U1R-37-06', 'U1R-38-08']);
-    expect(container.querySelectorAll('.u1r-coverage-row-pending')).toHaveLength(3);
-    expect(screen.getAllByText(/قيد التحقق المصدري — غير مكتمل \(بانتظار قصّ أوضح\)/).length).toBe(3);
+    // The source-limits table shows the resolution of the settled spots…
+    const limitsTable = container.querySelector('.u1r-limits-table') as HTMLElement;
+    expect(within(limitsTable).getAllByRole('row')).toHaveLength(REVIEW_SOURCE_UNCERTAINTIES.length + 1);
+    expect(within(limitsTable).getAllByText('حُسم ببيّنة المالك')).toHaveLength(3);
+    expect(within(limitsTable).getAllByText(/الكلمات الملوّنة \(باللون الأخضر\)/)).toHaveLength(1);
+    expect(within(limitsTable).getAllByText(/رَوَتْ/).length).toBeGreaterThan(0);
+    expect(within(limitsTable).getAllByText(/إعلان/).length).toBeGreaterThan(0);
+    // …and keeps the five remaining limits registered as non-answer items.
+    expect(within(limitsTable).getAllByText('مسجَّل — لا يوقف الاعتماد')).toHaveLength(5);
 
-    // The source-limits table states the effect on the answer, and Q4/Q6 keep the printed task.
-    const limitsTable = container.querySelector('.u1r-limits-table');
-    const limitRows = within(limitsTable as HTMLElement).getAllByRole('row');
-    expect(limitRows).toHaveLength(REVIEW_SOURCE_UNCERTAINTIES.length + 1);
-    expect(container.querySelectorAll('.u1r-limit-row-blocking')).toHaveLength(3);
-    expect(within(limitsTable as HTMLElement).getAllByText(/معلَّق — لا يُعدّ/).length).toBe(3);
-
-    // Q4 still asks for the classification of the coloured word, Q6 for the four circles.
+    // The settled readings are the ones stated in the solution cards.
     const q4Card = container.querySelector('[aria-label="حل الجملة ١"]') as HTMLElement;
-    expect(q4Card.textContent).toContain('اسمٌ');
-    expect(q4Card.textContent).toContain('قيد التحقق المصدري');
+    expect(q4Card.textContent).toContain('«في»');
+    expect(q4Card.textContent).toContain('حرفٌ');
+    expect(q4Card.textContent).toContain('الكلمة الملوّنة المطبوعة');
     const q6Card = container.querySelector('[aria-label="حل فعلُها"]') as HTMLElement;
-    expect(q6Card.textContent).toContain('أَعْلَمَ');
     expect(q6Card.textContent).toContain('أَعْلَنَ');
+    expect(q6Card.textContent).not.toContain('أَعْلَمَ');
   });
 });
+

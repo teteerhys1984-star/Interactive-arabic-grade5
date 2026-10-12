@@ -4259,6 +4259,29 @@ h4 { font-size: 1.1rem; }
   line-height: 1.9;
 }
 
+/* ---------- Printed coloured word (ص٣٧ / السؤال ٤) ---------- */
+
+.u1r-coloured-sentence {
+  font-size: 1.06rem;
+}
+
+.u1r-coloured-word {
+  color: #1f7a3f;
+  font-weight: 700;
+  text-decoration: underline dotted currentColor;
+  text-underline-offset: 3px;
+}
+
+.u1r-colour-legend {
+  margin: .25rem 0 .5rem;
+  font-size: .85rem;
+  color: var(--color-text-secondary);
+}
+
+.u1r-limit-evidence {
+  color: var(--color-text-secondary);
+}
+
 /* ---------- Declared source limits (pending verification) ---------- */
 
 .u1r-branch-pending-tag,
@@ -4328,6 +4351,10 @@ h4 { font-size: 1.1rem; }
 
 .u1r-limit-row-blocking td {
   background: #fff8eb;
+}
+
+.u1r-limit-row-settled td {
+  background: #f3fbf5;
 }
 
 @media (max-width: 700px) {

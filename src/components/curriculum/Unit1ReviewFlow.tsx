@@ -222,6 +222,7 @@ export const Unit1ReviewFlow: React.FC<Unit1ReviewFlowProps> = ({ review, onExit
       : isSubpartPendingSourceVerification(subpart.id)
         ? studentSourceLimitNotice(subpart.id)
         : undefined;
+    const coloured = subpart.colouredWord;
 
     return (
       <article className="u1r-branch-card" key={subpart.id} aria-label={subpart.label}>
@@ -240,8 +241,20 @@ export const Unit1ReviewFlow: React.FC<Unit1ReviewFlowProps> = ({ review, onExit
             <strong>حدّ مصدر معلن:</strong> {pendingNotice}
           </aside>
         )}
-        {subpart.prompt && subpart.interaction.kind !== 'inline_blank' && (
-          <p className="u1r-branch-prompt">{subpart.prompt}</p>
+        {coloured ? (
+          <>
+            <p className="u1r-branch-prompt u1r-coloured-sentence">
+              {coloured.before && <span>{coloured.before} </span>}
+              <span className="u1r-coloured-word">{coloured.word}</span>
+              {coloured.after && <span> {coloured.after}</span>}
+            </p>
+            <p className="u1r-colour-legend">
+              الكلمة الملوّنة في الكتاب معروضة هنا بالأخضر: «{coloured.word}» — المطلوب تصنيفها.
+            </p>
+          </>
+        ) : (
+          subpart.prompt &&
+          subpart.interaction.kind !== 'inline_blank' && <p className="u1r-branch-prompt">{subpart.prompt}</p>
         )}
         <ReviewInteractionView subpart={subpart} values={values} update={update} />
       </article>
@@ -376,6 +389,7 @@ export const Unit1ReviewFlow: React.FC<Unit1ReviewFlowProps> = ({ review, onExit
         <p className="u1r-lead-in">{UNIT1_REVIEW_INSTRUCTIONS.leadIn}</p>
       </section>
 
+      {REVIEW_SOURCE_UNCERTAINTIES.some((limit) => limit.blocking) && (
       <details className="u1r-panel u1r-student-limits">
         <summary>حدود مصدر معلنة في هذا التقويم ({REVIEW_SOURCE_UNCERTAINTIES.length})</summary>
         <p className="u1r-helper">
@@ -393,6 +407,7 @@ export const Unit1ReviewFlow: React.FC<Unit1ReviewFlowProps> = ({ review, onExit
           ))}
         </ul>
       </details>
+      )}
     </div>
   );
 

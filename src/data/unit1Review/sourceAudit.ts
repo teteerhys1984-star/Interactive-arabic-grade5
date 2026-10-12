@@ -1,4 +1,5 @@
 import {
+  OPEN_SOURCE_LIMIT_IDS,
   PENDING_SOURCE_RECORD_IDS,
   PENDING_SOURCE_SUBPART_IDS,
 } from './sourceMeta';
@@ -41,12 +42,12 @@ export interface ReviewSourceLockEntry {
 export const UNIT1_REVIEW_SOURCE_LOCK: ReviewSourceLockEntry[] = [
   { id: 'U1R-36-01', page: 36, label: 'مهمة ضبط الوقت (الساعتان)', role: 'timing', branchCount: 3 , verification: 'verified' },
   { id: 'U1R-36-02', page: 36, label: 'تعليمات التقويم', role: 'instructions', branchCount: 4 , verification: 'verified' },
-  { id: 'U1R-36-03', page: 36, label: 'السؤال ١: تمييز العبارة الصحيحة من غير الصحيحة', role: 'question', printedNumber: '١', branchCount: 4 , verification: 'pending_source' },
+  { id: 'U1R-36-03', page: 36, label: 'السؤال ١: تمييز العبارة الصحيحة من غير الصحيحة', role: 'question', printedNumber: '١', branchCount: 4 , verification: 'verified' },
   { id: 'U1R-37-04', page: 37, label: 'السؤال ٢: اختيار الإجابة الصحيحة', role: 'question', printedNumber: '٢', branchCount: 4 , verification: 'verified' },
   { id: 'U1R-37-05', page: 37, label: 'السؤال ٣: استعمال التراكيب في فقرة', role: 'question', printedNumber: '٣', branchCount: 1 , verification: 'verified' },
-  { id: 'U1R-37-06', page: 37, label: 'السؤال ٤: تصنيف الكلمات الملوّنة', role: 'question', printedNumber: '٤', branchCount: 4 , verification: 'pending_source' },
+  { id: 'U1R-37-06', page: 37, label: 'السؤال ٤: تصنيف الكلمات الملوّنة', role: 'question', printedNumber: '٤', branchCount: 4 , verification: 'verified' },
   { id: 'U1R-37-07', page: 37, label: 'السؤال ٥: السبب والنتيجتان', role: 'question', printedNumber: '٥', branchCount: 3 , verification: 'verified' },
-  { id: 'U1R-38-08', page: 38, label: 'السؤال ٦: إكمال المخطط (إعلان)', role: 'question', printedNumber: '٦', branchCount: 4 , verification: 'pending_source' },
+  { id: 'U1R-38-08', page: 38, label: 'السؤال ٦: إكمال المخطط (إعلان)', role: 'question', printedNumber: '٦', branchCount: 4 , verification: 'verified' },
   { id: 'U1R-38-09', page: 38, label: 'السؤال ٧: إكمال الفراغ (الهمزة)', role: 'question', printedNumber: '٧', branchCount: 3 , verification: 'verified' },
   { id: 'U1R-38-10', page: 38, label: 'خاتمة الوحدة (بندان)', role: 'closing', branchCount: 2 , verification: 'verified' },
 ];
@@ -75,6 +76,11 @@ export interface ReviewCoverageAuditReport {
   sourceVerified: boolean;
   pendingSourceRecords: string[];
   pendingSubparts: string[];
+  /**
+   * Printed regions still unverified but NOT bearing on any question wording,
+   * answer or model solution (declared and left open on purpose).
+   */
+  openNonBlockingLimits: string[];
   status: 'passed' | 'failed';
 }
 
@@ -169,6 +175,7 @@ export function auditUnit1ReviewCoverage(
     sourceVerified: pendingSourceRecords.length === 0,
     pendingSourceRecords,
     pendingSubparts,
+    openNonBlockingLimits: OPEN_SOURCE_LIMIT_IDS,
     status,
   };
 }

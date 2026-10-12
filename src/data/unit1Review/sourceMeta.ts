@@ -73,6 +73,15 @@ export interface ReviewSourceUncertainty {
   /** Precise, minimal crop request addressed to the project owner. */
   cropNeeded: string;
   /**
+   * 'open' = the printed region is still unverified; 'resolved' = the owner's
+   * crop settled it and the recorded reading below governs the answers.
+   */
+  status: 'open' | 'resolved';
+  /** What the owner's crop settled (only when status === 'resolved'). */
+  resolution?: string;
+  /** Which supplied crop settled it, with the exact region inside that crop. */
+  evidence?: string;
+  /**
    * Short, answer-neutral wording for the Student Area (no reading, no answer).
    * Used in the declared-limits panel so that the learner knows the spot is
    * declared while nothing about the missing content is asserted.
@@ -83,6 +92,7 @@ export interface ReviewSourceUncertainty {
 export const REVIEW_SOURCE_UNCERTAINTIES: ReviewSourceUncertainty[] = [
   {
     id: 'LIM-01',
+    status: 'open',
     page: 36,
     recordId: 'U1R-36-01',
     region: 'لافتتا الساعتين',
@@ -96,6 +106,7 @@ export const REVIEW_SOURCE_UNCERTAINTIES: ReviewSourceUncertainty[] = [
   },
   {
     id: 'LIM-02',
+    status: 'open',
     page: 36,
     recordId: 'U1R-36-02',
     region: 'صندوق تعليمات التقويم — البند ٤',
@@ -109,6 +120,7 @@ export const REVIEW_SOURCE_UNCERTAINTIES: ReviewSourceUncertainty[] = [
   },
   {
     id: 'LIM-03',
+    status: 'open',
     page: 36,
     recordId: 'U1R-36-03',
     region: 'السؤال ١ — العبارة ١',
@@ -122,6 +134,7 @@ export const REVIEW_SOURCE_UNCERTAINTIES: ReviewSourceUncertainty[] = [
   },
   {
     id: 'LIM-04',
+    status: 'resolved',
     studentLabel: 'السؤال ١ — عبارة فيها كلمة مطبوعة لم يُتحقق من رسمها في النسخة المتاحة',
     page: 36,
     recordId: 'U1R-36-03',
@@ -130,14 +143,19 @@ export const REVIEW_SOURCE_UNCERTAINTIES: ReviewSourceUncertainty[] = [
       'كلمة «رَوَتْ» لم تُعثر بنصّها في النصوص المقفولة المتاحة (الوارد في الدرس الأول: «رَواها»)، ويحتمل رسمها قراءةً أخرى («رَأَتْ») بفارق نقطة/رسم في النسخة الممسوحة.',
     impact: 'answer_and_solution',
     affectsAnswer: true,
-    blocking: true,
-    pendingSubpartIds: ['u1r-q1-s3'],
+    blocking: false,
+    pendingSubpartIds: [],
+    resolution:
+      'الكلمة المطبوعة في العبارة ٣ هي «رَوَتْ» (راء‑واو‑تاء)، وليست «رَأَتْ»؛ فعبارة «مَعْنى كَلِمَةِ «رَوَتْ» في النَّصِّ: قَصَّتْ» صحيحة، والحكم والتصويب محسومان بذلك.',
+    evidence:
+      'قصّة ص٣٦ التي أرسلها المالك (٢٠٢٦-١٠-١٢) وتشمل تعليمات التقويم والسؤال ١ بتمامه؛ ويظهر في السطر الثالث من السؤال ١ رسم الكلمة كاملًا بحرف الواو وسطها.',
     whyItMatters:
       'لو كانت المطبوعة «رَوَتْ» فمعناها «قصّت» والعبارة صحيحة؛ ولو كانت «رَأَتْ» فمعناها «أبصرت» والعبارة غير صحيحة والتصويب مختلف تماماً.',
     cropNeeded: 'قصّ مكبّر عالي الدقة لكلمة العبارة ٣ وحدها (ص٣٦) + الصفحة التي وردت فيها الكلمة في النصّ (لتحديد موضعها).',
   },
   {
     id: 'LIM-05',
+    status: 'resolved',
     studentLabel: 'السؤال ٤ — تمييزُ الكلمات الملوّنة (لا يمكن التحقق من اللون في النسخة المتاحة)',
     page: 37,
     recordId: 'U1R-37-06',
@@ -146,13 +164,18 @@ export const REVIEW_SOURCE_UNCERTAINTIES: ReviewSourceUncertainty[] = [
       'لا يمكن التحقق من تمييز الكلمات الملوّنة في النسخة المتاحة، فلا يُجزم بأي كلمة مقصودة في كل جملة. المطلوب الأصلي يبقى كما هو: تصنيف الكلمة الملوّنة (اسم/فعل/حرف)، ولا يُستبدل بمهمة أخرى.',
     impact: 'answer_and_solution',
     affectsAnswer: true,
-    blocking: true,
-    pendingSubpartIds: ['u1r-q4-s1', 'u1r-q4-s2', 'u1r-q4-s3', 'u1r-q4-s4'],
+    blocking: false,
+    pendingSubpartIds: [],
+    resolution:
+      'الكلمات الملوّنة (باللون الأخضر) هي: «في» في الجملة ١ ← حرفٌ، و«الطِّفْلُ» في الجملة ٢ ← اسمٌ، و«زَرَعَ» في الجملة ٣ ← فعلٌ، و«الحِكْمَةُ» في الجملة ٤ ← اسمٌ.',
+    evidence:
+      'قصّة ص٣٧ التي أرسلها المالك (٢٠٢٦-١٠-١٢) للسؤال ٤ بجمله الأربع، واللون الأخضر ظاهر في الكلمة المقصودة من كل جملة.',
     whyItMatters: 'يحدد الكلمة المطلوب تصنيفها، ومن ثمّ الإجابة الصحيحة في البنود الأربعة كلها.',
     cropNeeded: 'قصّ مكبّر عالي الدقة (طبعة ملوّنة أو ٦٠٠ نقطة/بوصة على الأقل) للجمل الأربع في السؤال ٤، مع ظهور اللون في كل جملة.',
   },
   {
     id: 'LIM-06',
+    status: 'open',
     page: 37,
     recordId: 'U1R-37-07',
     region: 'السؤال ٥ — لافتتا السبب والنتيجة',
@@ -167,6 +190,7 @@ export const REVIEW_SOURCE_UNCERTAINTIES: ReviewSourceUncertainty[] = [
   },
   {
     id: 'LIM-07',
+    status: 'resolved',
     studentLabel: 'السؤال ٦ — الكلمة المطبوعة في مركز المخطط',
     page: 38,
     recordId: 'U1R-38-08',
@@ -174,14 +198,19 @@ export const REVIEW_SOURCE_UNCERTAINTIES: ReviewSourceUncertainty[] = [
     issue: 'الكلمة المركزية تُقرأ «إعلان»، ويحتمل رسمها قراءةً أخرى («إعلام»)؛ والكلمتان تختلفان في الفعل والمعنى والضدّ.',
     impact: 'answer_and_solution',
     affectsAnswer: true,
-    blocking: true,
-    pendingSubpartIds: ['u1r-q6-s1', 'u1r-q6-s3', 'u1r-q6-s4'],
+    blocking: false,
+    pendingSubpartIds: [],
+    resolution:
+      'الكلمة المطبوعة في مركز المخطط هي «إعلان» (إ‑ع‑ل‑ا‑ن: همزة قطع مكسورة، ثم لام، ثم ألف، ثم نون) وليست «إعلام»؛ فـ«فعلُها» = «أَعْلَنَ»، و«نوعُها» = اسمٌ (مصدرٌ)، و«معناها» = الإخبار والإظهار، و«ضدُّها» = الإخفاء والكِتمان.',
+    evidence:
+      'قصّة ص٣٨ التي أرسلها المالك (٢٠٢٦-١٠-١٢) وتُظهر المخطط كاملًا مع الكلمة في الدائرة المركزية.',
     whyItMatters:
       'يحدد فعل الكلمة ومعناها وضدّها في دوائر المخطط؛ أما «نوعها» فيبقى «اسماً» في القراءتين، فلا يتوقف على القراءة.',
     cropNeeded: 'قصّ مكبّر عالي الدقة للدائرة المركزية وحدها في مخطط ص٣٨ (الكلمة فقط، بلا الدوائر الفرعية).',
   },
   {
     id: 'LIM-08',
+    status: 'open',
     page: 38,
     recordId: 'U1R-38-10',
     region: 'بند خاتمة الوحدة الثاني',
@@ -194,6 +223,16 @@ export const REVIEW_SOURCE_UNCERTAINTIES: ReviewSourceUncertainty[] = [
     cropNeeded: 'قصّ مكبّر لسطر «المهارة التي…» أسفل ص٣٨.',
   },
 ];
+
+/** Limits whose printed region is still unverified (declared, not blocking answers). */
+export const OPEN_SOURCE_LIMIT_IDS: string[] = REVIEW_SOURCE_UNCERTAINTIES
+  .filter((entry) => entry.status === 'open')
+  .map((entry) => entry.id);
+
+/** Limits settled by the owner's crops. */
+export const RESOLVED_SOURCE_LIMIT_IDS: string[] = REVIEW_SOURCE_UNCERTAINTIES
+  .filter((entry) => entry.status === 'resolved')
+  .map((entry) => entry.id);
 
 /** Source records that must not be treated as fully verified yet. */
 export const PENDING_SOURCE_RECORD_IDS: string[] = [
@@ -223,6 +262,14 @@ export function studentSourceLimitNotice(subpartId: string): string | undefined 
   const limit = reviewUncertaintyForSubpart(subpartId);
   if (!limit) return undefined;
   return `لم يُتحقَّق بعدُ في النسخة المتاحة من المنصة من: ${limit.studentLabel ?? limit.region}؛ فلا تجزم المنصة بمحتواه. اعتمد النصّ المطبوع في كتابك، والمطلوب المطبوع يبقى كما هو، ويبقى هذا الموضع مسجّلًا «قيد التحقق المصدري» حتى وصول قصّ واضح.`;
+}
+
+/**
+ * The declared limit of a record that is STILL open, if any. Settled limits are
+ * never turned into an uncertainty note again.
+ */
+export function openIssueNote(recordId: string): string | undefined {
+  return REVIEW_SOURCE_UNCERTAINTIES.find((entry) => entry.recordId === recordId && entry.status === 'open')?.issue;
 }
 
 /** Helper: the uncertainty notes for one source record. */

@@ -11,6 +11,7 @@ import {
 import { UNIT1_REVIEW_TIMING, UNIT1_REVIEW_INSTRUCTIONS, UNIT1_REVIEW_CLOSING } from '../../data/unit1Review/reviewItems';
 import {
   PENDING_SOURCE_RECORD_IDS,
+  RESOLVED_SOURCE_LIMIT_IDS,
   isSubpartPendingSourceVerification,
   reviewUncertaintyForSubpart,
 } from '../../data/unit1Review/sourceMeta';
@@ -211,7 +212,13 @@ export const Unit1ReviewSolutions: React.FC = () => {
 
       <div className={audit.status === 'passed' ? 'audit-success-banner' : 'audit-issues-list'}>
         {audit.status === 'passed' && audit.sourceVerified ? (
-          <>✓ تدقيق التغطية: كل سجل مصدري في الصفحات ٣٦–٣٨ ممثَّل في منطقة الطالب وله حل كامل في منطقة المعلم، والتحقق المصدري مكتمل.</>
+          <>
+            ✓ تدقيق التغطية: كل سجل مصدري في الصفحات ٣٦–٣٨ ممثَّل في منطقة الطالب وله حل كامل في منطقة
+            المعلم، و<strong>المواضع الثلاثة المؤثّرة في الإجابات محسومة</strong> ببيّنة المالك (
+            {RESOLVED_SOURCE_LIMIT_IDS.join('، ')}). ويبقى{' '}
+            <ArabicNumber value={toArabicDigits(audit.openNonBlockingLimits.length)} /> موضعًا معلنًا لا يمسّ
+            الإجابات ({audit.openNonBlockingLimits.join('، ')}) مسجّلًا في جدول حدود المصدر أدناه.
+          </>
         ) : audit.status === 'passed' ? (
           <div className="audit-issue-card issue-warning">
             <span className="issue-severity-badge">قيد التحقق المصدري</span>
@@ -343,14 +350,16 @@ export const Unit1ReviewSolutions: React.FC = () => {
                 <th scope="col">ما لم يُحسم</th>
                 <th scope="col">أثره على الإجابة</th>
                 <th scope="col">الحالة</th>
-                <th scope="col">المطلوب لرفع القيد</th>
+                <th scope="col">ما حُسم / المطلوب لرفع القيد</th>
               </tr>
             </thead>
             <tbody>
               {guide.sourceLimits.map((limit) => (
                 <tr
                   key={`${limit.recordId}-${limit.region}`}
-                  className={limit.affectsAnswer ? 'u1r-limit-row-blocking' : ''}
+                  className={
+                    limit.blocking ? 'u1r-limit-row-blocking' : limit.status === 'resolved' ? 'u1r-limit-row-settled' : ''
+                  }
                 >
                   <td><ArabicNumber value={toArabicDigits(limit.page)} /></td>
                   <td>{limit.region}</td>
@@ -360,11 +369,22 @@ export const Unit1ReviewSolutions: React.FC = () => {
                     {limit.whyItMatters}
                   </td>
                   <td>
-                    {limit.blocking
-                      ? `معلَّق — لا يُعدّ ${limit.recordId} مكتملًا`
-                      : 'مسجَّل — لا يوقف الاعتماد'}
+                    {limit.status === 'resolved'
+                      ? 'حُسم ببيّنة المالك'
+                      : limit.blocking
+                        ? `معلَّق — لا يُعدّ ${limit.recordId} مكتملًا`
+                        : 'مسجَّل — لا يوقف الاعتماد'}
                   </td>
-                  <td>{limit.cropNeeded}</td>
+                  <td>
+                    {limit.status === 'resolved' ? (
+                      <>
+                        <strong>{limit.resolution}</strong>
+                        {limit.evidence && <span className="u1r-limit-evidence"> ({limit.evidence})</span>}
+                      </>
+                    ) : (
+                      limit.cropNeeded
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
