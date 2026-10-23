@@ -11,6 +11,16 @@ import { U2L1_LOCKED_SOURCE_NOTES, U2L1_LISTENING_AUDIO_GAP } from './sourceMeta
  * `spellingRules` carry the full teachable reasoning for the two rule
  * domains, not only answer keys.
  */
+/** Source limits the teacher must see before teaching this lesson. */
+export const U2L1_TEACHER_SOURCE_ALERTS = [
+  U2L1_LISTENING_AUDIO_GAP,
+  U2L1_LOCKED_SOURCE_NOTES.unitTheme,
+  U2L1_LOCKED_SOURCE_NOTES.readingSegments,
+  U2L1_LOCKED_SOURCE_NOTES.radioWord,
+  U2L1_LOCKED_SOURCE_NOTES.handwritingWords,
+  U2L1_LOCKED_SOURCE_NOTES.dictation,
+] as const;
+
 export const U2L1_TEACHER_GUIDE: TeacherLessonGuide = {
   lessonId: 'unit2-lesson1',
   unitId: 'unit2',
@@ -55,15 +65,6 @@ export const U2L1_TEACHER_GUIDE: TeacherLessonGuide = {
     pageNumber: activity.page,
     availability: activity.availability,
   })),
+  sourceAlerts: [...U2L1_TEACHER_SOURCE_ALERTS],
   lessonTestAnswerKeyRef: U2L1_TEST.id,
 };
-
-/** Source limits the teacher must see before teaching this lesson. */
-export const U2L1_TEACHER_SOURCE_ALERTS = [
-  U2L1_LISTENING_AUDIO_GAP,
-  U2L1_LOCKED_SOURCE_NOTES.unitTheme,
-  U2L1_LOCKED_SOURCE_NOTES.readingSegments,
-  U2L1_LOCKED_SOURCE_NOTES.radioWord,
-  U2L1_LOCKED_SOURCE_NOTES.handwritingWords,
-  U2L1_LOCKED_SOURCE_NOTES.dictation,
-] as const;

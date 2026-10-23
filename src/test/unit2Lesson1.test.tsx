@@ -224,6 +224,8 @@ describe('Unit 2 Lesson 1 — مخترعٌ من بلادي source-lock implement
     expect(screen.getAllByText(/الحل النموذجي:/)).toHaveLength(45);
     expect(screen.getByText('شروح القواعد التفصيلية')).toBeInTheDocument();
     expect(screen.getByText('شروح الإملاء التفصيلية')).toBeInTheDocument();
+    expect(screen.getByText('تنبيهات حدود المصدر')).toBeInTheDocument();
+    expect(screen.getAllByText(/التسجيل الصوتي غير متوفر/).length).toBeGreaterThan(0);
     expect(screen.getByText('U2L1-49-02')).toBeInTheDocument();
   });
 

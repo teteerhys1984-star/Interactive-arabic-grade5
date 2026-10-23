@@ -197,6 +197,16 @@ export const TeacherAreaShell: React.FC<TeacherAreaShellProps> = ({
                       </ul>
                     </div>
                   )}
+                  {guide.sourceAlerts && guide.sourceAlerts.length > 0 && (
+                    <div className="guide-objectives teacher-source-alerts">
+                      <h4>تنبيهات حدود المصدر</h4>
+                      <ul>
+                        {guide.sourceAlerts.map((alert, i) => (
+                          <li key={i}>{alert}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                   {guide.sourceCoverage && (
                     <details className="teacher-coverage-ledger">
                       <summary>
