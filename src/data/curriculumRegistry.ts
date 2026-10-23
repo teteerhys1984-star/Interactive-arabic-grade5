@@ -12,6 +12,8 @@ import {
 import { UNIT1_REVIEW_SOURCE_LOCK } from './unit1Review/sourceAudit';
 import { UNIT1_REVIEW_TEACHER_GUIDE } from './unit1Review/teacherGuide';
 import { UNIT1_REVIEW_DOCUMENT_TITLE } from './unit1Review/sourceMeta';
+import { U2L1_STEPS } from './unit2Lesson1/content';
+import { u2l1Src, U2L1_LOCKED_SOURCE_NOTES, U2L1_LISTENING_AUDIO_GAP } from './unit2Lesson1/sourceMeta';
 
 /**
  * Official Curriculum Registry for Grade 5 Arabic.
@@ -165,13 +167,63 @@ const unit1Review: UnitReview = {
   },
 };
 
+/**
+ * Unit 2 — registered from pages 40–49 only
+ * (docs/source-locks/unit2-lesson-01-mukhtari-min-biladi.md).
+ *
+ * CRITICAL RULES, identical to Unit 1:
+ * - The unit divider page (title/theme) was NOT among the supplied images,
+ *   so the unit is registered as «الوحدة الثانية» without an invented theme.
+ * - The unit is NOT complete: isComplete = false and NO unitTestId. It may
+ *   only become complete after the project owner explicitly declares
+ *   «هذا هو آخر درس في الوحدة».
+ */
+const unit2Lesson1: Lesson = {
+  metadata: {
+    id: 'unit2-lesson1',
+    unitId: 'unit2',
+    order: 1,
+    title: 'مُخْتَرِعٌ مِنْ بِلَادِي',
+    subtitle: 'الحاجةُ أمُّ الاختراعِ... فأنتَ تستطيعُ',
+    primarySkill: 'reading_comprehension',
+    estimatedMinutes: 90,
+    sources: [
+      u2l1Src(40, 'textbook_exercise', 'أتأمل الصور وأستمع إلى النص', undefined, U2L1_LISTENING_AUDIO_GAP),
+      u2l1Src(41, 'textbook_reading', 'أقرأ: مخترعٌ من بلادي'),
+      u2l1Src(42, 'textbook_exercise', 'الفهم القرائي (١–٤)'),
+      u2l1Src(43, 'textbook_expression', 'الفهم القرائي (٥–٨) وأتعلم: حديث إذاعي', undefined, U2L1_LOCKED_SOURCE_NOTES.radioWord),
+      u2l1Src(44, 'textbook_grammar', 'الحديث الإذاعي وقواعد اللغة: الجملة الاسمية'),
+      u2l1Src(45, 'textbook_grammar', 'القاعدة والتقويم النهائي (١–٣)'),
+      u2l1Src(46, 'textbook_spelling', 'التقويم النهائي (٤–٦) وإملاء: الهمزة الأولية', undefined, U2L1_LOCKED_SOURCE_NOTES.dictation),
+      u2l1Src(47, 'textbook_exercise', 'الخط: رسم (ج ح خ) بخط الرقعة', undefined, U2L1_LOCKED_SOURCE_NOTES.handwritingWords),
+      u2l1Src(48, 'textbook_expression', 'الخط وأعبر كتابياً: أساليب للتعبير'),
+      u2l1Src(49, 'activity_book', 'ألعب وأتعلم وأنا وأسرتي'),
+    ],
+  },
+  steps: U2L1_STEPS,
+  testId: 'unit2-lesson1-test',
+};
+
+const unit2: Unit = {
+  metadata: {
+    id: 'unit2',
+    order: 2,
+    title: 'الوحدة الثانية',
+    // No theme: the unit divider page was not supplied.
+    isComplete: false, // No owner completion declaration; therefore no unit test.
+    sourcePagesRange: { startPage: 40, endPage: 49 },
+  },
+  lessons: [unit2Lesson1],
+  // unitTestId intentionally absent until the owner declares completion.
+};
+
 export const unitReviews: UnitReview[] = [unit1Review];
 
 export const curriculumRegistry: CurriculumRegistry = {
   grade: 5,
   subject: 'اللغة العربية',
   academicYear: '2024-2025',
-  units: [unit1],
+  units: [unit1, unit2],
 };
 
 /**

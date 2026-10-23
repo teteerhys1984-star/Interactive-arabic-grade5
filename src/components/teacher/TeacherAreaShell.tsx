@@ -177,6 +177,26 @@ export const TeacherAreaShell: React.FC<TeacherAreaShellProps> = ({
                       ))}
                     </ul>
                   </div>
+                  {guide.grammarNotes && guide.grammarNotes.length > 0 && (
+                    <div className="guide-objectives">
+                      <h4>شروح القواعد التفصيلية</h4>
+                      <ul>
+                        {guide.grammarNotes.map((note, i) => (
+                          <li key={i}>{note}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {guide.spellingRules && guide.spellingRules.length > 0 && (
+                    <div className="guide-objectives">
+                      <h4>شروح الإملاء التفصيلية</h4>
+                      <ul>
+                        {guide.spellingRules.map((rule, i) => (
+                          <li key={i}>{rule}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                   {guide.sourceCoverage && (
                     <details className="teacher-coverage-ledger">
                       <summary>

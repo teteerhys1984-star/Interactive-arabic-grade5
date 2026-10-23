@@ -11,6 +11,7 @@ import { ALL_ASSESSMENTS, getLessonTestByLessonId, getUnitTestByUnitId } from '.
 import { LESSON1_TEACHER_GUIDE } from './data/lesson1/teacherGuide';
 import { LESSON2_TEACHER_GUIDE } from './data/lesson2/teacherGuide';
 import { LESSON3_TEACHER_GUIDE } from './data/lesson3/teacherGuide';
+import { U2L1_TEACHER_GUIDE } from './data/unit2Lesson1/teacherGuide';
 import { UnitCard } from './components/curriculum/UnitCard';
 import { LessonFlow } from './components/curriculum/LessonFlow';
 import { Unit1ReviewFlow } from './components/curriculum/Unit1ReviewFlow';
@@ -29,7 +30,7 @@ type NavigationRoute =
   | { view: 'teacher' }
   | { view: 'solutions'; testId?: string };
 
-const TEACHER_GUIDES = [LESSON1_TEACHER_GUIDE, LESSON2_TEACHER_GUIDE, LESSON3_TEACHER_GUIDE];
+const TEACHER_GUIDES = [LESSON1_TEACHER_GUIDE, LESSON2_TEACHER_GUIDE, LESSON3_TEACHER_GUIDE, U2L1_TEACHER_GUIDE];
 
 const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
 const toArabicDigits = (value: number | string): string =>

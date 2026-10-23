@@ -11,6 +11,7 @@ import {
 } from './Lesson1Explanations';
 import { Lesson2StepRenderer } from './Lesson2StepRenderer';
 import { Lesson3StepRenderer } from './Lesson3StepRenderer';
+import { Unit2Lesson1StepRenderer } from './Unit2Lesson1StepRenderer';
 
 /**
  * StepRenderer — renders a lesson step's content blocks.
@@ -24,6 +25,9 @@ export const StepRenderer: React.FC<{ step: LessonStep }> = ({ step }) => {
   }
   if (step.id.startsWith('l3-')) {
     return <Lesson3StepRenderer step={step} />;
+  }
+  if (step.id.startsWith('u2l1-')) {
+    return <Unit2Lesson1StepRenderer step={step} />;
   }
 
   const content = LESSON1_STEP_CONTENT[step.id];
