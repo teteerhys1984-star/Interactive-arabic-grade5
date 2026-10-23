@@ -78,14 +78,16 @@ describe('Unit 1 review (تقويم الوحدة الأولى) — structure and
     const unit1 = curriculumRegistry.units[0];
     expect(unit1.unitTestId).toBe('unit1-test');
     expect(isUnitTestAvailable('unit1')).toBe(true);
-    // The review adds no assessment: 3 lesson tests + 1 unit test only.
-    expect(ALL_ASSESSMENTS).toHaveLength(4);
+    // The review adds no assessment to Unit 1: 3 lesson tests + 1 unit test only.
+    // (Scoped to Unit 1 because Unit 2 Lesson 1 was registered later; that
+    // separate lesson test must not change the Unit 1 contract asserted here.)
+    expect(ALL_ASSESSMENTS.filter((assessment) => assessment.unitId === 'unit1')).toHaveLength(4);
     expect(ALL_ASSESSMENTS.some((assessment) => assessment.id.includes('review'))).toBe(false);
     expect(ALL_ASSESSMENTS.find((assessment) => assessment.id === 'unit1-test')?.questions).toHaveLength(50);
 
     const audit = auditCurriculum(curriculumRegistry, ALL_ASSESSMENTS, TEACHER_GUIDES);
     expect(audit.errorsCount).toBe(0);
-    expect(audit.totalLessons).toBe(3);
+    expect(unit1.lessons).toHaveLength(3);
   });
 
   it('flags a review that leaked into the lessons list as a critical audit error', () => {

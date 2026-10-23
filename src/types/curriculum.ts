@@ -345,6 +345,8 @@ export interface TeacherLessonGuide {
   pedagogicalObjectives: string[];
   grammarNotes?: string[];
   spellingRules?: string[];
+  /** Optional declared source limits that must be visible to the teacher. */
+  sourceAlerts?: string[];
   exerciseSolutions: TeacherExerciseSolution[];
   /** Optional explicit coverage ledger for a source-locked lesson. */
   sourceCoverage?: SourceCoverageEntry[];

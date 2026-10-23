@@ -13,7 +13,9 @@ describe('Interactive Arabic Grade 5 - Lesson 1 & Foundation Contracts', () => {
   it('Curriculum integrity: Unit 1 holds three lessons and is complete only by the owner declaration of 2026-10-12', () => {
     expect(curriculumRegistry.grade).toBe(5);
     expect(curriculumRegistry.subject).toBe('اللغة العربية');
-    expect(curriculumRegistry.units).toHaveLength(1);
+    // Unit 2 (first lesson, pp. 40–49) was registered after this contract was
+    // written; Unit 1 itself must stay intact, as asserted below.
+    expect(curriculumRegistry.units).toHaveLength(2);
 
     const unit1 = curriculumRegistry.units[0];
     expect(unit1.metadata.id).toBe('unit1');
