@@ -191,7 +191,7 @@ const unit2Lesson1: Lesson = {
       u2l1Src(40, 'textbook_exercise', 'أتأمل الصور وأستمع إلى النص', undefined, U2L1_LISTENING_AUDIO_GAP),
       u2l1Src(41, 'textbook_reading', 'أقرأ: مخترعٌ من بلادي'),
       u2l1Src(42, 'textbook_exercise', 'الفهم القرائي (١–٤)'),
-      u2l1Src(43, 'textbook_expression', 'الفهم القرائي (٥–٨) وأتعلم: حديث إذاعي', undefined, U2L1_LOCKED_SOURCE_NOTES.radioWord),
+      u2l1Src(43, 'textbook_expression', 'الفهم القرائي (٥–٨) وأتعلم: حديث إذاعي'),
       u2l1Src(44, 'textbook_grammar', 'الحديث الإذاعي وقواعد اللغة: الجملة الاسمية'),
       u2l1Src(45, 'textbook_grammar', 'القاعدة والتقويم النهائي (١–٣)'),
       u2l1Src(46, 'textbook_spelling', 'التقويم النهائي (٤–٦) وإملاء: الهمزة الأولية', undefined, U2L1_LOCKED_SOURCE_NOTES.dictation),

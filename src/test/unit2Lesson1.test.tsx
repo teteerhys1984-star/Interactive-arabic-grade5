@@ -7,11 +7,11 @@ import { TestSolutions } from '../components/assessment/TestSolutions';
 import { curriculumRegistry, getLessonById, getUnitById, isUnitTestAvailable } from '../data/curriculumRegistry';
 import { ALL_ASSESSMENTS, getLessonTestByLessonId } from '../data/assessments';
 import { U2L1_ACTIVITIES, U2L1_COVERAGE } from '../data/unit2Lesson1/activities';
-import { U2L1_READING_TEXT, U2L1_STEP_CONTENT, U2L1_STEPS } from '../data/unit2Lesson1/content';
+import { U2L1_READING_TEXT, U2L1_SOURCE_RULES, U2L1_STEP_CONTENT, U2L1_STEPS } from '../data/unit2Lesson1/content';
 import { U2L1_TEST } from '../data/unit2Lesson1/lessonTest';
 import { U2L1_SOURCE_LOCK_IDS, auditU2L1Coverage } from '../data/unit2Lesson1/sourceAudit';
 import { U2L1_TEACHER_GUIDE } from '../data/unit2Lesson1/teacherGuide';
-import { U2L1_LISTENING_AUDIO_GAP, U2L1_LOCKED_SOURCE_NOTES } from '../data/unit2Lesson1/sourceMeta';
+import { U2L1_LISTENING_AUDIO_GAP } from '../data/unit2Lesson1/sourceMeta';
 import { LESSON1_TEACHER_GUIDE } from '../data/lesson1/teacherGuide';
 import { LESSON2_TEACHER_GUIDE } from '../data/lesson2/teacherGuide';
 import { LESSON3_TEACHER_GUIDE } from '../data/lesson3/teacherGuide';
@@ -94,8 +94,17 @@ describe('Unit 2 Lesson 1 — مخترعٌ من بلادي source-lock implement
 
     const handwriting = U2L1_ACTIVITIES.find((activity) => activity.sourceActivityId === 'U2L1-47-01')!;
     expect(handwriting.subparts.join(' ')).toContain('غير محسومة');
-    expect(U2L1_LOCKED_SOURCE_NOTES.radioWord).toContain('ما كتبتُ');
+    expect(JSON.stringify(U2L1_STEP_CONTENT['u2l1-s4'])).toContain('مَا كَتَبْتُ بِلُغَتِي');
+    expect(JSON.stringify(U2L1_STEP_CONTENT['u2l1-s4'])).not.toContain('كلمة غير محسومة الرسم');
     expect(U2L1_READING_TEXT.paragraphs.join(' ')).toContain('سَطَعَ عَلَى يَدَيْهِ بِمِرْوَحَةٍ');
+    expect(U2L1_SOURCE_RULES.inductionPassage).toContain('لِتَحَضُّرِ الْمُجْتَمَعَاتِ');
+    expect(U2L1_SOURCE_RULES.inductionPassage).toContain('مُؤَشِّرٌ');
+
+    const vowelize = U2L1_ACTIVITIES.find((activity) => activity.sourceActivityId === 'U2L1-45-05')!;
+    expect(vowelize.instruction).toContain('الشجر مزهر؛ الرياضة حياة');
+    expect(vowelize.instruction).not.toContain('الشَّجَرُ مُزْهِرٌ');
+    expect(JSON.stringify(U2L1_STEP_CONTENT['u2l1-s5'])).not.toContain('ما الكتابُ؟ صديقٌ');
+    expect(JSON.stringify(U2L1_STEP_CONTENT['u2l1-s5'])).not.toContain('الاستعمالُ المفيدُ مرتبطٌ');
   });
 
   it('opens the lesson from the home curriculum list without offering a Unit 2 test', () => {
