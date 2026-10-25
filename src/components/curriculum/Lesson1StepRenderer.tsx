@@ -57,14 +57,30 @@ const stripForMatch = (value: string): string =>
 const toArabicDigits = (value: number): string =>
   String(value).replace(/\d/g, (digit) => '٠١٢٣٤٥٦٧٨٩'[Number(digit)]);
 
+/**
+ * Exact match after normalisation only.
+ *
+ * The previous rule also accepted any text that merely CONTAINED an accepted
+ * phrase, so «لم يضطرب البحرُ» was graded as the answer «اضطرب», and a sentence
+ * built around a documented phrase passed without saying it. That is a false
+ * positive: containment proves nothing about meaning or correctness.
+ *
+ * Accepted alternatives therefore have to be listed explicitly in the activity
+ * data (each one carrying its source support), and matching is exact — while the
+ * normalisation policy is unchanged, so harakat, tatweel, superscript alef,
+ * hamza forms, yā’/alif maqsūra, tā’ marbūta, punctuation and extra spaces are
+ * still tolerated in whatever the learner types.
+ *
+ * No accepted list ⇒ never correct (a blank without a documented key stays
+ * ungraded, and pending fields never reach this function).
+ */
 const matchesAccepted = (value: string, accepted: string[] | undefined): boolean => {
   if (!accepted || accepted.length === 0) return false;
   const given = stripForMatch(value);
   if (!given) return false;
   return accepted.some((answer) => {
     const target = stripForMatch(answer);
-    if (!target) return false;
-    return given === target || (target.length >= 4 && given.includes(target));
+    return target.length > 0 && given === target;
   });
 };
 

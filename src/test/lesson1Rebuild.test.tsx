@@ -729,3 +729,150 @@ describe('Lesson 1 — event-diagram grading and stale-verdict clearing', () => 
     });
   });
 });
+
+describe('Lesson 1 — pending decode activity (L1-080) never produces a verdict', () => {
+  const decodeActivity = () => screen.getByLabelText('نشاط ١ (ألعب وأتعلم)');
+
+  it('keeps the check disabled while the learner writes and edits, with no verdict, no model answer and no key', () => {
+    const { container } = render(<Lesson1StepRenderer step={stepById('l1-s10')} />);
+    const activity = decodeActivity();
+    const textarea = within(activity).getByLabelText('مساحة فك الرموز');
+    const check = within(activity).getByRole('button', { name: 'تحقّق من إجاباتي' });
+    const modelAnswer = within(activity).getByRole('button', {
+      name: 'اعرض الإجابة النموذجية (بعد المحاولة)',
+    });
+
+    // data level: the activity stays pending and its model answer holds no key
+    const pendingActivity = TEXTBOOK_ACTIVITIES.find((item) => item.id === 'a-p11-1')!;
+    expect(pendingActivity.status).toBe('pending');
+    expect(PENDING_ACTIVITY_IDS).toContain('a-p11-1');
+    expect(COVERAGE.pending).toBe(2); // a-p6-1 (part) + a-p11-1 (whole)
+    expect(COVERAGE.solved).toBe(37);
+    expect(
+      TEXTBOOK_ACTIVITIES.filter((item) => item.status === 'solved').map((item) => item.id),
+    ).not.toContain('a-p11-1');
+    expect(pendingActivity.interaction.kind).toBe('decode');
+    expect(pendingActivity.solution.answer).toBe('بانتظار اعتماد المطابقة النهائية من صاحب المشروع.');
+
+    // before any input: the pending notice is shown and the correction is disabled
+    expect(activity.textContent).toContain('لعبة فكّ الرموز — التصحيح معطّل');
+    expect(activity.textContent).toContain('المطابقة لم تُعتمد بعد');
+    expect(within(activity).getByText(/بندٌ معلّق \(غير محلول\)/)).toBeInTheDocument();
+    expect(check).toBeDisabled();
+    expect(check).toHaveAttribute('title', 'التصحيح معطّل لأنّ المطابقة معلّقة بانتظار الاعتماد');
+    expect(modelAnswer).toBeDisabled();
+
+    // writing an answer enables nothing and reveals nothing
+    fireEvent.change(textarea, { target: { value: 'رموزٌ رموزٌ رموز' } });
+    expect(textarea).toHaveValue('رموزٌ رموزٌ رموز');
+    expect(check).toBeDisabled();
+    expect(modelAnswer).toBeDisabled();
+    expect(activity.textContent).not.toContain('✔');
+    expect(activity.textContent).not.toContain('⟳');
+    expect(activity.textContent).not.toContain('نتيجة التحقّق');
+    expect(activity.textContent).not.toContain('سجّلنا محاولتك');
+
+    // editing keeps the new value and still reveals nothing
+    fireEvent.change(textarea, { target: { value: 'الجملة الأولى فقط' } });
+    expect(textarea).toHaveValue('الجملة الأولى فقط');
+    expect(check).toBeDisabled();
+    expect(modelAnswer).toBeDisabled();
+    expect(activity.textContent).not.toContain('✔');
+    expect(activity.textContent).not.toContain('⟳');
+    expect(activity.textContent).not.toContain('نتيجة التحقّق');
+
+    // clicking the disabled check changes nothing: no verdict, no model answer panel
+    fireEvent.click(check);
+    expect(activity.textContent).not.toContain('نتيجة التحقّق');
+    expect(activity.querySelector('.l1-model-answer')).toBeNull();
+    expect(modelAnswer).toBeDisabled();
+    expect(within(activity).queryByRole('button', { name: 'تحقّق مجدّدًا' })).toBeNull();
+    expect(within(activity).queryByRole('button', { name: 'عدّل إجاباتي' })).toBeNull();
+
+    // the draft mapping stays out of the student UI entirely
+    const bodyText = container.textContent ?? '';
+    expect(bodyText).not.toContain('الصدق منجاة');
+    expect(bodyText).not.toContain('أحب بلادي');
+    expect(bodyText).not.toContain('مُربَّع أزرق');
+    expect(bodyText).not.toContain('منجاة');
+  });
+});
+
+describe('Lesson 1 — exact matching after normalisation', () => {
+  it('accepts a documented answer whatever its harakat, spacing or punctuation', () => {
+    render(<Lesson1StepRenderer step={stepById('l1-s4')} />);
+    const activity = screen.getByLabelText('نشاط ٢ (الفهم القرائي)');
+    const field = within(activity).getByLabelText('خفقَ البحرُ بموجهِ');
+
+    ['اضطرب', 'اضْطَرَبَ', '  اضطرب  ', 'اضطرب.', 'اضطرب!', 'اِضْطَرَب'].forEach((value) => {
+      fireEvent.change(field, { target: { value } });
+      fireEvent.click(within(activity).getByRole('button', { name: /تحقّق/ }));
+      expect(within(activity).getByText(/✔ إجابة صحيحة/)).toBeInTheDocument();
+    });
+  });
+
+  it('rejects a sentence that merely contains an accepted phrase in a wrong context', () => {
+    render(<Lesson1StepRenderer step={stepById('l1-s4')} />);
+
+    // 1) a written field: «اضطرب» is inside the sentence, but the sentence denies it
+    const fieldActivity = screen.getByLabelText('نشاط ٢ (الفهم القرائي)');
+    const field = within(fieldActivity).getByLabelText('خفقَ البحرُ بموجهِ');
+    fireEvent.change(field, { target: { value: 'لم يضطرب البحرُ أبدًا' } });
+    fireEvent.click(within(fieldActivity).getByRole('button', { name: /تحقّق/ }));
+    expect(fieldActivity.textContent).not.toContain('✔');
+    expect(fieldActivity.textContent).toContain('⟳ تحتاج مراجعة');
+    // and the learner is told which answers are accepted
+    expect(fieldActivity.textContent).toContain('لماذا لم تُقبل؟');
+    expect(fieldActivity.textContent).toContain('الإجابات المقبولة');
+
+    // 2) a diagram blank: the documented event is quoted inside an unrelated sentence
+    const diagram = screen.getByLabelText('نشاط ٣ (الفهم القرائي)');
+    const blank1 = within(diagram).getByLabelText('فارغ ١ في مخطط الأحداث');
+    fireEvent.change(blank1, {
+      target: { value: 'لا أعرف، لكنّ نصيحة البحر بالتعاون مع زملائه كلامٌ غريب' },
+    });
+    fireEvent.click(within(diagram).getByRole('button', { name: /تحقّق/ }));
+    expect(diagram.textContent).not.toContain('✔');
+    expect(diagram.textContent).toContain('⟳ تحتاج مراجعة');
+    expect(diagram.textContent).toContain('نتيجة التحقّق: ٠ صحيحة، و١ تحتاج مراجعة');
+
+    // 3) a table cell: the documented result is embedded in a sentence that contradicts it
+    const table = screen.getByLabelText('نشاط ٤ (الفهم القرائي)');
+    const cell = within(table).getByLabelText('النّتيجة — صف 1');
+    fireEvent.change(cell, {
+      target: { value: 'كان صنع المركب وتجهيزه وإنزاله إلى الماء حلماً لم يتحقّق' },
+    });
+    fireEvent.click(within(table).getByRole('button', { name: /تحقّق/ }));
+    expect(table.textContent).not.toContain('✔');
+    expect(table.textContent).toContain('⟳ تحتاج مراجعة');
+  });
+
+  it('accepts the explicitly listed variants of the longer source-backed answers', () => {
+    render(<Lesson1StepRenderer step={stepById('l1-s4')} />);
+
+    const diagram = screen.getByLabelText('نشاط ٣ (الفهم القرائي)');
+    fireEvent.change(within(diagram).getByLabelText('فارغ ١ في مخطط الأحداث'), {
+      target: { value: 'صنع مركب للصّيد بالتعاون مع الزملاء' },
+    });
+    fireEvent.change(within(diagram).getByLabelText('فارغ ٢ في مخطط الأحداث'), {
+      target: { value: 'صنع المركب وتجهيزه وإنزاله إلى الماء' },
+    });
+    fireEvent.click(within(diagram).getByRole('button', { name: /تحقّق/ }));
+    expect(diagram.textContent).toContain('نتيجة التحقّق: ٢ صحيحة');
+    expect(diagram.textContent).not.toContain('⟳');
+
+    const table = screen.getByLabelText('نشاط ٤ (الفهم القرائي)');
+    const cases: [string, string][] = [
+      ['النّتيجة — صف 1', 'صنع المركب وتجهيزه وإنزاله إلى الماء'],
+      ['العِبرة التي تدلّ عليه — صف 1', 'التعاون سبيل النجاح'],
+      ['السّبب — صف 2', 'حصول كلّ صيّاد على سمكته الذهبيّة'],
+      ['العِبرة التي تدلّ عليه — صف 2', 'ثمرة التعاون تظهر في أثرها'],
+    ];
+    cases.forEach(([label, value]) => {
+      fireEvent.change(within(table).getByLabelText(label), { target: { value } });
+    });
+    fireEvent.click(within(table).getByRole('button', { name: /تحقّق/ }));
+    expect(table.textContent).toContain('نتيجة التحقّق: ٤ صحيحة');
+    expect(table.textContent).not.toContain('⟳');
+  });
+});
