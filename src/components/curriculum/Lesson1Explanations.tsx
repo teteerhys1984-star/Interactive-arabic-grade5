@@ -9,6 +9,7 @@ import {
 import { LESSON1_IRAB } from '../../data/lesson1/irab';
 import { ArabicNumber } from '../common/BiDi';
 import { SourceBadge } from '../common/SourceBadge';
+import { AnswerReveal } from '../common/AnswerReveal';
 
 const PlatformLabel: React.FC<{ children?: React.ReactNode }> = ({ children = 'شرح المنصة' }) => (
   <span className="source-label-explain">{children}</span>
@@ -98,6 +99,14 @@ const QuickCheck: React.FC<{
           </button>
         )}
       </div>
+      {/* Owner-mandated «أظهر الجواب»: the correct option is approved platform
+          data; the panel stays out of the DOM until the learner presses it. */}
+      {correctOption && (
+        <AnswerReveal
+          entries={[{ label: 'الإجابة الصحيحة', value: correctOption.label }]}
+          explanation={correctAnswerNote}
+        />
+      )}
       {checked && selectedOption && (
         <div className="quick-check-result">
           <p
