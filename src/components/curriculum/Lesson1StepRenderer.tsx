@@ -53,6 +53,10 @@ const stripForMatch = (value: string): string =>
     .replace(/\s+/g, ' ')
     .trim();
 
+/** Western digits → Arabic-Indic digits for display inside Arabic sentences. */
+const toArabicDigits = (value: number): string =>
+  String(value).replace(/\d/g, (digit) => '٠١٢٣٤٥٦٧٨٩'[Number(digit)]);
+
 const matchesAccepted = (value: string, accepted: string[] | undefined): boolean => {
   if (!accepted || accepted.length === 0) return false;
   const given = stripForMatch(value);
@@ -150,7 +154,9 @@ const collectFields = (interaction: ActivityInteraction): FieldSpec[] => {
       );
     case 'diagram_fill':
       return interaction.boxes.flatMap((box) =>
-        box.fieldId ? [{ id: box.fieldId, label: box.fieldId, accepted: undefined }] : [],
+        box.fieldId
+          ? [{ id: box.fieldId, label: box.fieldId, accepted: box.acceptedAnswers, pending: box.pending }]
+          : [],
       );
     default:
       return [];
@@ -182,10 +188,27 @@ const Lesson1ActivityWidget: React.FC<{ activity: TextbookActivity }> = ({ activ
   const interaction = activity.interaction;
   const fields = useMemo(() => collectFields(interaction), [interaction]);
   const [values, setValues] = useState<Record<string, string>>({});
+  /** Verdicts of the LAST check are visible only while `checked` is true. */
   const [checked, setChecked] = useState(false);
+  /** True once the learner has checked at least once (unlocks the model answer). */
+  const [attempted, setAttempted] = useState(false);
   const [showModelAnswer, setShowModelAnswer] = useState(false);
 
-  const setVal = (id: string, value: string) => setValues((previous) => ({ ...previous, [id]: value }));
+  /**
+   * Every answer edit keeps the new value and clears the previous verdict at once,
+   * so a stale result is never left on screen and nothing is revealed about the new
+   * answer until «تحقّق» is pressed again. Used by all interaction kinds (text inputs,
+   * single/multi choice, classification, tables, diagram blanks, free-form boxes).
+   */
+  const setVal = (id: string, value: string) => {
+    setValues((previous) => ({ ...previous, [id]: value }));
+    setChecked(false);
+  };
+
+  const runCheck = () => {
+    setChecked(true);
+    setAttempted(true);
+  };
 
   const isPendingInteraction = interaction.kind === 'decode' && interaction.checkDisabled === true;
   const isFreeForm = interaction.kind === 'write' || interaction.kind === 'speak' || interaction.kind === 'decode';
@@ -546,7 +569,17 @@ const Lesson1ActivityWidget: React.FC<{ activity: TextbookActivity }> = ({ activ
                     />
                     {checked &&
                       box.fieldId &&
-                      renderResult({ id: box.fieldId, label: 'فارغ' }, values[box.fieldId]?.trim() ? 'correct' : 'open')}
+                      (() => {
+                        // Same evaluator as the activity summary: a blank is never
+                        // «correct» just because something was typed.
+                        const spec: FieldSpec = {
+                          id: box.fieldId,
+                          label: `فارغ ${index === 1 ? '١' : '٢'}`,
+                          accepted: box.acceptedAnswers,
+                          pending: box.pending,
+                        };
+                        return renderResult(spec, evaluate(spec));
+                      })()}
                   </div>
                 )}
               </div>
@@ -578,9 +611,16 @@ const Lesson1ActivityWidget: React.FC<{ activity: TextbookActivity }> = ({ activ
       )}
 
       {interaction.kind === 'speak' && (
-        <p className="inter-speak-note">
-          🗣 نشاطٌ شفوي: أجب صوتيًّا مع زملائك أو معلّمك، ثم اضغط «تحقّق» لتسجيل محاولتك ومقارنتها بالإجابة النموذجية.
-        </p>
+        <>
+          <p className="inter-speak-note">
+            🗣 نشاطٌ شفوي: أجب صوتيًّا مع زملائك أو معلّمك، ثم اضغط «تحقّق» لتسجيل محاولتك ومقارنتها بالإجابة النموذجية.
+          </p>
+          {checked && (
+            <p className="l1-result l1-result--open" role="status">
+              ⟡ سجّلنا محاولتك الشفوية. قارن أداءك بالإجابة النموذجية بعد فتحها، ثم أعد المحاولة إن أحببت.
+            </p>
+          )}
+        </>
       )}
 
       {interaction.kind === 'decode' && (
@@ -606,11 +646,11 @@ const Lesson1ActivityWidget: React.FC<{ activity: TextbookActivity }> = ({ activ
         <button
           type="button"
           className="btn btn-primary btn-small"
-          onClick={() => setChecked(true)}
+          onClick={runCheck}
           disabled={isPendingInteraction}
           title={isPendingInteraction ? 'التصحيح معطّل لأنّ المطابقة معلّقة بانتظار الاعتماد' : undefined}
         >
-          {checked ? 'تحقّق مجدّدًا' : 'تحقّق من إجاباتي'}
+          {attempted ? 'تحقّق مجدّدًا' : 'تحقّق من إجاباتي'}
         </button>
 
         {checked && !isPendingInteraction && !isFreeForm && (
@@ -630,9 +670,9 @@ const Lesson1ActivityWidget: React.FC<{ activity: TextbookActivity }> = ({ activ
           type="button"
           className="btn btn-ghost btn-small"
           onClick={() => setShowModelAnswer((previous) => !previous)}
-          disabled={!checked || isPendingInteraction}
+          disabled={!attempted || isPendingInteraction}
           aria-expanded={showModelAnswer}
-          title={checked ? undefined : 'تظهر الإجابة النموذجية بعد المحاولة الأولى والتحقّق'}
+          title={attempted ? undefined : 'تظهر الإجابة النموذجية بعد المحاولة الأولى والتحقّق'}
         >
           {showModelAnswer ? 'إخفاء الإجابة النموذجية' : 'اعرض الإجابة النموذجية (بعد المحاولة)'}
         </button>
@@ -640,14 +680,16 @@ const Lesson1ActivityWidget: React.FC<{ activity: TextbookActivity }> = ({ activ
 
       {checked && !isPendingInteraction && results.length > 0 && (
         <p className="l1-result l1-result--open" role="status">
-          نتيجة التحقّق: <ArabicNumber value={correctCount} /> صحيحة
-          {reviewCount > 0 && <>، و<ArabicNumber value={reviewCount} /> تحتاج مراجعة</>}
-          {pendingCount > 0 && <>، و<ArabicNumber value={pendingCount} /> معلّقة بقرار صاحب المشروع</>}
+          نتيجة التحقّق: <ArabicNumber value={toArabicDigits(correctCount)} /> صحيحة
+          {reviewCount > 0 && <>، و<ArabicNumber value={toArabicDigits(reviewCount)} /> تحتاج مراجعة</>}
+          {pendingCount > 0 && (
+            <>، و<ArabicNumber value={toArabicDigits(pendingCount)} /> معلّقة بقرار صاحب المشروع</>
+          )}
           .
         </p>
       )}
 
-      {showModelAnswer && checked && (
+      {showModelAnswer && attempted && (
         <div className="l1-model-answer activity-solution">
           <p className="solution-answer">
             <span className="l1-model-label source-label-explain">الإجابة النموذجية (منصة):</span>

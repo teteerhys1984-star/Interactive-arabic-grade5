@@ -46,7 +46,20 @@ export type ActivityInteraction =
     }
   | {
       kind: 'diagram_fill';
-      boxes: { id: string; text?: string; fieldId?: string; tone?: 'given' | 'blank' }[];
+      boxes: {
+        id: string;
+        text?: string;
+        fieldId?: string;
+        tone?: 'given' | 'blank';
+        /**
+         * Accepted answers for a blank box. Added ONLY where the printed source
+         * states the event explicitly (see the comment on each use). A blank with
+         * no source-backed key must carry `pending: true` instead, so it is never
+         * graded as correct.
+         */
+        acceptedAnswers?: string[];
+        pending?: boolean;
+      }[];
       arrows: [string, string][];
     }
   | { kind: 'write' }
@@ -168,12 +181,37 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
   {
     id: 'a-p6-3', page: 6, section: 'الفهم القرائي', printedNumber: '٣', status: 'solved',
     instruction: instr('L1-038'), sourceRecordIds: ['L1-038'],
+    // Both blanks are graded against events the printed text states explicitly:
+    //  - الفراغ ١ ← L1-020 «البحرُ: لا تحزنْ. وبدلًا من أن تحلمَ بالسمكةِ الذهبيّةِ والرزقِ
+    //    تعاونْ أنت وزملاؤك على صنع مركبٍ للصّيد لعلّ أموركم تتغيّر.»
+    //  - الفراغ ٢ ← L1-027 «وبعد فترةٍ توفّر المال معهم، وتعاونوا على صنع المركب، ثمّ
+    //    جهّزوه بالشِّباكِ القويّة والمتينة وأنزلوه إلى الماء…»
+    // The variants below are accepted phrasings of those two printed events only —
+    // no invented event, and a blank without such support would be marked pending.
     interaction: { kind: 'diagram_fill', boxes: [
       { id: 'b1', text: 'لجوءُ الصيّاد إلى البحر للحصول على سمكة ذهبيّة', tone: 'given' },
-      { id: 'b2', fieldId: 'ev1', tone: 'blank' },
+      { id: 'b2', fieldId: 'ev1', tone: 'blank', acceptedAnswers: [
+        'نصيحة البحر للصيّاد بالتعاون مع زملائه على صنع مركب للصّيد',
+        'نصيحة البحر بالتعاون مع زملائه',
+        'نصيحة البحر بالتعاون',
+        'نصيحة البحر له بالتعاون',
+        'البحر ينصحه بالتعاون مع زملائه',
+        'تعاون الصيّاد مع زملائه على صنع مركب',
+        'تعاونْ أنت وزملاؤك على صنع مركبٍ للصّيد',
+      ] },
       { id: 'b3', text: 'اتفاقُ الصياد مع زملائه على صيد سمكة إضافيّة', tone: 'given' },
       { id: 'b4', text: 'اصطيادُ الصيّادين السمكَ الإضافيّ', tone: 'given' },
-      { id: 'b5', fieldId: 'ev2', tone: 'blank' },
+      { id: 'b5', fieldId: 'ev2', tone: 'blank', acceptedAnswers: [
+        'توفّر المال وتعاونهم على صنع المركب وتجهيزه وإنزاله إلى الماء',
+        'توفّر المال وصنع المركب',
+        'توفّر المال وبناء المركب',
+        'بناء المركب وتجهيزه وإنزاله إلى الماء',
+        'صنع المركب وتجهيزه',
+        'تجهيز المركب وإنزاله إلى الماء',
+        'بناء المركب',
+        'صنع المركب',
+        'توفّر المال',
+      ] },
     ], arrows: [['b1', 'b2'], ['b2', 'b3'], ['b3', 'b4'], ['b4', 'b5']] },
     solution: { answer: 'الفراغ ١: نصيحة البحر للصيّاد بالتعاون مع زملائه على صنع مركبٍ للصّيد (L1-020). الفراغ ٢: توفّر المال وتعاونهم على صنع المركب وتجهيزه وإنزاله إلى الماء (L1-027).', explanation: 'المخطط يتتبّع تسلسل الأحداث المطبوع: اللجوء ← نصيحة البحر ← الاتفاق ← الاصطياد ← بناء المركب.' },
     source: src(6, 'textbook_exercise', 'الفَهْمُ القِرائِيُّ', 3),

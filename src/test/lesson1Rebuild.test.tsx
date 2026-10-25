@@ -269,7 +269,9 @@ describe('Lesson 1 — activity interaction protocol', () => {
     fireEvent.click(within(choiceActivity).getByRole('button', { name: 'عدّل إجاباتي' }));
     expect(choiceActivity.textContent).not.toContain('⟳');
     fireEvent.click(within(choiceActivity).getByRole('button', { name: 'العملِ والتّعاونِ.' }));
-    fireEvent.click(within(choiceActivity).getByRole('button', { name: 'تحقّق من إجاباتي' }));
+    // the verdict of the previous attempt is gone until the learner checks again
+    expect(choiceActivity.textContent).not.toContain('⟳');
+    fireEvent.click(within(choiceActivity).getByRole('button', { name: 'تحقّق مجدّدًا' }));
     expect(choiceActivity.textContent).toContain('✔ اختيار صحيح');
   });
 
@@ -530,5 +532,200 @@ describe('Lesson 1 — unified attempt → check protocol (platform drills and a
     fireEvent.click(within(activity).getByRole('button', { name: 'تحقّق من إجاباتي' }));
     expect(within(row).getByText(/⟳ يحتاج مراجعة/)).toBeInTheDocument();
     expect(row.textContent).toContain('الصواب: «همزةُ قطعٍ»');
+  });
+});
+
+describe('Lesson 1 — event-diagram grading and stale-verdict clearing', () => {
+  const countMarks = (text: string, mark: string): number => (text.match(new RegExp(mark, 'g')) ?? []).length;
+
+  it('does not accept arbitrary text in the diagram blanks and keeps item results equal to the summary', () => {
+    render(<Lesson1StepRenderer step={stepById('l1-s4')} />);
+    const activity = screen.getByLabelText('نشاط ٣ (الفهم القرائي)');
+    const blank1 = within(activity).getByLabelText('فارغ ١ في مخطط الأحداث');
+    const blank2 = within(activity).getByLabelText('فارغ ٢ في مخطط الأحداث');
+
+    // the printed instruction, diagram order, given boxes and arrows stay intact
+    expect(activity.textContent).toContain('أكملُ أحداثَ القصّة مستعينًا بالشكل (٥ صناديق وسهمان):');
+    expect(within(activity).getAllByRole('textbox')).toHaveLength(2);
+    expect(activity.querySelectorAll('.l1-diagram-arrow')).toHaveLength(4);
+    [
+      'لجوءُ الصيّاد إلى البحر للحصول على سمكة ذهبيّة',
+      'اتفاقُ الصياد مع زملائه على صيد سمكة إضافيّة',
+      'اصطيادُ الصيّادين السمكَ الإضافيّ',
+    ].forEach((given) => expect(within(activity).getByText(given)).toBeInTheDocument());
+
+    // 1) arbitrary text is NOT correct
+    fireEvent.change(blank1, { target: { value: 'أيّ كلام عشوائي' } });
+    fireEvent.change(blank2, { target: { value: '١٢٣' } });
+    fireEvent.click(within(activity).getByRole('button', { name: 'تحقّق من إجاباتي' }));
+    expect(activity.textContent).not.toContain('✔');
+    expect(countMarks(activity.textContent ?? '', '⟳')).toBe(2);
+    expect(activity.textContent).toContain('نتيجة التحقّق: ٠ صحيحة، و٢ تحتاج مراجعة');
+
+    // 2) editing clears the previous verdict immediately (nothing about the new value)
+    fireEvent.change(blank1, { target: { value: 'نصيحة البحر بالتعاون مع زملائه' } });
+    expect(activity.textContent).not.toContain('✔');
+    expect(activity.textContent).not.toContain('⟳');
+    expect(activity.textContent).not.toContain('نتيجة التحقّق');
+    expect(blank1).toHaveValue('نصيحة البحر بالتعاون مع زملائه');
+
+    // 3) source-backed answers are accepted; per-item marks match the summary counts
+    fireEvent.change(blank2, { target: { value: 'توفّر المال وبناء المركب' } });
+    fireEvent.click(within(activity).getByRole('button', { name: 'تحقّق مجدّدًا' }));
+    expect(countMarks(activity.textContent ?? '', '✔')).toBe(2);
+    expect(activity.textContent).not.toContain('⟳');
+    expect(activity.textContent).toContain('نتيجة التحقّق: ٢ صحيحة');
+
+    // 4) empty blanks are never marked correct
+    fireEvent.change(blank1, { target: { value: '' } });
+    fireEvent.change(blank2, { target: { value: '' } });
+    fireEvent.click(within(activity).getByRole('button', { name: 'تحقّق مجدّدًا' }));
+    expect(activity.textContent).not.toContain('✔');
+    expect(countMarks(activity.textContent ?? '', '⟡')).toBe(2);
+    expect(activity.textContent).toContain('نتيجة التحقّق: ٠ صحيحة');
+  });
+
+  it('reports a pending blank as pending in both the item result and the summary', () => {
+    render(<Lesson1StepRenderer step={stepById('l1-s4')} />);
+    const activity = screen.getByLabelText('نشاط ١ (الفهم القرائي)');
+
+    fireEvent.click(within(activity).getByRole('button', { name: 'تحقّق من إجاباتي' }));
+    expect(activity.textContent).toContain('⏸ هذا الفراغ معلّق بقرار صاحب المشروع');
+    expect(activity.textContent).not.toContain('✔');
+    expect(activity.textContent).toContain('نتيجة التحقّق: ٠ صحيحة، و١ معلّقة بقرار صاحب المشروع');
+  });
+
+  it('clears the stale verdict at once when a written answer is edited, then grades the new value', () => {
+    render(<Lesson1StepRenderer step={stepById('l1-s4')} />);
+    const activity = screen.getByLabelText('نشاط ٢ (الفهم القرائي)');
+    const field = within(activity).getByLabelText('خفقَ البحرُ بموجهِ');
+
+    fireEvent.change(field, { target: { value: 'طائرٌ صغير' } });
+    fireEvent.click(within(activity).getByRole('button', { name: 'تحقّق من إجاباتي' }));
+    expect(activity.textContent).toContain('⟳ تحتاج مراجعة');
+    expect(activity.textContent).toContain('لماذا لم تُقبل؟');
+
+    fireEvent.change(field, { target: { value: 'اضطرب' } });
+    expect(activity.textContent).not.toContain('⟳');
+    expect(activity.textContent).not.toContain('✔');
+    expect(activity.textContent).not.toContain('نتيجة التحقّق');
+    expect(field).toHaveValue('اضطرب');
+
+    fireEvent.click(within(activity).getByRole('button', { name: 'تحقّق مجدّدًا' }));
+    expect(activity.textContent).toContain('✔ إجابة صحيحة');
+    expect(activity.textContent).not.toContain('لماذا لم تُقبل؟');
+  });
+
+  it('clears the stale verdict when a single choice is changed before checking again', () => {
+    render(<Lesson1StepRenderer step={stepById('l1-s4')} />);
+    const activity = screen.getByLabelText('نشاط ٥ (الفهم القرائي)');
+
+    fireEvent.click(within(activity).getByRole('button', { name: 'سمكةٍ من الذهب.' }));
+    fireEvent.click(within(activity).getByRole('button', { name: 'تحقّق من إجاباتي' }));
+    expect(activity.textContent).toContain('⟳ يحتاج مراجعة');
+
+    fireEvent.click(within(activity).getByRole('button', { name: 'العملِ والتّعاونِ.' }));
+    expect(activity.textContent).not.toContain('⟳');
+    expect(activity.textContent).not.toContain('✔');
+    expect(activity.textContent).not.toContain('نتيجة التحقّق');
+
+    fireEvent.click(within(activity).getByRole('button', { name: 'تحقّق مجدّدًا' }));
+    expect(activity.textContent).toContain('✔ اختيار صحيح');
+  });
+
+  it('clears the stale verdict when a multi-select answer is changed', () => {
+    render(<Lesson1StepRenderer step={stepById('l1-s4')} />);
+    const activity = screen.getByLabelText('نشاط ٦ (الفهم القرائي)');
+
+    fireEvent.click(within(activity).getByRole('button', { name: 'البحرُ ضاحكٌ' }));
+    fireEvent.click(within(activity).getByRole('button', { name: 'تحقّق من إجاباتي' }));
+    expect(activity.textContent).toContain('⟳ يحتاج مراجعة');
+    expect(activity.textContent).toContain('فاتك');
+
+    fireEvent.click(within(activity).getByRole('button', { name: 'استمعَ البحرُ إلى أغاني الصيّادين.' }));
+    expect(activity.textContent).not.toContain('⟳');
+    expect(activity.textContent).not.toContain('✔');
+
+    fireEvent.click(within(activity).getByRole('button', { name: 'تحقّق مجدّدًا' }));
+    expect(activity.textContent).toContain('✔ اختيار صحيح');
+    expect(activity.textContent).toContain('نتيجة التحقّق: ١ صحيحة');
+  });
+
+  it('clears the stale verdict when a classification choice is changed', () => {
+    render(<Lesson1StepRenderer step={stepById('l1-s7')} />);
+    const activity = screen.getByLabelText('نشاط ٤ (إملاء)');
+    const row = within(activity).getByText('أرغبُ').closest('.l1-classify-row') as HTMLElement;
+
+    fireEvent.click(within(row).getByRole('button', { name: 'همزةُ وصلٍ' }));
+    fireEvent.click(within(activity).getByRole('button', { name: 'تحقّق من إجاباتي' }));
+    expect(row.textContent).toContain('⟳ يحتاج مراجعة');
+
+    fireEvent.click(within(row).getByRole('button', { name: 'همزةُ قطعٍ' }));
+    expect(activity.textContent).not.toContain('⟳');
+    expect(activity.textContent).not.toContain('✔');
+
+    fireEvent.click(within(activity).getByRole('button', { name: 'تحقّق مجدّدًا' }));
+    expect(row.textContent).toContain('✔ تصنيف صحيح');
+  });
+
+  it('clears the stale verdict when a table cell is edited', () => {
+    render(<Lesson1StepRenderer step={stepById('l1-s6')} />);
+    const activity = screen.getByLabelText('نشاط ١ (التقويم النهائي)');
+    const cell = within(activity).getByLabelText('نوعُها — صف 1');
+
+    fireEvent.change(cell, { target: { value: 'اسمية' } });
+    fireEvent.click(within(activity).getByRole('button', { name: 'تحقّق من إجاباتي' }));
+    expect(activity.textContent).toContain('✔ إجابة صحيحة');
+
+    fireEvent.change(cell, { target: { value: 'فعلية' } });
+    expect(activity.textContent).not.toContain('✔');
+    expect(activity.textContent).not.toContain('⟳');
+    expect(activity.textContent).not.toContain('نتيجة التحقّق');
+
+    fireEvent.click(within(activity).getByRole('button', { name: 'تحقّق مجدّدًا' }));
+    expect(activity.textContent).toContain('⟳ تحتاج مراجعة');
+    expect(activity.textContent).toContain('اسمية');
+  });
+
+  it('keeps every Lesson-1 activity silent before the first check (regression sweep)', () => {
+    LESSON1_STEPS.forEach((step) => {
+      const { container } = render(<Lesson1StepRenderer step={step} />);
+      const activities = screen.queryAllByLabelText(/^نشاط /);
+      expect(activities.length).toBeGreaterThan(0);
+
+      activities.forEach((activity) => {
+        // before any check: no verdict, no key, model answer locked
+        expect(activity.textContent).not.toContain('✔');
+        expect(activity.textContent).not.toContain('⟳');
+        expect(activity.textContent).not.toContain('نتيجة التحقّق');
+        const modelAnswer = within(activity).queryByRole('button', {
+          name: 'اعرض الإجابة النموذجية (بعد المحاولة)',
+        });
+        if (modelAnswer) expect(modelAnswer).toBeDisabled();
+
+        const check = within(activity).queryByRole('button', { name: 'تحقّق من إجاباتي' });
+        if (!check) return; // the pending decode activity has its check disabled
+        if (check.hasAttribute('disabled')) {
+          expect(activity.textContent).toContain('معلّق');
+          return;
+        }
+
+        fireEvent.click(check);
+        const afterCheck = activity.textContent ?? '';
+        // after the check something is always reported: a verdict, a summary or an attempt note
+        expect(
+          afterCheck.includes('✔') ||
+            afterCheck.includes('⟳') ||
+            afterCheck.includes('⟡') ||
+            afterCheck.includes('⏸') ||
+            afterCheck.includes('نتيجة التحقّق') ||
+            afterCheck.includes('سجّلنا محاولتك'),
+        ).toBe(true);
+        expect(modelAnswer).toBeEnabled();
+      });
+
+      cleanup();
+      expect(container).toBeTruthy();
+    });
   });
 });
