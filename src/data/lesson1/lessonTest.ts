@@ -32,10 +32,13 @@ export const LESSON1_TEST: AssessmentTest = {
       correctChoiceId: 'false', explanation: 'بَلْ نَصَحَهُ بِالتَّعاوُنِ مَعَ زُملائِهِ وَصُنْعِ مَرْكَبٍ لِلصَّيْدِ.',
       testedSkill: 'الفَهْمُ', source: src(5, 'textbook_reading', 'النَّصُّ') },
     { id: 'l1-t-04', order: 4, type: 'fill_blank', difficulty: 'basic',
-      prompt: 'أَكْتُبُ جَمْعَ كَلِمَةِ «سَمَكَةٌ»:',
-      acceptedAnswers: ['السمكات', 'السَّمَكَاتُ', 'الأسماك', 'الأَسْماكُ'],
-      explanation: 'جَمْعُ السَّمَكَةِ: السَّمَكاتُ أَو الأَسْماكُ.',
-      testedSkill: 'مُفْرَداتٌ', source: src(6, 'textbook_exercise', 'الفَهْمُ') },
+      // Aligned with the printed textbook item (L1-036): the book asks for the plural of
+      // «الشَّبَكَة», not of «سَمَكَة». The pending field of that item («معنى قَصَّتْ») is
+      // deliberately NOT tested here — it awaits an explicit owner decision.
+      prompt: 'أَكْتُبُ جَمْعَ كَلِمَةِ «الشَّبَكَة»:',
+      acceptedAnswers: ['الشباك', 'الشِّباك', 'الشبكات', 'الشَّبَكات'],
+      explanation: 'جَمْعُ الشَّبَكَةِ: الشِّباكُ أَو الشَّبَكاتُ.',
+      testedSkill: 'مُفْرَداتٌ', source: src(6, 'textbook_exercise', 'الفَهْمُ', 1) },
     { id: 'l1-t-05', order: 5, type: 'single_choice', difficulty: 'medium',
       prompt: 'ما الفِكْرَةُ الرَّئِيسَةُ لِلْقِصَّةِ؟',
       choices: [ { id: 'a', text: 'الحُلْمُ يَتَحَقَّقُ بِالعَمَلِ وَالتَّعاوُنِ' }, { id: 'b', text: 'البَحْرُ يُعْطي كُلَّ شَيْءٍ' }, { id: 'c', text: 'الفَقْرُ نِهايَةُ الإِنْسانِ' }, { id: 'd', text: 'الصَّيْدُ لَعْبَةٌ مُسْلِيَةٌ' } ],
@@ -65,8 +68,10 @@ export const LESSON1_TEST: AssessmentTest = {
     { id: 'l1-t-10', order: 10, type: 'matching', difficulty: 'medium',
       prompt: 'أُطابِقُ بَيْنَ الكَلِمَةِ وَمَعْناها:',
       pairs: [ { id: 'p1', left: 'الزَّوْرَقُ', right: 'المَرْكَبُ الصَّغيرُ' }, { id: 'p2', left: 'وَفيرٌ', right: 'كَثيرٌ' }, { id: 'p3', left: 'فَقيرٌ', right: 'قَليلُ المالِ' } ],
-      explanation: 'مُطابَقَةُ المُفْرَداتِ بِمَعانيها الوارِدَةِ في مَعْجَمِ الكَلِماتِ.',
-      testedSkill: 'مُفْرَداتٌ', source: src(5, 'textbook_reading', 'معجم الكلمات') },
+      // The printed glossary box of the lesson holds ONE entry only (L1-031: «المغزى: المقصد»),
+      // so these meanings are understood from the story context — not from a glossary claim.
+      explanation: 'مَعاني هذه المفردات تُفهم من سياق القصّة؛ أمّا معجم الكلمات المطبوع في الدرس فمادّةٌ واحدةٌ فقط: «المَغْزى: المَقْصَدُ».',
+      testedSkill: 'مُفْرَداتٌ', source: src(5, 'textbook_reading', 'النَّصُّ') },
     { id: 'l1-t-11', order: 11, type: 'vocabulary_in_context', difficulty: 'basic',
       prompt: 'في عِبارَةِ «لِأَحْصُلَ عَلى سَمَكٍ وَفيرٍ»، ما مَعْنى «وَفيرٍ»؟',
       choices: [ { id: 'a', text: 'كَثيرٍ' }, { id: 'b', text: 'قَليلٍ' }, { id: 'c', text: 'صَغيرٍ' }, { id: 'd', text: 'مَطْبوخٍ' } ],
@@ -111,12 +116,14 @@ export const LESSON1_TEST: AssessmentTest = {
       testedSkill: 'مَوْضِعُ الهَمْزَةِ', source: src(9, 'textbook_spelling', 'أَسْتَنْتِجُ') },
     { id: 'l1-t-19', order: 19, type: 'single_choice', difficulty: 'thinking',
       prompt: 'أَيُّ عِبارَةٍ تُجَسِّدُ مَغْزى القِصَّةِ في حَياتِكَ؟',
-      choices: [ { id: 'a', text: 'يَدٌ واحِدَةٌ لا تُصَفِّقُ' }, { id: 'b', text: 'مَنْ جَدَّ وَجَدَ' }, { id: 'c', text: 'التَّعاوُنُ يُضاعِفُ الإِنْجازَ' }, { id: 'd', text: 'الجَميعُ' } ],
-      correctChoiceId: 'd', explanation: 'جَميعُ العِباراتِ تُعَبِّرُ عَنْ قيمَةِ التَّعاوُنِ وَالعَمَلِ.',
+      // All three options are cooperation sayings, so «د. الجميعُ» is genuinely the only
+      // defensible answer (the previous option «مَنْ جَدَّ وَجَدَ» was about diligence only).
+      choices: [ { id: 'a', text: 'يَدٌ واحِدَةٌ لا تُصَفِّقُ' }, { id: 'b', text: 'التَّعاوُنُ يُضاعِفُ الإِنْجازَ' }, { id: 'c', text: 'العَمَلُ الجَماعِيُّ يُقَرِّبُ الحُلْمَ' }, { id: 'd', text: 'الجَميعُ' } ],
+      correctChoiceId: 'd', explanation: 'العِباراتُ الثَّلاثُ كُلُّها تُجَسِّدُ قيمَةَ التَّعاوُنِ وَالعَمَلِ الجَماعِيِّ؛ لِذلِكَ الإِجابَةُ الصَّحيحَةُ «الجَميعُ».',
       testedSkill: 'رَبْطُ المَغْزى بِالحَياةِ', source: src(11, 'activity_book', 'أَنا وَأُسْرَتي') },
     { id: 'l1-t-20', order: 20, type: 'ordering', difficulty: 'thinking',
       prompt: 'أُرَتِّبُ أَحْداثَ القِصَّةِ تَرْتيباً صَحيحاً:',
-      items: [ { id: 'e1', text: 'حُلْمُ الصَّيّادِ بِسَمَكَةٍ ذَهَبِيَّةٍ' }, { id: 'e2', text: 'نَصيحَةُ البَحْرِ بِالتَّعاوُنِ' }, { id: 'e3', text: 'فِكْرَةُ الصَّيْدِ الإِضافِيِّ' }, { id: 'e4', text: 'بِناءُ المَرْكَبِ وَإِطْلاقُ اسْمِ المَرْكَزِ' } ],
+      items: [ { id: 'e1', text: 'حُلْمُ الصَّيّادِ بِسَمَكَةٍ ذَهَبِيَّةٍ' }, { id: 'e2', text: 'نَصيحَةُ البَحْرِ بِالتَّعاوُنِ' }, { id: 'e3', text: 'فِكْرَةُ الصَّيْدِ الإِضافِيِّ' }, { id: 'e4', text: 'بِناءُ المَرْكَبِ وَإِطْلاقُ اسْمِ مَرْكَبِ السَّمَكَةِ الذَّهَبِيَّةِ' } ],
       correctOrderIds: ['e1', 'e2', 'e3', 'e4'],
       explanation: 'التَّرْتيبُ: الحُلْمُ ← النَّصيحَةُ ← الفِكْرَةُ ← البِناءُ.',
       testedSkill: 'تَسَلْسُلُ الأَحْداثِ', source: src(5, 'textbook_reading', 'النَّصُّ') },

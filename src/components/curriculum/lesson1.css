@@ -1,0 +1,362 @@
+/* ==========================================================================
+   Lesson 1 («السَّمَكَةُ الذَّهَبِيَّةُ») — local presentation layer.
+   Lesson-scoped on purpose: no shared stylesheet is modified for this rebuild.
+   All rules are namespaced under .l1-* / .lesson1-irab to avoid collisions.
+   ========================================================================== */
+
+.l1-step {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ---------- layer & status badges ---------- */
+.l1-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.l1-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  line-height: 1.6;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  background: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+}
+
+.l1-badge--printed { border-color: #7a8b6f; color: #3f5233; background: #f2f6ec; }
+.l1-badge--owner { border-color: #4f6d9b; color: #23406b; background: #eef3fb; }
+.l1-badge--corrected { border-color: #a1762c; color: #6a4a12; background: #fdf5e6; }
+.l1-badge--platform { border-color: #6b5b95; color: #42346b; background: #f3f0fa; }
+.l1-badge--pending { border-color: #a03c3c; color: #7a2323; background: #fdeeec; }
+.l1-badge--solved { border-color: #2f7d54; color: #1d5637; background: #ecf8f1; }
+
+/* ---------- notices ---------- */
+.l1-notice {
+  border-inline-start: 4px solid #a1762c;
+  background: #fdf7ea;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+}
+
+.l1-notice--pending {
+  border-inline-start-color: #a03c3c;
+  background: #fdeeec;
+}
+
+.l1-notice--corrected {
+  border-inline-start-color: #4f6d9b;
+  background: #eef3fb;
+}
+
+.l1-notice strong { display: block; margin-bottom: 0.2rem; }
+
+.l1-printed-variant {
+  font-size: 0.85rem;
+  color: #4a4a4a;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px dashed rgba(0, 0, 0, 0.2);
+  border-radius: 0.4rem;
+  padding: 0.35rem 0.5rem;
+  margin-top: 0.35rem;
+}
+
+/* ---------- activity card ---------- */
+.l1-activity {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 0.75rem;
+  padding: 0.9rem;
+  background: rgba(255, 255, 255, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.l1-activity-instruction {
+  white-space: pre-line;
+  font-size: 1rem;
+  line-height: 1.9;
+  margin: 0;
+}
+
+.l1-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.l1-field-label { font-size: 0.9rem; font-weight: 600; }
+
+.l1-input,
+.l1-textarea {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 0.5rem;
+  font: inherit;
+  background: #fff;
+}
+
+.l1-input:focus,
+.l1-textarea:focus {
+  outline: 3px solid rgba(79, 109, 155, 0.35);
+  outline-offset: 1px;
+}
+
+.l1-input[aria-invalid="true"] { border-color: #a03c3c; }
+
+.l1-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.l1-choice {
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  background: #fff;
+  border-radius: 0.6rem;
+  padding: 0.45rem 0.8rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.l1-choice[aria-pressed="true"] {
+  border-color: #4f6d9b;
+  background: #eef3fb;
+  font-weight: 700;
+}
+
+.l1-choice:focus-visible {
+  outline: 3px solid rgba(79, 109, 155, 0.45);
+  outline-offset: 2px;
+}
+
+/* results are only painted after the check — never on selection */
+.l1-choice.is-correct { border-color: #2f7d54; background: #ecf8f1; }
+.l1-choice.is-wrong { border-color: #a03c3c; background: #fdeeec; }
+
+.l1-result {
+  font-size: 0.88rem;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  margin-top: 0.25rem;
+}
+
+.l1-result--correct { background: #ecf8f1; color: #1d5637; }
+.l1-result--review { background: #fdeeec; color: #7a2323; }
+.l1-result--pending { background: #f4f4f4; color: #555; }
+.l1-result--open { background: #eef3fb; color: #23406b; }
+
+.l1-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.l1-model-answer {
+  border-top: 1px dashed rgba(0, 0, 0, 0.25);
+  padding-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.l1-model-answer .l1-model-label {
+  display: inline-block;
+  font-weight: 700;
+  color: #6b5b95;
+  margin-inline-end: 0.35rem;
+}
+
+/* ---------- table & diagram widgets (RTL) ---------- */
+.l1-table-wrap { overflow-x: auto; }
+
+.l1-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  direction: rtl;
+}
+
+.l1-table th,
+.l1-table td {
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  padding: 0.4rem 0.5rem;
+  text-align: start;
+  vertical-align: top;
+}
+
+.l1-table th { background: rgba(79, 109, 155, 0.12); font-weight: 700; }
+
+.l1-table td .l1-input { border-radius: 0.4rem; }
+
+.l1-diagram {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0.4rem;
+  direction: rtl;
+}
+
+.l1-diagram-box {
+  flex: 1 1 12rem;
+  min-width: 10rem;
+  border: 1px solid rgba(0, 0, 0, 0.22);
+  border-radius: 0.6rem;
+  padding: 0.5rem;
+  background: #fff;
+  font-size: 0.88rem;
+}
+
+.l1-diagram-box--given { background: rgba(122, 139, 111, 0.12); }
+
+.l1-diagram-arrow {
+  align-self: center;
+  font-size: 1.2rem;
+  color: #4f6d9b;
+}
+
+.l1-classify-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.15);
+  padding: 0.4rem 0;
+}
+
+/* ---------- i‘rab page ---------- */
+.lesson1-irab {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  direction: rtl;
+}
+
+.lesson1-irab header.irab-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.irab-sentence {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 0.75rem;
+  padding: 0.8rem;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.irab-sentence-text {
+  font-size: 1.05rem;
+  line-height: 2;
+  margin: 0.2rem 0 0.5rem;
+}
+
+.irab-teaching {
+  font-size: 0.88rem;
+  color: #42346b;
+  background: #f3f0fa;
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.irab-note {
+  font-size: 0.85rem;
+  color: #555;
+  border-inline-start: 3px solid rgba(0, 0, 0, 0.2);
+  padding-inline-start: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.irab-register {
+  border: 1px solid rgba(160, 60, 60, 0.35);
+  border-radius: 0.75rem;
+  padding: 0.8rem;
+  background: #fdf1ef;
+}
+
+.irab-register-item { margin-bottom: 0.7rem; }
+.irab-register-item:last-child { margin-bottom: 0; }
+
+.irab-register-sentence { font-weight: 600; margin: 0.2rem 0; }
+.irab-register-reason { font-size: 0.88rem; color: #6a3030; margin: 0; }
+
+/* ---------- responsive (phone first tweaks) ---------- */
+@media (max-width: 700px) {
+  .l1-activity { padding: 0.7rem; }
+  .l1-diagram { flex-direction: column; }
+  .l1-diagram-arrow { transform: rotate(90deg); align-self: flex-start; }
+  .l1-table { font-size: 0.85rem; }
+  .l1-actions .btn { flex: 1 1 100%; }
+}
+
+@media (max-width: 640px) {
+  .irab-sentence-text { font-size: 0.98rem; }
+  .l1-badge { font-size: 0.68rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .l1-choice,
+  .l1-result { transition: none; }
+}
+
+/* ---------- platform quick-check drills (unified protocol) ---------- */
+.quick-check-protocol-note {
+  font-size: 0.85rem;
+  color: #4a4a4a;
+  margin: 0.2rem 0 0.5rem;
+}
+
+.quick-check-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* correctness colours appear ONLY after «تحقّق» is pressed */
+.quick-check-option.is-answer-correct {
+  border-color: #2f7d54;
+  background: #ecf8f1;
+}
+
+.quick-check-option.is-answer-wrong {
+  border-color: #a03c3c;
+  background: #fdeeec;
+}
+
+.quick-check-option.is-answer-missed {
+  border-style: dashed;
+  border-color: #a1762c;
+  background: #fdf5e6;
+}
+
+.quick-check-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.quick-check-answer {
+  font-size: 0.9rem;
+  border-inline-start: 3px solid #6b5b95;
+  padding-inline-start: 0.5rem;
+  margin: 0;
+}
+
+@media (max-width: 700px) {
+  .quick-check-actions .btn { flex: 1 1 100%; }
+}

@@ -1,14 +1,40 @@
 import { LessonStep } from '../../types/curriculum';
+import { getSourceRecord } from './readingSource';
 import { src } from './sourceMeta';
 
 /**
  * Lesson 1 «السَّمَكَةُ الذَّهَبِيَّةُ» — step & block content.
  *
- * CONTENT BLOCK MODEL (kept local to the lesson layer so the foundation stays generic).
- * Every block that derives from the textbook carries an exact SourceReference.
- * Platform-added explanation is ALWAYS rendered under a clearly separated
- * «شرح تفاعلي» heading, distinct from «النص الأصلي من الكتاب».
+ * SOURCE FIDELITY: every printed string rendered here is pulled from the frozen
+ * source layer (readingSource.ts) through `rs()` / `rsLines()` / `rsArr()`. No
+ * textbook wording is retyped in this file, so the per-identifier verbatim test is
+ * the only proof of fidelity needed.
+ *
+ * LAYERING: platform additions (scenes, summaries, notices, teacher notes) are
+ * rendered as `explanation` blocks — visually separated from «النص الأصلي من الكتاب» —
+ * and never replace or abbreviate a printed element.
  */
+
+const rs = (id: string): string => {
+  const record = getSourceRecord(id);
+  if (!record) throw new Error(`Lesson 1: missing frozen source record ${id}`);
+  return Array.isArray(record.text) ? record.text.join('\n') : record.text;
+};
+
+const rsArr = (id: string): string[] => {
+  const record = getSourceRecord(id);
+  if (!record) throw new Error(`Lesson 1: missing frozen source record ${id}`);
+  return Array.isArray(record.text) ? record.text : [record.text];
+};
+
+const rsLines = (ids: string[]): string[] => ids.flatMap((id) => rsArr(id));
+
+/** Split a printed rule into its own printed sentences/numbered items. */
+const splitSentences = (text: string): string[] =>
+  text.split(/(?<=\.)\s+/).map((line) => line.trim()).filter(Boolean);
+
+const splitNumbered = (text: string): string[] =>
+  text.split(/\s+(?=[١٢٣٤]\s)/).map((line) => line.trim()).filter(Boolean);
 
 export interface VocabItem {
   term: string;
@@ -47,66 +73,57 @@ export const LESSON1_STEPS: LessonStep[] = [
 ];
 
 /* ------------------------------------------------------------------ */
-/* Verbatim source text                                                */
+/* Verbatim source text (all derived from readingSource records)        */
 /* ------------------------------------------------------------------ */
 
-export const READING_SECTION_1 = [
-  'عَلى الشّاطِئِ يَعيشُ صَيّادٌ فَقيرٌ، يَذْهَبُ كُلَّ يَوْمٍ إلى البَحْرِ وَيَصْطادُ بَعْضَ سَمَكاتٍ، ثُمَّ يَبيعُها بِدَراهِمَ قَليلَةٍ. وَلكِنَّهُ ما زالَ يَحْلُمُ بِاصْطِيادِ سَمَكَةٍ ذَهَبِيَّةٍ لِيَشْتَرِيَ بِثَمَنِها زَوْرَقاً لِلصَّيْدِ.',
-  'كانَ الصَّيّادُ يَقِفُ أَمامَ البَحْرِ وَيُخاطِبُهُ قائِلاً: يا صَديقي البَحْرَ، امْنَحْني - وَلَوْ مَرَّةً واحِدَةً - سَمَكَةً ذَهَبِيَّةً، فَعِنْدي خَمْسَةُ أَوْلادٍ وَزَوْجَةٌ يَحْتاجونَ إلى طَعامٍ كَثيرٍ وَثِيابٍ جَديدَةٍ... سَأَشْتَري بِثَمَنِ السَّمَكَةِ الذَّهَبِيَّةِ زَوْرَقاً لِلصَّيْدِ... لَقَدْ مَلِلْتُ الوُقوفَ كُلَّ يَوْمٍ... أُريدُ أَنْ أُسافِرَ عَلى أَمْواجِكَ بَعيداً لِأَحْصُلَ عَلى سَمَكٍ وَفيرٍ.',
-  'ذاتَ يَوْمٍ قالَ البَحْرُ لِلصَّيّادِ: لَيْسَ في مِياهي سَمَكٌ ذَهَبِيٌّ، لَكِنّي سَأُعْطيكَ واحِدَةً كَبيرَةً.',
-  'الصَّيّادُ: كَيْفَ؟ أَيْنَ هِيَ؟... إِلَى أَيْنَ ذَهَبَتْ؟... حينَ كُنْتُ صَغيراً أَعْطَيْتُ أَحَدَ الصَّيّادينَ سَمَكَةً ذَهَبِيَّةً كَبيرَةً.',
-  'البَحْرُ (ضاحِكاً): وَهَلْ صَدَّقْتَ؟!',
-  'إِنَّها حِكايَةٌ رَواها الصَّيّادُ لِيَتَعَلَّمَ مِنْها زُمَلاؤُهُ وَيَسْتَفيدوا مِنْ مَغْزاها.',
-  'حَزِنَ الصَّيّادُ وَفَقَدَ الأَمَلَ وَقالَ (بائِساً): إِنّي سَأَبْقى صَيّاداً فَقيراً.',
-  'البَحْرُ: لا تَحْزَنْ. وَبَدَلاً مِنْ أَنْ تَحْلُمَ بِالسَّمَكَةِ الذَّهَبِيَّةِ وَالزَّوْرَقِ، تَعاوَنْ أَنْتَ وَزُمَلاؤُكَ عَلى صُنْعِ مَرْكَبٍ لِلصَّيْدِ لَعَلَّ أُمورَكُمْ تَتَغَيَّرُ.',
-];
+export const READING_TITLE = rs('L1-011');
 
-export const READING_SECTION_2 = [
-  'ذَهَبَ الصَّيّادُ إِلى زُمِلائِهِ وَقالَ: قَدْ عَرَفْتُ طَريقَةً يَسْتَطيعُ بِها كُلُّ صَيّادٍ أَنْ يَحْصُلَ عَلى سَمَكَةٍ ذَهَبِيَّةٍ.',
-  'الصَّيّادونَ: وَكَيْفَ ذلِكَ؟',
-  'الصَّيّادُ: نَتَعاوَنُ جَميعاً وَنَبْني مَرْكَباً لِلصَّيْدِ يَكونُ مِلْكاً لِلْجَميعِ.',
-  'الصَّيّادونَ: يا لَها مِنْ فِكْرَةٍ!... لكِنَّنا فُقَراءُ! لا يَمْلِكُ أَحَدُنا شَيْئاً نَبْني بِهِ المَرْكَبَ.',
-  'صَمَتَ الجَميعُ، وَفَجْأَةً نَهَضَ صَيّادٌ شابٌّ وَقالَ: عِنْدي فِكْرَةٌ... يَصْطادُ كُلُّ واحِدٍ مِنّا سَمَكَةً إِضافِيَّةً كُلَّ يَوْمٍ، نَجْمَعُ ثَمَنَها وَنَبْدَأُ بِصُنْعِ المَرْكَبِ. وَوافَقَ الجَميعُ وَبَدَؤوا العَمَلَ بِفِكْرَتِهِ وَلَمْ يَتَكاسَلْ أَحَدٌ في اصْطِيادِ السَّمَكَةِ الإِضافِيَّةِ.',
-  'وَبَعْدَ فَتْرَةٍ تَوَفَّرَ المالُ مَعَهُمْ، وَتَعاوَنوا عَلى صُنْعِ المَرْكَبِ، ثُمَّ جَهَّزوهُ بِالشِّباكِ القَوِيَّةِ وَالمَعَدّاتِ وَأَنْزَلوهُ إِلى الماءِ، وَأَطْلَقوا عَلَيْهِ اسْمَ مَرْكَزِ السَّمَكَةِ الذَّهَبِيَّةِ.',
-  'وَقَفَ الصَّيّادُ مُخاطِباً البَحْرَ: انْظُرْ أَيُّها البَحْرُ، لَقَدْ صارَ لِكُلِّ صَيّادٍ مِنّا سَمَكَتُهُ الذَّهَبِيَّةُ.',
-  'خَفَقَ البَحْرُ بِمَوْجِهِ وَراحَ يَسْتَمِعُ إِلى أَغاني الصَّيّادينَ الجَميلَةِ.',
-];
+/** المقطع الأوّل من النصّ المطبوع (L1-013 … L1-020). */
+export const READING_SECTION_1 = rsLines(['L1-013', 'L1-014', 'L1-015', 'L1-016', 'L1-017', 'L1-018', 'L1-019', 'L1-020']);
 
-export const READING_AUTHOR = 'وليد معماري (بتصرف)';
+/** المقطع الثاني من النصّ المطبوع (L1-022 … L1-029). */
+export const READING_SECTION_2 = rsLines(['L1-022', 'L1-023', 'L1-024', 'L1-025', 'L1-026', 'L1-027', 'L1-028', 'L1-029']);
 
-/** Vocabulary box exactly as printed on page 5 (single entry). */
-export const LESSON1_VOCAB: VocabItem[] = [
-  { term: 'المَغْزى', meaning: 'المَقْصَدُ' },
-];
+/** علامتا الفصل المطبوعتان بين المقطعين — محفوظتان كي لا يُفقد أي عنصر مطبوع. */
+export const READING_SECTION_MARKS = rsLines(['L1-012', 'L1-021']);
 
-export const GRAMMAR_RULE_LINES = [
-  'الجُمْلَةُ: تَرْكِيبٌ يُفيدُ مَعْنى تامّاً، وَالْجُمْلَةُ نَوْعانِ: (اسْمِيَّةٌ وَفِعْلِيَّةٌ)',
-  'الجُمْلَةُ الَّتي تَبْدَأُ بِاسْمٍ تُسَمّى الجُمْلَةَ الاسْمِيَّةَ،',
-  'وَالْجُمْلَةُ الَّتي تَبْدَأُ بِفِعْلٍ تُسَمّى الجُمْلَةَ الفِعْلِيَّةَ.',
-];
+export const READING_AUTHOR = rs('L1-030');
 
-export const SPELLING_RULE_LINES = [
-  'تُسَمَّى الهَمْزَةُ الَّتي تَأْتي في أَوَّلِ الكَلِمَةِ هَمْزَةً أَوَّلِيَّةً، وَهِيَ نَوْعانِ:',
-  '١. هَمْزَةُ القَطْعِ: تُكْتَبُ وَتُلْفَظُ، وَتَأْتي فَوْقَ الأَلِفِ إِذا كانَتْ مَفْتوحَةً أَوْ مَضْمومَةً، وَتَأْتي تَحْتَ الأَلِفِ إِذا كانَتْ مَكْسورَةً.',
-  '٢. هَمْزَةُ الوَصْلِ: تُكْتَبُ أَلِفاً وَتُلْفَظُ في أَوَّلِ الكَلامِ، وَلا تُلْفَظُ في أَثْنائِهِ.',
-];
+/** Vocabulary box exactly as printed on page 5 (single entry, L1-031). */
+export const LESSON1_VOCAB: VocabItem[] = (() => {
+  const [term, meaning] = rs('L1-031').split(':').map((part) => part.trim());
+  return [{ term, meaning }];
+})();
 
-export const PAMPHLET_STAGES = [
-  '١. تَحْديدُ مَوْضوعِ المُطَوِيَّةِ.',
-  '٢. جَمْعُ المَعْلوماتِ الواجِبِ تَوَفُّرُها في المُطَوِيَّةِ.',
-  '٣. الإِعْدادُ الفنِّيُّ لِلمُطَوِيَّةِ (رُسوم - أَلْوان - خَطّ).',
-  '٤. الإِخْراجُ النِّهائِيُّ لِلْمُطَوِيَّةِ (ضَبْطٌ لُغَوِيٌّ - الشَّكْلُ العامُّ وَمُناسَبَتُهُ لِمَوْضوعِ المُطَوِيَّةِ).',
-];
+export const GRAMMAR_RULE_LINES = splitSentences(rs('L1-055'));
 
-export const CALLIGRAPHY_SENTENCE =
-  'قالَ صَيّادٌ شابٌّ: عِندي فِكْرَةٌ، لِيَصْطَدْ كُلُّ واحِدٍ مِنّا سَمَكَةً واحِدَةً إِضافِيَّةً كُلَّ يَوْمٍ';
+export const SPELLING_RULE_LINES = splitNumbered(rs('L1-066'));
 
-export const EXPRESSION_PARAGRAPH = [
-  'كانَ الصَّيّادُ يَقِفُ إِلى شاطِئِ البَحْرِ، وَيُخاطِبُهُ قائِلاً: يا صَديقي البَحْرَ، امْنَحْني وَلَوْ مَرَّةً واحِدَةً سَمَكَةً ذَهَبِيَّةً، عِنْدي خَمْسَةُ أَوْلادٍ وَزَوْجَةٌ يَحْتاجونَ إِلى طَعامٍ كَثيرٍ وَثِيابٍ جَديدَةٍ، سَأَشْتَري بِثَمَنِ السَّمَكَةِ الذَّهَبِيَّةِ زَوْرَقاً لِلصَّيْدِ، لَقَدْ مَلِلْتُ الوُقوفَ عَلى الشّاطِئِ كُلَّ يَوْمٍ، أُريدُ أَنْ أُسافِرَ عَلى أَمْواجِكَ بَعيداً لِأَحْصُلَ عَلى سَمَكٍ وَفيرٍ.',
-];
+/** مراحل تصميم المطويّة كما طُبعت (L1-048) بدون سطر العنوان. */
+export const PAMPHLET_STAGES = rsArr('L1-048').slice(1);
 
-/** p11 letter↔shape key (shape label -> letter), exactly as printed on the board. */
-export const DECODE_KEY: { letter: string; shape: string }[] = [
+/** جملة الخطّ المطبوعة (L1-074) بعد سطر التوجيه. */
+export const CALLIGRAPHY_SENTENCE = rs('L1-074').split('الحركاتِ: ')[1] ?? rs('L1-074');
+
+/** سطر الحركات والتنوين والتضعيف المعروض للمحاكاة (L1-072). */
+export const CALLIGRAPHY_MARKS_LINE = rs('L1-072');
+
+/** الفقرة المطبوعة في التعبير الكتابي (L1-077). */
+export const EXPRESSION_PARAGRAPH = rsLines(['L1-077']);
+
+/** صفوف لوحة الحروف↔الأشكال كما طُبعت (L1-079). */
+export const DECODE_BOARD_ROWS: string[][] = (() => {
+  const rows = [...rs('L1-079').matchAll(/ص[١٢٣]:\s*([^؛]+)/g)].map((match) => match[1]);
+  return rows.map((row) => row.split(/\s+/).filter(Boolean).map((cell) => cell.replace(/[.\u06D4]+$/, '')));
+})();
+
+/**
+ * DRAFT ONLY — the letter↔shape pairing inferred from the high-resolution crop.
+ * It is NOT adopted: no check is enabled on the decode activity and this draft is
+ * never presented to students as an answer (owner decision: keep pending).
+ * Known open issues: the ك / ة trapezoid tint in row 3, and the row-1 separators.
+ */
+export const DECODE_SHAPE_DRAFT: { letter: string; shape: string }[] = [
   { letter: 'أ', shape: 'مُربَّع أزرق' },
   { letter: 'ب', shape: 'دائرة صفراء' },
   { letter: 'ج', shape: 'مُسدَّس وردي' },
@@ -117,7 +134,7 @@ export const DECODE_KEY: { letter: string; shape: string }[] = [
   { letter: 'ح', shape: 'مستطيل أحمر' },
   { letter: 'ط', shape: 'قطع ناقدي وردي' },
   { letter: 'ي', shape: 'حرف V بنفسجي' },
-  { letter: 'ك', shape: 'شبه منحرف بنفسجي' },
+  { letter: 'ك', shape: 'شبه منحرف بنفسجي (لونُه غير محسوم)' },
   { letter: 'ل', shape: 'هلال وردي' },
   { letter: 'م', shape: 'مربّع أحمر' },
   { letter: 'ن', shape: 'شكل X بنفسجي' },
@@ -135,9 +152,12 @@ export const DECODE_KEY: { letter: string; shape: string }[] = [
   { letter: 'ض', shape: 'سهم أرجواني' },
   { letter: 'غ', shape: 'مثلث بنفسجي' },
   { letter: 'ظ', shape: 'ثماني أحمر' },
-  { letter: 'ئ', shape: 'شبه منحرف بنفسجي' },
+  { letter: 'ئ', shape: 'شبه منحرف بنفسجي (مشترك مع ك — غير محسوم)' },
   { letter: 'ة', shape: 'شبه منحرف رمادي' },
 ];
+
+/** Status flag for the decode key: draft, awaiting explicit owner approval. */
+export const DECODE_KEY_STATUS = 'pending' as const;
 
 /* ------------------------------------------------------------------ */
 /* Step content map                                                    */
@@ -147,12 +167,9 @@ export const LESSON1_STEP_CONTENT: Record<string, StepContent> = {
   'l1-s1': {
     stepId: 'l1-s1',
     blocks: [
-      {
-        kind: 'instruction',
-        heading: 'أَتَأَمَّلُ الصُّورَتَيْنِ الآتِيَتَيْنِ، ثُمَّ أُنَفِّذُ الأَنْشِطَةَ:',
-        text: 'أَتَأَمَّلُ الصُّورَتَيْنِ الآتِيَتَيْنِ، ثُمَّ أُنَفِّذُ الأَنْشِطَةَ:',
-        source: src(4, 'textbook_exercise', 'الصُّورتان', 1),
-      },
+      { kind: 'source_sentences', heading: 'عنوان الدرس ومحوره (كما طُبعا)', sentences: rsLines(['L1-001', 'L1-002']), source: src(4, 'textbook_reading', 'عُنْوانُ الدَّرْسِ') },
+      { kind: 'instruction', heading: rs('L1-003'), text: rs('L1-003'), source: src(4, 'textbook_exercise', 'الصُّورتان', 1) },
+      { kind: 'source_sentences', heading: 'الصُّورتان (وصفُهما المطبوع في سجلّ المصدر)', sentences: rsArr('L1-004'), source: src(4, 'textbook_exercise', 'الصُّورتان') },
       { kind: 'activity', activityId: 'a-p4-1' },
       { kind: 'activity', activityId: 'a-p4-2' },
     ],
@@ -160,12 +177,7 @@ export const LESSON1_STEP_CONTENT: Record<string, StepContent> = {
   'l1-s2': {
     stepId: 'l1-s2',
     blocks: [
-      {
-        kind: 'instruction',
-        heading: 'أَسْتَمِعُ إلى النَّصِّ مُتَجَنِّباً المُشَتِّتاتِ، ثُمَّ أُنَفِّذُ النَّشاطَ:',
-        text: 'أَسْتَمِعُ إلى النَّصِّ مُتَجَنِّباً المُشَتِّتاتِ، ثُمَّ أُنَفِّذُ النَّشاطَ:',
-        source: src(4, 'textbook_reading', 'أَسْتَمِعُ', 1),
-      },
+      { kind: 'instruction', heading: rs('L1-007'), text: rs('L1-007'), source: src(4, 'textbook_reading', 'أَسْتَمِعُ', 1) },
       { kind: 'activity', activityId: 'a-p4-3' },
       { kind: 'activity', activityId: 'a-p4-4' },
       { kind: 'activity', activityId: 'a-p4-5' },
@@ -174,9 +186,15 @@ export const LESSON1_STEP_CONTENT: Record<string, StepContent> = {
   'l1-s3': {
     stepId: 'l1-s3',
     blocks: [
+      { kind: 'instruction', heading: rs('L1-011'), text: rs('L1-011'), source: src(5, 'textbook_reading', 'أَقْرَأُ') },
       { kind: 'source_passage', heading: 'النص الأصلي من الكتاب — المقطع ١', paragraphs: READING_SECTION_1, source: src(5, 'textbook_reading', 'أَقْرَأُ ١') },
       { kind: 'source_passage', heading: 'النص الأصلي من الكتاب — المقطع ٢', paragraphs: READING_SECTION_2, source: src(5, 'textbook_reading', 'أَقْرَأُ ٢') },
-      { kind: 'explanation', heading: 'ملاحظة المصدر', lines: [`الكاتب: ${READING_AUTHOR}`] },
+      { kind: 'source_sentences', heading: 'علامتا الفصل بين المقطعين (مطبوعتان)', sentences: READING_SECTION_MARKS, source: src(5, 'textbook_reading', 'أَقْرَأُ') },
+      { kind: 'explanation', heading: 'ملاحظة المصدر', lines: [`الكاتب كما طُبع: ${READING_AUTHOR}`] },
+      { kind: 'explanation', heading: 'قراءة معتمدة بقرار صاحب المشروع', lines: [
+        'السطر «الصّيّادُ: كيف أيُّها البحرُ؟! ... جدّي رَوَتْ لي حين كنتُ صغيرًا...» (L1-016) معروض كما قُرئ من الكتاب المطبوع بحرف الرواء في «رَوَتْ».',
+        'الوجهان الآخران («رَواها» و«روَتْ») محفوظان في سجلّ الإشكالات دون اعتماد أحدهما، ولا يُعرضان للطالب كإجابة.',
+      ] },
       { kind: 'vocab', heading: 'معجم الكلمات', items: LESSON1_VOCAB, source: src(5, 'textbook_reading', 'معجم الكلمات') },
       { kind: 'activity', activityId: 'a-p5-1' },
       { kind: 'activity', activityId: 'a-p5-2' },
@@ -186,7 +204,11 @@ export const LESSON1_STEP_CONTENT: Record<string, StepContent> = {
   'l1-s4': {
     stepId: 'l1-s4',
     blocks: [
-      { kind: 'instruction', heading: 'الفَهْمُ القِرائِيُّ', text: 'أَقْرَأُ النَّصَّ قِراءَةً صامِتَةً، ثُمَّ أُنَفِّذُ النَّشاطَ:', source: src(6, 'textbook_exercise', 'الفَهْمُ القِرائِيُّ') },
+      { kind: 'instruction', heading: rs('L1-035'), text: rs('L1-035'), source: src(6, 'textbook_exercise', 'الفَهْمُ القِرائِيُّ') },
+      { kind: 'explanation', heading: 'بندٌ معلّق (غير محلول)', lines: [
+        'معنى «قَصَّتْ» في النشاط ١ معلّقٌ بانتظار اعتمادٍ صريح أو وصول نصّ الاستماع؛ القراءة «قَصَّتْ» نفسها معتمدة بقرار صاحب المشروع.',
+        'لا تُعرض إجابة لهذا الفراغ ولا يُحتسب ضمن المحلول.',
+      ] },
       { kind: 'activity', activityId: 'a-p6-1' },
       { kind: 'activity', activityId: 'a-p6-2' },
       { kind: 'activity', activityId: 'a-p6-3' },
@@ -200,8 +222,10 @@ export const LESSON1_STEP_CONTENT: Record<string, StepContent> = {
   'l1-s5': {
     stepId: 'l1-s5',
     blocks: [
-      { kind: 'instruction', heading: 'أُتَواصَلُ شَفَوِيّاً: تَصْميمُ مُطَوِيَّةٍ', text: 'أَتَأَمَّلُ الصُّوَرَ السّابِقَةَ، ثُمَّ أُحاوِرُ زُملائي لِنَتَّفِقَ عَلى خُطَّةِ عَمَلٍ لِتَصْميمِ مُطَوِيَّةٍ حَوْلَ المَوْضوعِ ذاتِهِ، وَتَوْزيعِ هذِهِ المَطْوِيّاتِ في حَيِّنا.', source: src(7, 'textbook_expression', 'مُطَوِيَّة') },
-      { kind: 'source_sentences', heading: 'أَتَعَلَّمُ: مَراحِلُ تَصْميمِ المُطَوِيَّةِ (الإِعْلانِ)', sentences: PAMPHLET_STAGES, source: src(7, 'textbook_expression', 'أَتَعَلَّمُ') },
+      { kind: 'instruction', heading: rs('L1-044'), text: rs('L1-046'), source: src(7, 'textbook_expression', 'مُطَوِيَّة') },
+      { kind: 'source_sentences', heading: 'الصورة المطبوعة (وصفُها في سجلّ المصدر)', sentences: rsArr('L1-045'), source: src(7, 'textbook_expression', 'الصُّورة') },
+      { kind: 'source_sentences', heading: 'الجدول المطبوع', sentences: rsArr('L1-047'), source: src(7, 'textbook_expression', 'الجَدْوَل') },
+      { kind: 'source_sentences', heading: rsArr('L1-048')[0], sentences: PAMPHLET_STAGES, source: src(7, 'textbook_expression', 'أَتَعَلَّمُ') },
       { kind: 'activity', activityId: 'a-p7-1' },
       { kind: 'activity', activityId: 'a-p7-2' },
     ],
@@ -209,13 +233,17 @@ export const LESSON1_STEP_CONTENT: Record<string, StepContent> = {
   'l1-s6': {
     stepId: 'l1-s6',
     blocks: [
-      { kind: 'instruction', heading: 'قَواعِدُ اللُّغَةِ: الجُمْلَةُ', text: 'أَقْرَأُ الأَمْثِلَةَ الآتِيَةَ، ثُمَّ أُنَفِّذُ الأَنْشِطَةَ:', source: src(7, 'textbook_grammar', 'الجُمْلَةُ') },
-      { kind: 'source_sentences', heading: 'الأَمْثِلَةُ', sentences: ['الشَّباكُ قَوِيَّةٌ.', 'فَرِحَ الصَّيّادُ.', 'صَنَعَ العُمّالُ مَرْكَباً.'], source: src(7, 'textbook_grammar', 'الأَمْثِلَةُ') },
+      { kind: 'instruction', heading: rs('L1-050'), text: rs('L1-050'), source: src(7, 'textbook_grammar', 'الجُمْلَةُ') },
+      { kind: 'source_sentences', heading: 'الأَمْثِلَةُ', sentences: rsArr('L1-051'), source: src(8, 'textbook_grammar', 'الأَمْثِلَةُ') },
       { kind: 'activity', activityId: 'a-p8-1' },
       { kind: 'activity', activityId: 'a-p8-2' },
       { kind: 'activity', activityId: 'a-p8-3' },
       { kind: 'rule', heading: 'القاعِدَةُ', lines: GRAMMAR_RULE_LINES, source: src(8, 'textbook_grammar', 'القاعِدَةُ') },
       { kind: 'activity', activityId: 'a-p8-4' },
+      { kind: 'explanation', heading: 'تصحيحٌ معتمد بقرار صاحب المشروع', lines: [
+        'في التقويم النهائي ١ (L1-057) تُعرض الكلمة «يقضون» تصحيحًا معتمدًا، ويُعرض معها دائمًا النصّ المطبوع «يقبضون» والفرق بينهما.',
+        'سبب التصحيح: سياق الجملة «ويقضون على شاطئه أجملَ الأوقات»؛ والمطبوع محفوظ في سجلّ المصدر بلا حذف.',
+      ] },
       { kind: 'activity', activityId: 'a-p8-5' },
       { kind: 'activity', activityId: 'a-p8-6' },
       { kind: 'activity', activityId: 'a-p8-7' },
@@ -224,12 +252,16 @@ export const LESSON1_STEP_CONTENT: Record<string, StepContent> = {
   'l1-s7': {
     stepId: 'l1-s7',
     blocks: [
-      { kind: 'instruction', heading: 'إملاء: الهَمْزَةُ الأَوَّلِيَّةُ', text: 'أَقْرَأُ المِثالَيْنِ الآتِيَيْنِ، ثُمَّ أُنَفِّذُ الأَنْشِطَةَ:', source: src(9, 'textbook_spelling', 'الهَمْزَةُ الأَوَّلِيَّةُ') },
-      { kind: 'source_sentences', heading: 'المِثالانِ', sentences: ['أُريدُ أَنْ أُسافِرَ عَلى أَمْواجِكَ راجِياً إِكْرامي بِصَيْدٍ وَفيرٍ.', 'يا صَديقي البَحْرَ، تَكَرَّمْ وَامْنَحْني سَمَكَةً ذَهَبِيَّةً.'], source: src(9, 'textbook_spelling', 'المِثالانِ') },
+      { kind: 'instruction', heading: rs('L1-060'), text: rs('L1-060'), source: src(9, 'textbook_spelling', 'الهَمْزَةُ الأَوَّلِيَّةُ') },
+      { kind: 'source_sentences', heading: 'المِثالانِ', sentences: rsLines(['L1-061', 'L1-062']), source: src(9, 'textbook_spelling', 'المِثالانِ') },
+      { kind: 'explanation', heading: 'قراءات معتمدة بقرار صاحب المشروع', lines: [
+        'المثال الثاني (L1-062) مكتوب «يا صديقي البحر: بكرمٍ وامْنَحْني سمكةً ذهبيّةً» كما قُرئ من الكتاب المطبوع.',
+        'رأس العمود الثالث في التقويم النهائي (L1-068) هو «السَّببُ»، ويُعرض الجدول بأعمدته الأربعة كاملة.',
+      ] },
       { kind: 'activity', activityId: 'a-p9-1' },
       { kind: 'activity', activityId: 'a-p9-2' },
       { kind: 'activity', activityId: 'a-p9-3' },
-      { kind: 'rule', heading: 'أَسْتَنْتِجُ', lines: SPELLING_RULE_LINES, source: src(9, 'textbook_spelling', 'أَسْتَنْتِجُ') },
+      { kind: 'rule', heading: 'القاعِدَةُ', lines: SPELLING_RULE_LINES, source: src(9, 'textbook_spelling', 'القاعِدَةُ') },
       { kind: 'activity', activityId: 'a-p9-4' },
       { kind: 'activity', activityId: 'a-p9-5' },
       { kind: 'activity', activityId: 'a-p9-6' },
@@ -238,7 +270,8 @@ export const LESSON1_STEP_CONTENT: Record<string, StepContent> = {
   'l1-s8': {
     stepId: 'l1-s8',
     blocks: [
-      { kind: 'instruction', heading: 'الخَطُّ: الحَرَكاتُ', text: 'أُلاحِظُ: (حَرَكاتُ الضَّبْطِ) في الجُمْلَةِ الآتِيَةِ: تَتَعاوَنُ جَميعاً وَنَبْني مَرْكَباً لِلصَّيْدِ يَكُونُ مِلْكاً لِلْجَميعِ.', source: src(10, 'textbook_exercise', 'الخَطُّ') },
+      { kind: 'instruction', heading: rs('L1-070'), text: rs('L1-071'), source: src(10, 'textbook_exercise', 'الخَطُّ') },
+      { kind: 'source_sentences', heading: 'سطرُ الحركاتِ والتنوينِ والتضعيف (للمحاكاة)', sentences: [CALLIGRAPHY_MARKS_LINE], source: src(10, 'textbook_exercise', 'الخَطُّ') },
       { kind: 'activity', activityId: 'a-p10-1' },
       { kind: 'activity', activityId: 'a-p10-2' },
     ],
@@ -246,7 +279,7 @@ export const LESSON1_STEP_CONTENT: Record<string, StepContent> = {
   'l1-s9': {
     stepId: 'l1-s9',
     blocks: [
-      { kind: 'instruction', heading: 'أُعَبِّرُ كِتابِيّاً: اسْتِبْدالُ المُفْرَداتِ وَالتَّراكيبِ', text: 'أُعيدُ صَوْغَ الفَقْرَةِ الآتِيَةِ بِأُسلوبي، مُسْتَبْدِلاً بَعْضَ مُفْرَداتِ النَّصِّ مُفْرَداتٍ مِنْ ذاكِرَتي لِيُصْبِحَ النَّصُّ أَجْمَلَ في رَأْيي، ثُمَّ أَكْتُبُهُ:', source: src(10, 'textbook_expression', 'اسْتِبْدالُ المُفْرَداتِ') },
+      { kind: 'instruction', heading: rs('L1-075'), text: rs('L1-076'), source: src(10, 'textbook_expression', 'اسْتِبْدالُ المُفْرَداتِ') },
       { kind: 'source_passage', heading: 'النص الأصلي من الكتاب', paragraphs: EXPRESSION_PARAGRAPH, source: src(10, 'textbook_expression', 'الفَقْرَةُ') },
       { kind: 'activity', activityId: 'a-p10-3' },
     ],
@@ -254,7 +287,13 @@ export const LESSON1_STEP_CONTENT: Record<string, StepContent> = {
   'l1-s10': {
     stepId: 'l1-s10',
     blocks: [
-      { kind: 'instruction', heading: 'أَلْعَبُ وَأَتَعَلَّمُ', text: 'أَسْتَبْدِلُ بِالرُّموزِ الآتِيَةِ الحُروفَ الَّتي تُعَبِّرُ عَنْها وَفْقَ الجَدْوَلِ لِأَحْصُلَ عَلى جُمَلٍ مُناسِبَةٍ:', source: src(11, 'activity_book', 'أَلْعَبُ وَأَتَعَلَّمُ', 1, 'صفّا الرموز بحاجة إلى قصّ أدق لفكّ الشيفرة') },
+      { kind: 'instruction', heading: rs('L1-078'), text: rs('L1-078'), source: src(11, 'activity_book', 'أَلْعَبُ وَأَتَعَلَّمُ') },
+      { kind: 'source_sentences', heading: 'لوحةُ الحروف ورموزها (مطبوعة)', sentences: rsArr('L1-079'), source: src(11, 'activity_book', 'اللَّوْحَة') },
+      { kind: 'explanation', heading: 'بندٌ معلّق (غير محلول)', lines: [
+        'مطابقة الرموز للحروف في النشاط ١ مسودةٌ بانتظار اعتمادٍ صريح من صاحب المشروع.',
+        'زرّ «تحقّق من إجاباتي» معطّل في هذا النشاط، والمفتاح المقترح لا يُعرض ولا يُحتسب ضمن المحلول.',
+        'مسألتان مفتوحتان لا يُفصل فيهما بالاجتهاد اللغوي: لون شبه المنحرف في الصف الثالث (ك أم ة)، ومواضع الفواصل بين كلمات الصف الأول.',
+      ] },
       { kind: 'activity', activityId: 'a-p11-1' },
       { kind: 'activity', activityId: 'a-p11-2' },
       { kind: 'activity', activityId: 'a-p11-3' },

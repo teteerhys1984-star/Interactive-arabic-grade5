@@ -14,6 +14,9 @@ import { LESSON3_TEACHER_GUIDE } from './data/lesson3/teacherGuide';
 import { U2L1_TEACHER_GUIDE } from './data/unit2Lesson1/teacherGuide';
 import { UnitCard } from './components/curriculum/UnitCard';
 import { LessonFlow } from './components/curriculum/LessonFlow';
+import { LessonShell } from './components/curriculum/LessonShell';
+import { Lesson1StepRenderer } from './components/curriculum/Lesson1StepRenderer';
+import { Lesson1IrabPage } from './components/curriculum/Lesson1IrabPage';
 import { Unit1ReviewFlow } from './components/curriculum/Unit1ReviewFlow';
 import { Unit1ReviewSolutions } from './components/teacher/Unit1ReviewSolutions';
 import { TeacherAreaShell } from './components/teacher/TeacherAreaShell';
@@ -111,11 +114,23 @@ const SolutionsGate: React.FC<{ onUnlock: () => void }> = ({ onUnlock }) => {
 export const App: React.FC = () => {
   const [route, setRoute] = useState<NavigationRoute>({ view: 'home' });
   const [solutionsUnlocked, setSolutionsUnlocked] = useState<boolean>(() => readSolutionsUnlock());
+  /**
+   * Lesson 1 only: whether the standalone i‘rab page is shown on top of the lesson.
+   * Implemented as an overlay (not a route swap) so the lesson step state survives
+   * the round trip lesson → i‘rab → back.
+   */
+  const [lesson1IrabOpen, setLesson1IrabOpen] = useState<boolean>(false);
 
   const units = getAllUnits();
 
-  const handleGoHome = () => setRoute({ view: 'home' });
-  const handleSelectLesson = (lessonId: string) => setRoute({ view: 'lesson', lessonId });
+  const handleGoHome = () => {
+    setLesson1IrabOpen(false);
+    setRoute({ view: 'home' });
+  };
+  const handleSelectLesson = (lessonId: string) => {
+    setLesson1IrabOpen(false);
+    setRoute({ view: 'lesson', lessonId });
+  };
   const handleOpenTeacher = () => setRoute({ view: 'teacher' });
   const handleOpenSolutions = () => setRoute({ view: 'solutions' });
 
@@ -206,6 +221,29 @@ export const App: React.FC = () => {
                   <h3>الدرس غير موجود</h3>
                   <button type="button" className="btn btn-primary" onClick={handleGoHome}>العودة للقائمة</button>
                 </div>
+              );
+            }
+            // Lesson 1 renders through its own step renderer (source-fidelity rebuild):
+            // LessonShell is reused unchanged via its `renderStepContent` injection
+            // point, so no shared lesson component is modified for other lessons.
+            if (result.lesson.metadata.id === 'lesson1') {
+              return (
+                <>
+                  <div hidden={lesson1IrabOpen}>
+                    <LessonShell
+                      lesson={result.lesson}
+                      onExit={handleGoHome}
+                      onOpenTest={() => setRoute({ view: 'lesson_test', lessonId: route.lessonId })}
+                      renderStepContent={(step) => (
+                        <Lesson1StepRenderer step={step} onOpenIrab={() => setLesson1IrabOpen(true)} />
+                      )}
+                    />
+                  </div>
+                  {/* The i‘rab page is an overlay route: LessonShell stays mounted
+                      (hidden), so the learner keeps the step they were on when
+                      returning from the i‘rab page. */}
+                  {lesson1IrabOpen && <Lesson1IrabPage onBack={() => setLesson1IrabOpen(false)} />}
+                </>
               );
             }
             return (

@@ -128,7 +128,14 @@ describe('Lesson 1 platform explanations', () => {
         expect(word.signReason).toBeTruthy();
       });
     });
-    expect(LESSON1_IRAB.find((record) => record.id === 'irab-8')?.wordBreakdown[1].sign).toContain('حذف حرف العلة');
+    // irab-8 was rebuilt: the لام الأمر reading «لِيَصْطَدْ» is not in the printed book.
+    // It now parses the printed page-10 calligraphy sentence (source record L1-074).
+    const rebuiltIrab = LESSON1_IRAB.find((record) => record.id === 'irab-8')!;
+    expect(rebuiltIrab.sentence).toContain('يَصْطادُ');
+    expect(rebuiltIrab.sentence).not.toContain('لِيَصْطَدْ');
+    expect(rebuiltIrab.wordBreakdown[0].sign).toContain('الضمة الظاهرة');
+    expect(rebuiltIrab.wordBreakdown.map((word) => word.word)).toContain('إِضافِيَّةً');
+    expect(JSON.stringify(rebuiltIrab)).not.toContain('حذف حرف العلة');
     expect(LESSON1_IRAB.every((record) => record.source.readabilityVerified)).toBe(true);
     expect(LESSON1_IRAB.find((record) => record.id === 'irab-5')?.source.pageNumber).toBe(5);
     expect(LESSON1_IRAB.find((record) => record.id === 'irab-8')?.source.sourceType).toBe('textbook_exercise');
@@ -144,7 +151,15 @@ describe('Lesson 1 platform explanations', () => {
     expect(screen.getByRole('heading', { name: 'إعراب الجمل الواردة في الدرس، كلمةً كلمة' })).toBeInTheDocument();
     expect(screen.getAllByText('النص الأصلي من الكتاب').length).toBeGreaterThan(0);
 
+    // Unified protocol (owner-approved): the drill reveals nothing on selection.
+    fireEvent.click(screen.getByRole('button', { name: 'جملة اسمية' }));
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'تحقّق' }));
+    expect(screen.getByRole('status')).toHaveTextContent('جرّب مرة أخرى');
+    expect(screen.getByText(/الإجابة «جملة فعلية»/)).toBeInTheDocument();
+    // changing the answer then checking again grades the latest choice
     fireEvent.click(screen.getByRole('button', { name: 'جملة فعلية' }));
+    fireEvent.click(screen.getByRole('button', { name: 'تحقّق' }));
     expect(screen.getByRole('status')).toHaveTextContent('صحيح: أول كلمة أساسية');
   });
 
@@ -158,10 +173,17 @@ describe('Lesson 1 platform explanations', () => {
     expect(SPELLING_PLATFORM_EXPLANATION.concept).not.toMatch(/المتوسطة|المتطرفة/);
     expect(screen.getByRole('heading', { name: 'الهمزة الأولية: أقطع أم أصل؟' })).toBeInTheDocument();
     expect(screen.getAllByText(/إِسْهامِها.*إِنْجازاتِهِمْ/).length).toBeGreaterThan(0);
-    expect(screen.getByText('أَقْرَأُ المِثالَيْنِ الآتِيَيْنِ، ثُمَّ أُنَفِّذُ الأَنْشِطَةَ:')).toBeInTheDocument();
+    expect(screen.getByText('إملاء: الهمزةُ الأوّليّةُ — أقرأُ المثالين الآتيين، ثمّ أنفّذُ الأنشطة:')).toBeInTheDocument();
     expect(screen.getByLabelText('نشاط ٤')).toBeInTheDocument();
 
+    // Unified protocol (owner-approved): attempt → «تحقّق» → correctness + answer + reason.
+    fireEvent.click(screen.getByRole('button', { name: 'همزة قطع' }));
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'تحقّق' }));
+    expect(screen.getByRole('status')).toHaveTextContent('لاحظ شكل البداية');
+    expect(screen.getByText(/الإجابة «همزة وصل»/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'همزة وصل' }));
+    fireEvent.click(screen.getByRole('button', { name: 'تحقّق' }));
     expect(screen.getByRole('status')).toHaveTextContent('أحسنت');
   });
 
@@ -216,8 +238,8 @@ describe('Curriculum, assessment and source-fidelity checks', () => {
     if (classificationActivity.interaction.kind === 'classify') {
       expect(classificationActivity.interaction.items.find((item) => item.id === 'w3')?.correctCategoryId).toBe('qata');
     }
-    expect(TEXTBOOK_ACTIVITIES.find((activity) => activity.id === 'a-p9-5')?.solution.answer).toContain('اسْتَفِدْ');
-    expect(TEXTBOOK_ACTIVITIES.find((activity) => activity.id === 'a-p9-5')?.solution.explanation).toMatch(/إِنْجازاتِهِمْ.*همزة قطع/);
+    expect(TEXTBOOK_ACTIVITIES.find((activity) => activity.id === 'a-p9-5')?.solution.answer).toContain('استفدْ');
+    expect(TEXTBOOK_ACTIVITIES.find((activity) => activity.id === 'a-p9-5')?.solution.explanation).toMatch(/إنجازِهم.*همزة قطع/);
 
     expect(LESSON1_TEST.questions).toHaveLength(20);
     expect(new Set(LESSON1_TEST.questions.map((question) => question.id)).size).toBe(20);
