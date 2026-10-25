@@ -216,6 +216,9 @@ export const GRAMMAR_PLATFORM_EXPLANATION = {
     ],
     feedbackCorrect: 'صحيح: أول كلمة أساسية «يَبْني» فعل، إذن الجملة فعلية.',
     feedbackIncorrect: 'جرّب مرة أخرى: ابحث عن أول كلمة أساسية، ثم حدّد هل هي اسم أم فعل.',
+    // shown only AFTER the learner presses «تحقّق» — the correct answer plus its reason
+    correctAnswerNote:
+      'الإجابة «جملة فعلية» لأنّ أوّل كلمة أساسية في المثال هي الفعل «يَبْني»، والجملة التي تبدأ بفعلٍ فعليةٌ ولو جاء الاسم بعدها (الصَّيّادُ فاعل).',
   },
 };
 
@@ -291,6 +294,9 @@ export const SPELLING_PLATFORM_EXPLANATION = {
     ],
     feedbackCorrect: 'أحسنت: كُتبت ألفاً بلا همزة، وتُلفظ في البدء وتسقط في الوصل.',
     feedbackIncorrect: 'لاحظ شكل البداية: هل رُسمت همزة فوق الألف أو تحتها؟',
+    // shown only AFTER the learner presses «تحقّق» — the correct answer plus its reason
+    correctAnswerNote:
+      'الإجابة «همزة وصل» لأنّ ألف «امْنَحْني» كُتبت بلا رسم همزة، وتُلفظ عند البدء بالكلمة وتسقط من النطق عند وصلها بما قبلها (فعل أمرٍ ثلاثي).',
   },
 };
 

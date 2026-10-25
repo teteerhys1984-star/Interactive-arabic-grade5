@@ -14,15 +14,34 @@ const PlatformLabel: React.FC<{ children?: React.ReactNode }> = ({ children = '�
   <span className="source-label-explain">{children}</span>
 );
 
+/**
+ * QuickCheck — platform drill, unified with the Lesson-1 activity protocol.
+ *
+ * PROTOCOL (owner-mandated, applied here so the whole lesson behaves the same):
+ *  attempt → change the answer freely → «تحقّق» → correctness + the correct answer +
+ *  the explanation → change & re-check. Selecting an option reveals NOTHING: no
+ *  colour, no message, no hint about which option is right. Changing the selection
+ *  after a check clears the previous result, so feedback always follows a press of
+ *  «تحقّق».
+ */
 const QuickCheck: React.FC<{
   id: string;
   prompt: string;
   options: { id: string; label: string; correct: boolean }[];
   feedbackCorrect: string;
   feedbackIncorrect: string;
-}> = ({ id, prompt, options, feedbackCorrect, feedbackIncorrect }) => {
+  correctAnswerNote?: string;
+}> = ({ id, prompt, options, feedbackCorrect, feedbackIncorrect, correctAnswerNote }) => {
   const [selected, setSelected] = useState<string | null>(null);
+  const [checked, setChecked] = useState(false);
   const selectedOption = options.find((option) => option.id === selected);
+  const correctOption = options.find((option) => option.correct);
+
+  const pick = (optionId: string) => {
+    setSelected(optionId);
+    // a new attempt always requires a new check — no stale verdict is left on screen
+    setChecked(false);
+  };
 
   return (
     <section className="platform-quick-check" aria-labelledby={`${id}-title`}>
@@ -34,23 +53,65 @@ const QuickCheck: React.FC<{
         </div>
       </div>
       <p className="quick-check-prompt">{prompt}</p>
+      <p className="quick-check-protocol-note">
+        اختر إجابتك، ويمكنك تغييرها قبل التحقّق. لا تظهر النتيجة بمجرد الاختيار؛ اضغط «تحقّق» لعرض
+        الصحة والإجابة الصحيحة والتفسير.
+      </p>
       <div className="quick-check-options" role="group" aria-label={prompt}>
-        {options.map((option) => (
-          <button
-            key={option.id}
-            type="button"
-            className={`quick-check-option ${selected === option.id ? 'is-selected' : ''}`}
-            onClick={() => setSelected(option.id)}
-            aria-pressed={selected === option.id}
-          >
-            {option.label}
-          </button>
-        ))}
+        {options.map((option) => {
+          const isSelected = selected === option.id;
+          const verdictClass = !checked
+            ? ''
+            : isSelected
+              ? option.correct
+                ? ' is-answer-correct'
+                : ' is-answer-wrong'
+              : option.correct
+                ? ' is-answer-missed'
+                : '';
+          return (
+            <button
+              key={option.id}
+              type="button"
+              className={`quick-check-option ${isSelected ? 'is-selected' : ''}${verdictClass}`}
+              onClick={() => pick(option.id)}
+              aria-pressed={isSelected}
+            >
+              {option.label}
+            </button>
+          );
+        })}
       </div>
-      {selectedOption && (
-        <p className={`quick-check-feedback ${selectedOption.correct ? 'is-correct' : 'is-try-again'}`} role="status">
-          {selectedOption.correct ? feedbackCorrect : feedbackIncorrect}
-        </p>
+      <div className="quick-check-actions">
+        <button
+          type="button"
+          className="btn btn-primary btn-small"
+          onClick={() => setChecked(true)}
+          disabled={!selected}
+          title={selected ? undefined : 'اختر إجابة أولًا ثم تحقّق'}
+        >
+          {checked ? 'تحقّق مجدّدًا' : 'تحقّق'}
+        </button>
+        {checked && (
+          <button type="button" className="btn btn-ghost btn-small" onClick={() => setChecked(false)}>
+            عدّل إجابتي
+          </button>
+        )}
+      </div>
+      {checked && selectedOption && (
+        <div className="quick-check-result">
+          <p
+            className={`quick-check-feedback ${selectedOption.correct ? 'is-correct' : 'is-try-again'}`}
+            role="status"
+          >
+            {selectedOption.correct ? feedbackCorrect : feedbackIncorrect}
+          </p>
+          <p className="quick-check-answer">
+            <span className="source-label-explain">الإجابة الصحيحة</span>
+            {correctOption?.label}
+            {correctAnswerNote ? ` — ${correctAnswerNote}` : ''}
+          </p>
+        </div>
       )}
     </section>
   );

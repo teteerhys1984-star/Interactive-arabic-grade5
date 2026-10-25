@@ -311,3 +311,52 @@
   .l1-choice,
   .l1-result { transition: none; }
 }
+
+/* ---------- platform quick-check drills (unified protocol) ---------- */
+.quick-check-protocol-note {
+  font-size: 0.85rem;
+  color: #4a4a4a;
+  margin: 0.2rem 0 0.5rem;
+}
+
+.quick-check-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* correctness colours appear ONLY after «تحقّق» is pressed */
+.quick-check-option.is-answer-correct {
+  border-color: #2f7d54;
+  background: #ecf8f1;
+}
+
+.quick-check-option.is-answer-wrong {
+  border-color: #a03c3c;
+  background: #fdeeec;
+}
+
+.quick-check-option.is-answer-missed {
+  border-style: dashed;
+  border-color: #a1762c;
+  background: #fdf5e6;
+}
+
+.quick-check-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.quick-check-answer {
+  font-size: 0.9rem;
+  border-inline-start: 3px solid #6b5b95;
+  padding-inline-start: 0.5rem;
+  margin: 0;
+}
+
+@media (max-width: 700px) {
+  .quick-check-actions .btn { flex: 1 1 100%; }
+}

@@ -405,3 +405,130 @@ describe('Lesson 1 — standalone i‘rab page', () => {
     expect(screen.queryByRole('button', { name: /الإعراب التطبيقي/ })).not.toBeInTheDocument();
   });
 });
+
+describe('Lesson 1 — unified attempt → check protocol (platform drills and activities)', () => {
+  const grammarPrompt = 'ما نوع المثال الإضافي «يَبْني الصَّيّادُ مَرْكَباً»؟';
+  const hamzaPrompt = 'ما نوع الهمزة في الكلمة الواردة في الكتاب «امْنَحْني»؟';
+
+  /** The drill section (options + «تحقّق» + feedback live in one panel). */
+  const drillPanel = (container: HTMLElement): HTMLElement => {
+    const panel = container.querySelector('.platform-quick-check');
+    expect(panel).not.toBeNull();
+    return panel as HTMLElement;
+  };
+
+  it('reveals nothing on selection in the grammar drill, and allows changing the answer before checking', () => {
+    const { container } = render(<Lesson1StepRenderer step={stepById('l1-s6')} />);
+    const drill = drillPanel(container);
+
+    expect(screen.getByRole('group', { name: grammarPrompt })).toBeInTheDocument();
+    const verbal = within(drill).getByRole('button', { name: 'جملة فعلية' });
+    const nominal = within(drill).getByRole('button', { name: 'جملة اسمية' });
+
+    // 1) attempt — no verdict of any kind
+    fireEvent.click(verbal);
+    expect(verbal).toHaveAttribute('aria-pressed', 'true');
+    expect(within(drill).queryByRole('status')).not.toBeInTheDocument();
+    expect(drill.querySelector('.quick-check-answer')).toBeNull();
+    expect(drill.textContent).not.toContain('صحيح:');
+    expect(drill.textContent).not.toContain('جرّب مرة أخرى');
+    expect(container.querySelectorAll('.is-answer-correct, .is-answer-wrong, .is-answer-missed')).toHaveLength(0);
+    expect(container.innerHTML).not.toContain('is-answer-');
+
+    // 2) the answer can still be changed before checking
+    fireEvent.click(nominal);
+    expect(nominal).toHaveAttribute('aria-pressed', 'true');
+    expect(verbal).toHaveAttribute('aria-pressed', 'false');
+    expect(within(drill).queryByRole('status')).not.toBeInTheDocument();
+
+    // 3) check → correctness + the correct answer + the explanation
+    fireEvent.click(within(drill).getByRole('button', { name: 'تحقّق' }));
+    expect(within(drill).getByRole('status')).toHaveTextContent('جرّب مرة أخرى');
+    expect(drill.textContent).toContain('الإجابة الصحيحة');
+    expect(drill.textContent).toContain('جملة فعلية');
+    expect(drill.textContent).toContain('الجملة التي تبدأ بفعلٍ فعليةٌ');
+    expect(nominal.className).toContain('is-answer-wrong');
+    expect(verbal.className).toContain('is-answer-missed');
+
+    // 4) edit & retry: a new choice clears the verdict until the next check
+    fireEvent.click(within(drill).getByRole('button', { name: 'عدّل إجابتي' }));
+    expect(within(drill).queryByRole('status')).not.toBeInTheDocument();
+    fireEvent.click(verbal);
+    expect(within(drill).queryByRole('status')).not.toBeInTheDocument();
+    fireEvent.click(within(drill).getByRole('button', { name: 'تحقّق' }));
+    expect(within(drill).getByRole('status')).toHaveTextContent('صحيح: أول كلمة أساسية');
+    expect(verbal.className).toContain('is-answer-correct');
+  });
+
+  it('applies the same protocol to the spelling drill', () => {
+    const { container } = render(<Lesson1StepRenderer step={stepById('l1-s7')} />);
+    const drill = drillPanel(container);
+
+    expect(screen.getByRole('group', { name: hamzaPrompt })).toBeInTheDocument();
+    const checkButton = within(drill).getByRole('button', { name: 'تحقّق' });
+    expect(checkButton).toBeDisabled(); // nothing chosen yet
+    expect(container.querySelectorAll('.is-answer-correct, .is-answer-wrong')).toHaveLength(0);
+
+    const cut = within(drill).getByRole('button', { name: 'همزة قطع' });
+    const wasl = within(drill).getByRole('button', { name: 'همزة وصل' });
+
+    fireEvent.click(cut);
+    expect(within(drill).queryByRole('status')).not.toBeInTheDocument();
+
+    fireEvent.click(checkButton);
+    expect(within(drill).getByRole('status')).toHaveTextContent('لاحظ شكل البداية');
+    expect(drill.textContent).toContain('الإجابة الصحيحة');
+    expect(drill.textContent).toContain('همزة وصل');
+    expect(cut.className).toContain('is-answer-wrong');
+
+    // changing the answer clears the verdict; re-checking grades the new choice
+    fireEvent.click(wasl);
+    expect(within(drill).queryByRole('status')).not.toBeInTheDocument();
+    fireEvent.click(within(drill).getByRole('button', { name: 'تحقّق' }));
+    expect(within(drill).getByRole('status')).toHaveTextContent('أحسنت');
+    expect(wasl.className).toContain('is-answer-correct');
+  });
+
+  it('grades the latest written answer and explains why an earlier one was not accepted', () => {
+    render(<Lesson1StepRenderer step={stepById('l1-s4')} />);
+    const activity = screen.getByLabelText('نشاط ١ (الفهم القرائي)');
+    const pluralField = within(activity).getByLabelText('جمع(الشَّبَكَة)');
+
+    // attempt without checking → no result, no key, no model answer
+    fireEvent.change(pluralField, { target: { value: 'الشباك' } });
+    expect(activity.textContent).not.toContain('✔');
+    expect(activity.textContent).not.toContain('⟳');
+    expect(activity.textContent).not.toContain('نتيجة التحقّق');
+    expect(
+      within(activity).getByRole('button', { name: 'اعرض الإجابة النموذجية (بعد المحاولة)' }),
+    ).toBeDisabled();
+
+    // change the answer before checking — the check grades the newest value
+    fireEvent.change(pluralField, { target: { value: 'السمكات' } });
+    fireEvent.click(within(activity).getByRole('button', { name: 'تحقّق من إجاباتي' }));
+    expect(activity.textContent).toContain('⟳ تحتاج مراجعة');
+    expect(activity.textContent).toContain('لماذا لم تُقبل؟');
+    expect(activity.textContent).toContain('الشِّباك');
+
+    // edit & retry with an accepted answer
+    fireEvent.change(pluralField, { target: { value: 'الشِّباك' } });
+    fireEvent.click(within(activity).getByRole('button', { name: 'تحقّق مجدّدًا' }));
+    expect(activity.textContent).toContain('✔ إجابة صحيحة');
+    expect(activity.textContent).not.toContain('لماذا لم تُقبل؟');
+  });
+
+  it('keeps the classify drill silent until the check, then shows the right category', () => {
+    render(<Lesson1StepRenderer step={stepById('l1-s7')} />);
+    const activity = screen.getByLabelText('نشاط ٤ (إملاء)');
+    const row = within(activity).getByText('أرغبُ').closest('.l1-classify-row') as HTMLElement;
+
+    fireEvent.click(within(row).getByRole('button', { name: 'همزةُ وصلٍ' }));
+    expect(activity.textContent).not.toContain('✔');
+    expect(activity.textContent).not.toContain('⟳');
+    expect(activity.textContent).not.toContain('الصواب');
+
+    fireEvent.click(within(activity).getByRole('button', { name: 'تحقّق من إجاباتي' }));
+    expect(within(row).getByText(/⟳ يحتاج مراجعة/)).toBeInTheDocument();
+    expect(row.textContent).toContain('الصواب: «همزةُ قطعٍ»');
+  });
+});

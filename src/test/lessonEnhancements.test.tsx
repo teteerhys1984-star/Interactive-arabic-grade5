@@ -151,7 +151,15 @@ describe('Lesson 1 platform explanations', () => {
     expect(screen.getByRole('heading', { name: 'إعراب الجمل الواردة في الدرس، كلمةً كلمة' })).toBeInTheDocument();
     expect(screen.getAllByText('النص الأصلي من الكتاب').length).toBeGreaterThan(0);
 
+    // Unified protocol (owner-approved): the drill reveals nothing on selection.
+    fireEvent.click(screen.getByRole('button', { name: 'جملة اسمية' }));
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'تحقّق' }));
+    expect(screen.getByRole('status')).toHaveTextContent('جرّب مرة أخرى');
+    expect(screen.getByText(/الإجابة «جملة فعلية»/)).toBeInTheDocument();
+    // changing the answer then checking again grades the latest choice
     fireEvent.click(screen.getByRole('button', { name: 'جملة فعلية' }));
+    fireEvent.click(screen.getByRole('button', { name: 'تحقّق' }));
     expect(screen.getByRole('status')).toHaveTextContent('صحيح: أول كلمة أساسية');
   });
 
@@ -168,7 +176,14 @@ describe('Lesson 1 platform explanations', () => {
     expect(screen.getByText('إملاء: الهمزةُ الأوّليّةُ — أقرأُ المثالين الآتيين، ثمّ أنفّذُ الأنشطة:')).toBeInTheDocument();
     expect(screen.getByLabelText('نشاط ٤')).toBeInTheDocument();
 
+    // Unified protocol (owner-approved): attempt → «تحقّق» → correctness + answer + reason.
+    fireEvent.click(screen.getByRole('button', { name: 'همزة قطع' }));
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'تحقّق' }));
+    expect(screen.getByRole('status')).toHaveTextContent('لاحظ شكل البداية');
+    expect(screen.getByText(/الإجابة «همزة وصل»/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'همزة وصل' }));
+    fireEvent.click(screen.getByRole('button', { name: 'تحقّق' }));
     expect(screen.getByRole('status')).toHaveTextContent('أحسنت');
   });
 
