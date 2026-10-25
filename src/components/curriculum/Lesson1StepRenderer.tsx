@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import './lesson1.css';
 import { LessonStep } from '../../types/curriculum';
-import { LESSON1_STEP_CONTENT, LessonBlock } from '../../data/lesson1/content';
+import { LESSON1_STEP_CONTENT, LessonBlock, StepContent } from '../../data/lesson1/content';
 import { TEXTBOOK_ACTIVITIES, TextbookActivity, ActivityInteraction } from '../../data/lesson1/activities';
 import { getSourceRecord } from '../../data/lesson1/readingSource';
 import { LESSON1_IRAB_PAGE, IRAB_ISSUE_REGISTER } from '../../data/lesson1/irabPage';
 import { SourceBadge } from '../common/SourceBadge';
+import { AnswerReveal, AnswerRevealEntry, AnswerRevealProps } from '../common/AnswerReveal';
 import { ArabicNumber } from '../common/BiDi';
 import {
   Lesson1GrammarSupport,
@@ -197,6 +198,92 @@ const isChoiceLike = (kind: ActivityInteraction['kind']): boolean =>
   kind === 'choose' || kind === 'multi' || kind === 'classify';
 
 /* ------------------------------------------------------------------ */
+/* «أظهر الجواب» adapter — Lesson 1 (owner-mandated reveal feature)   */
+/*                                                                    */
+/* Built ONLY from approved project data: the activity's own solution */
+/* and the per-field keys already used by the checker (acceptedAnswers*/
+/* / correctId / correctCategoryId). Pending items are never revealed:*/
+/* a 'pending' activity gets NO button at all, and a 'partial_pending'*/
+/* activity shows only the settled fields plus an honest note. No     */
+/* invented answers and no internal ids are ever displayed.           */
+/* ------------------------------------------------------------------ */
+
+const buildLesson1Reveal = (activity: TextbookActivity): AnswerRevealProps | null => {
+  if (activity.status === 'pending') return null;
+
+  const interaction = activity.interaction;
+  const entries: AnswerRevealEntry[] = [];
+
+  switch (interaction.kind) {
+    case 'choose': {
+      const correct = interaction.choices.find((choice) => choice.id === interaction.correctId);
+      if (correct) entries.push({ label: 'الاختيار الصحيح', value: correct.text });
+      break;
+    }
+    case 'multi': {
+      const texts = interaction.choices
+        .filter((choice) => interaction.correctIds.includes(choice.id))
+        .map((choice) => choice.text);
+      if (texts.length > 0) entries.push({ label: 'الاختيارات الصحيحة', value: texts.join(' + ') });
+      break;
+    }
+    case 'classify':
+      interaction.items.forEach((item) => {
+        const category = interaction.categories.find((entry) => entry.id === item.correctCategoryId);
+        if (category) entries.push({ label: item.text, value: category.label });
+      });
+      break;
+    case 'text_inputs':
+      interaction.fields.forEach((field) => {
+        if (!field.pending && field.acceptedAnswers && field.acceptedAnswers.length > 0) {
+          entries.push({ label: field.label, value: field.acceptedAnswers.join(' / ') });
+        }
+      });
+      break;
+    case 'table_fill':
+      interaction.rows.forEach((row, rowIndex) => {
+        row.cells.forEach((cell, cellIndex) => {
+          const column = interaction.columns[cellIndex];
+          if (!column) return; // never fall back to a raw internal field id
+          if ('fieldId' in cell && !cell.pending && cell.acceptedAnswers && cell.acceptedAnswers.length > 0) {
+            entries.push({
+              label: `${column} — صف ${toArabicDigits(rowIndex + 1)}`,
+              value: cell.acceptedAnswers.join(' / '),
+            });
+          }
+        });
+      });
+      break;
+    case 'diagram_fill': {
+      let blankNumber = 0;
+      interaction.boxes.forEach((box) => {
+        if (!box.fieldId) return;
+        blankNumber += 1;
+        if (!box.pending && box.acceptedAnswers && box.acceptedAnswers.length > 0) {
+          entries.push({
+            label: `فارغ ${toArabicDigits(blankNumber)}`,
+            value: box.acceptedAnswers.join(' / '),
+          });
+        }
+      });
+      break;
+    }
+    default:
+      break; /* write / speak / decode: the model answer below is the approved key */
+  }
+
+  return {
+    entries,
+    modelAnswer: activity.solution.answer,
+    explanation: activity.solution.explanation,
+    unavailableNote:
+      activity.status === 'partial_pending'
+        ? activity.pendingNote ?? 'بعض الإجابات معلّقة بقرار صاحب المشروع ولا تُعرض لها إجابة.'
+        : undefined,
+  };
+};
+
+/* ------------------------------------------------------------------ */
 /* The compliant activity widget                                      */
 /* ------------------------------------------------------------------ */
 
@@ -209,6 +296,8 @@ const Lesson1ActivityWidget: React.FC<{ activity: TextbookActivity }> = ({ activ
   /** True once the learner has checked at least once (unlocks the model answer). */
   const [attempted, setAttempted] = useState(false);
   const [showModelAnswer, setShowModelAnswer] = useState(false);
+  /** Owner-mandated «أظهر الجواب»: approved key only; null ⇒ button hidden (pending). */
+  const revealProps = buildLesson1Reveal(activity);
 
   /**
    * Every answer edit keeps the new value and clears the previous verdict at once,
@@ -694,6 +783,8 @@ const Lesson1ActivityWidget: React.FC<{ activity: TextbookActivity }> = ({ activ
         </button>
       </div>
 
+      {revealProps && <AnswerReveal {...revealProps} />}
+
       {checked && !isPendingInteraction && results.length > 0 && (
         <p className="l1-result l1-result--open" role="status">
           نتيجة التحقّق: <ArabicNumber value={toArabicDigits(correctCount)} /> صحيحة
@@ -818,11 +909,269 @@ const BlockView: React.FC<{ block: LessonBlock }> = ({ block }) => {
   }
 };
 
+/* ------------------------------------------------------------------ */
+/* Immersive reading experience — step l1-s3 («أَقْرَأُ النَّصَّ»)    */
+/*                                                                    */
+/* PRESENTATION ONLY (scope: lesson-local files, zero content change):*/
+/* every string rendered here comes verbatim from the locked source   */
+/* records. The view re-presents the printed page: the two printed    */
+/* separator marks («... ١ ...» / «... ٢ ...») become medallions      */
+/* above their printed sections exactly as on page 5, dialogue lines  */
+/* keep their exact speaker tokens as coloured chips (the printed     */
+/* name is always shown — colour is never the only cue), and the      */
+/* author record becomes a byline. No text is added, removed, or      */
+/* paraphrased; the decorative scene is aria-hidden pure ornament.    */
+/* ------------------------------------------------------------------ */
+
+const READING_STEP_ID = 'l1-s3';
+
+const READ_SCALE_MIN = 0.9;
+const READ_SCALE_MAX = 1.6;
+const READ_SCALE_STEP = 0.1;
+
+type InstructionBlock = Extract<LessonBlock, { kind: 'instruction' }>;
+type PassageBlock = Extract<LessonBlock, { kind: 'source_passage' }>;
+type SentencesBlock = Extract<LessonBlock, { kind: 'source_sentences' }>;
+type ExplanationBlock = Extract<LessonBlock, { kind: 'explanation' }>;
+
+/**
+ * Splits a printed dialogue paragraph into speaker token + utterance.
+ * A line qualifies only when its FIRST whitespace-delimited token ends with a
+ * colon («الصّيّادُ: ...», «البحرُ: ...», «الصّيّادون: ...»). Narration with a
+ * colon mid-sentence («وقف الصّيّاد مخاطبًا البحر: ...») stays a plain
+ * paragraph. The chip and the utterance are adjacent in the DOM, so the
+ * concatenated text is character-for-character the locked source string
+ * (the whitespace after the colon is kept inside the utterance).
+ */
+const splitSpeaker = (paragraph: string): { speaker: string | null; utterance: string } => {
+  const match = /^(\S+:)([\s\S]*)$/.exec(paragraph);
+  if (!match) return { speaker: null, utterance: paragraph };
+  return { speaker: match[1], utterance: match[2] };
+};
+
+/** Tone per recurring story voice. 'الصّيّادون' is tested before 'الصّيّاد'. */
+const speakerTone = (speaker: string): 'sea' | 'crew' | 'fisher' | 'neutral' => {
+  if (speaker.includes('البحر')) return 'sea';
+  if (speaker.includes('الصّيّادون')) return 'crew';
+  if (speaker.includes('الصّيّاد')) return 'fisher';
+  return 'neutral';
+};
+
+/** Decorative scene: dawn glow, stars, a golden fish, bubbles and layered waves. */
+const ReadingHeroArt: React.FC = () => (
+  <svg
+    className="l1-read-hero-art"
+    viewBox="0 0 600 240"
+    aria-hidden="true"
+    focusable="false"
+    preserveAspectRatio="xMidYMax slice"
+  >
+    <defs>
+      <linearGradient id="l1ReadGold" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor="#ffe9a8" />
+        <stop offset="55%" stopColor="#f5c542" />
+        <stop offset="100%" stopColor="#d99b1f" />
+      </linearGradient>
+    </defs>
+    <g className="l1-read-stars" fill="#fdf3d0">
+      <circle cx="70" cy="40" r="2.4" />
+      <circle cx="150" cy="24" r="1.8" />
+      <circle cx="250" cy="52" r="2" />
+      <circle cx="520" cy="30" r="2.2" />
+      <circle cx="440" cy="18" r="1.6" />
+    </g>
+    <g transform="translate(388 78)">
+      <g className="l1-read-fish">
+        <path d="M84 -6 L118 -30 L107 3 L118 36 L84 18 Z" fill="url(#l1ReadGold)" />
+        <path d="M0 4 C 14 -24 56 -32 84 -10 C 95 -2 95 16 84 24 C 56 44 14 32 0 8 Z" fill="url(#l1ReadGold)" />
+        <path d="M30 -15 C 42 -24 58 -22 67 -14" stroke="#b98a1f" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path d="M36 7 C 48 15 62 15 72 9" stroke="#b98a1f" strokeWidth="2.4" fill="none" strokeLinecap="round" opacity="0.65" />
+        <circle cx="18" cy="-3" r="4.4" fill="#33260c" />
+        <circle cx="16.4" cy="-4.6" r="1.5" fill="#fff7dd" />
+      </g>
+    </g>
+    <g className="l1-read-bubbles" fill="rgba(255,255,255,0.55)">
+      <circle className="l1-read-bubble" cx="356" cy="118" r="4" />
+      <circle className="l1-read-bubble l1-read-bubble--b" cx="372" cy="130" r="2.6" />
+      <circle className="l1-read-bubble l1-read-bubble--c" cx="344" cy="138" r="3.2" />
+    </g>
+    <path d="M0 158 Q 75 138 150 158 T 300 158 T 450 158 T 600 158 V240 H0 Z" fill="rgba(255,255,255,0.10)" />
+    <path d="M0 180 Q 75 162 150 180 T 300 180 T 450 180 T 600 180 V240 H0 Z" fill="rgba(255,255,255,0.14)" />
+    <path d="M0 202 Q 75 186 150 202 T 300 202 T 450 202 T 600 202 V240 H0 Z" fill="rgba(255,255,255,0.18)" />
+  </svg>
+);
+
+const Lesson1ReadingView: React.FC<{ content: StepContent }> = ({ content }) => {
+  const blocks = content.blocks;
+  const instruction = blocks.find((block): block is InstructionBlock => block.kind === 'instruction');
+  const passages = blocks.filter((block): block is PassageBlock => block.kind === 'source_passage');
+  const marks = blocks.find((block): block is SentencesBlock => block.kind === 'source_sentences');
+  const explanations = blocks.filter((block): block is ExplanationBlock => block.kind === 'explanation');
+
+  /* Defensive completeness: every block is rendered exactly once. Anything not
+   * claimed by the reading layout falls through to the standard BlockView. */
+  const covered = new Set<LessonBlock>();
+  if (instruction) covered.add(instruction);
+  if (marks) covered.add(marks);
+  passages.forEach((passage) => covered.add(passage));
+  explanations.forEach((explanation) => covered.add(explanation));
+  const tail = blocks.filter((block) => !covered.has(block));
+
+  const byline = explanations.find((block) => block.heading === 'ملاحظة المصدر');
+  const otherNotes = explanations.filter((block) => block !== byline);
+
+  const [readScale, setReadScale] = useState(1);
+  const clampScale = (value: number) => Math.min(READ_SCALE_MAX, Math.max(READ_SCALE_MIN, value));
+
+  /* Hero title: the printed header record («أقرأ: السَّمَكَةُ الذَّهَبِيَّةُ») is
+   * split at the first colon for display only; both parts stay in the DOM, so
+   * the rendered text remains the exact locked string. */
+  const instructionText = instruction?.text ?? '';
+  const colonIndex = instructionText.indexOf(':');
+  const heroKicker = colonIndex > 0 ? instructionText.slice(0, colonIndex + 1) : null;
+  const heroTitle = colonIndex > 0 ? instructionText.slice(colonIndex + 1) : instructionText;
+
+  return (
+    <div
+      className="step-renderer l1-step l1-reading"
+      style={{ '--l1-read-scale': readScale.toFixed(2) } as React.CSSProperties}
+    >
+      {instruction && (
+        <section className="l1-read-hero" aria-label="افتتاحية نص القراءة">
+          <ReadingHeroArt />
+          <div className="l1-read-hero-content">
+            <div className="l1-read-hero-kicker">
+              <span className="source-label-original">توجيه من الكتاب</span>
+              <SourceBadge source={instruction.source} compact />
+            </div>
+            {heroKicker && <span className="l1-read-hero-eyebrow">{heroKicker}</span>}
+            <h2 className="l1-read-hero-title">{heroTitle}</h2>
+          </div>
+        </section>
+      )}
+
+      <div className="l1-read-toolbar" role="group" aria-label="أدوات عرض نص القراءة">
+        <span className="l1-read-toolbar-label">حجم خط القراءة</span>
+        <button
+          type="button"
+          className="l1-read-scale-btn"
+          onClick={() => setReadScale((scale) => clampScale(scale - READ_SCALE_STEP))}
+          disabled={readScale <= READ_SCALE_MIN}
+          aria-label="تصغير خط القراءة"
+        >
+          أ−
+        </button>
+        <button
+          type="button"
+          className="l1-read-scale-btn"
+          onClick={() => setReadScale((scale) => clampScale(scale + READ_SCALE_STEP))}
+          disabled={readScale >= READ_SCALE_MAX}
+          aria-label="تكبير خط القراءة"
+        >
+          أ+
+        </button>
+        <button
+          type="button"
+          className="l1-read-scale-btn l1-read-scale-btn--reset"
+          onClick={() => setReadScale(1)}
+          disabled={readScale === 1}
+          aria-label="إعادة خط القراءة إلى الحجم الافتراضي"
+        >
+          الافتراضي
+        </button>
+      </div>
+
+      {passages.map((passage, index) => (
+        <React.Fragment key={`${passage.heading}-${index}`}>
+          {marks && marks.sentences[index] !== undefined && (
+            <div className="l1-read-divider">
+              <span className="l1-read-divider-line" aria-hidden="true" />
+              <span className="l1-read-medallion">{marks.sentences[index]}</span>
+              <span className="l1-read-divider-line" aria-hidden="true" />
+            </div>
+          )}
+          <section className="l1-read-page" style={{ animationDelay: `${index * 90}ms` }}>
+            <header className="l1-read-page-head">
+              <span className="source-label-original">النص الأصلي من الكتاب</span>
+              <SourceBadge source={passage.source} compact />
+            </header>
+            <h3 className="l1-read-page-title">{passage.heading}</h3>
+            <div className="l1-read-body">
+              {passage.paragraphs.map((paragraph, paragraphIndex) => {
+                const { speaker, utterance } = splitSpeaker(paragraph);
+                const tone = speaker ? speakerTone(speaker) : null;
+                return (
+                  <p
+                    key={paragraphIndex}
+                    className={`l1-read-para${tone ? ` l1-read-para--dialog l1-read-para--${tone}` : ''}`}
+                  >
+                    {speaker && tone && (
+                      <span className={`l1-read-speaker l1-read-speaker--${tone}`}>{speaker}</span>
+                    )}
+                    {speaker ? utterance : paragraph}
+                  </p>
+                );
+              })}
+            </div>
+          </section>
+        </React.Fragment>
+      ))}
+
+      {marks && (
+        <aside className="l1-read-marks-note" aria-label="توثيق علامتَي الفصل المطبوعتين">
+          <span className="source-label-original">النص الأصلي من الكتاب</span>
+          <SourceBadge source={marks.source} compact />
+          <span className="l1-read-marks-heading">{marks.heading}</span>
+        </aside>
+      )}
+
+      {byline && (
+        <section className="l1-read-byline">
+          <span className="l1-read-byline-pen" aria-hidden="true">✎</span>
+          <span className="source-label-explain">شرح المنصة</span>
+          <h3 className="l1-read-byline-heading">{byline.heading}</h3>
+          {byline.lines.map((line, index) => (
+            <p key={index} className="l1-read-byline-text">{line}</p>
+          ))}
+        </section>
+      )}
+
+      {otherNotes.map((note, index) => (
+        <div className="l1-read-note" key={`l1-read-note-${index}`}>
+          <BlockView block={note} />
+        </div>
+      ))}
+
+      {tail.length > 0 && (
+        <>
+          <div className="l1-read-tail-sep" aria-hidden="true">
+            <span className="l1-read-divider-line" />
+            <span className="l1-read-diamond" />
+            <span className="l1-read-divider-line" />
+          </div>
+          <div className="l1-read-tail">
+            {tail.map((block, index) => (
+              <React.Fragment key={`l1-read-tail-${index}`}>
+                <BlockView block={block} />
+                {block.kind === 'vocab' && <VocabularyExplanation />}
+              </React.Fragment>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
 export const Lesson1StepRenderer: React.FC<Lesson1StepRendererProps> = ({ step, onOpenIrab }) => {
   const content = LESSON1_STEP_CONTENT[step.id];
 
   if (!content) {
     return <p className="step-empty-note">لا يوجد محتوى لهذه الخطوة بعد.</p>;
+  }
+
+  if (step.id === READING_STEP_ID) {
+    return <Lesson1ReadingView content={content} />;
   }
 
   return (

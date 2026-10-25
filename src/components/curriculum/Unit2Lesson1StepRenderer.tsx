@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LessonStep } from '../../types/curriculum';
 import { SourceBadge } from '../common/SourceBadge';
+import { AnswerReveal, AnswerRevealEntry, AnswerRevealProps } from '../common/AnswerReveal';
 import { getU2L1Activity, U2L1Activity, U2L1Interaction } from '../../data/unit2Lesson1/activities';
 import { U2L1_STEP_CONTENT, U2L1Block } from '../../data/unit2Lesson1/content';
 import { clearDraft, readDraft, writeDraft } from '../../utils/draftStorage';
@@ -249,6 +250,19 @@ const CheckWidget: React.FC<{ block: Extract<U2L1Block, { kind: 'check' }> }> = 
           </button>
         )}
       </div>
+      {/* Owner-mandated «أظهر الجواب»: the correct choice(s) are approved platform
+          data; the panel stays out of the DOM until the learner presses it, so
+          the gated «تحقق من إجابتي» protocol is unchanged. */}
+      <AnswerReveal
+        entries={[{
+          label: block.correctIds.length > 1 ? 'الإجابات الصحيحة' : 'الإجابة الصحيحة',
+          value: block.choices
+            .filter((choice) => block.correctIds.includes(choice.id))
+            .map((choice) => choice.text)
+            .join(' + '),
+        }]}
+        explanation={block.explanation}
+      />
       {verified && (
         <p className={isCorrect ? 'u2l1-feedback is-correct' : 'u2l1-feedback is-wrong'} role="status">
           {isCorrect
@@ -259,6 +273,82 @@ const CheckWidget: React.FC<{ block: Extract<U2L1Block, { kind: 'check' }> }> = 
       {verified && showExplanation && <p className="u2l1-check-explanation">{block.explanation}</p>}
     </section>
   );
+};
+
+/* ---------------- «أظهر الجواب» adapter (owner-mandated) ----------------
+ * Builds the reveal payload from approved project data only:
+ *  - the student-side `answerKey` of closed activities, with every internal id
+ *    translated to the Arabic label the learner actually sees (category label /
+ *    matched item text / field label). Unmappable keys are skipped — raw ids or
+ *    internal values are never displayed.
+ *  - the approved `teacher.answerOrGuidance`, audited item by item (owner
+ *    directive on student/teacher separation): U2L1_MODEL_ANSWER_IDS carry a
+ *    concrete approved answer → «الحل النموذجي المعتمد»; every other available
+ *    activity carries honest open-task guidance (expected description, accepted
+ *    examples, performance criteria) → shown verbatim under «إرشادات للإجابة».
+ *    No Unit-2-Lesson-1 guidance is pure teacher-only grading procedure, so no
+ *    available activity is hidden.
+ * `teacher.explanation` is a teacher note by definition (grading mechanics,
+ * source administration) and is never rendered in the student panel; the
+ * student-facing `checkExplanation` — the note the learner already receives
+ * after «تحقق من إجابتي» — is kept when present.
+ * Gap activities (no approved answer) get no button at all. The panel renders
+ * only after the learner presses the button, so the existing gated
+ * «تحقق من إجابتي» behaviour (and its tests) stay intact.
+ */
+const U2L1_MODEL_ANSWER_IDS = new Set([
+  'U2L1-40-01', 'U2L1-40-02', 'U2L1-40-04', 'U2L1-40-05',
+  'U2L1-42-01', 'U2L1-42-03', 'U2L1-42-04', 'U2L1-43-01',
+  'U2L1-44-01', 'U2L1-44-06', 'U2L1-45-01', 'U2L1-45-02',
+  'U2L1-45-03', 'U2L1-45-04', 'U2L1-45-05', 'U2L1-45-06',
+  'U2L1-46-05', 'U2L1-48-02',
+]);
+
+const buildU2L1Reveal = (activity: U2L1Activity): AnswerRevealProps | null => {
+  if (activity.availability !== 'available') return null;
+
+  const interaction = activity.interaction;
+  const entries: AnswerRevealEntry[] = [];
+
+  if (activity.answerKey) {
+    Object.entries(activity.answerKey).forEach(([fieldId, expected]) => {
+      if (interaction.kind === 'classification' && fieldId.startsWith('classify-')) {
+        const item = interaction.items.find((entry) => `classify-${entry.id}` === fieldId);
+        const category = interaction.categories.find((entry) => entry.id === expected);
+        if (item && category) entries.push({ label: item.text, value: category.label });
+        return;
+      }
+      if (interaction.kind === 'matching' && fieldId.startsWith('match-')) {
+        const left = interaction.leftItems.find((entry) => `match-${entry.id}` === fieldId);
+        const right = interaction.rightItems.find((entry) => entry.id === expected);
+        if (left && right) entries.push({ label: left.text, value: right.text });
+        return;
+      }
+      if (interaction.kind === 'text_fields') {
+        const field = interaction.fields.find((entry) => entry.id === fieldId);
+        if (field) entries.push({ label: field.label, value: expected });
+        return;
+      }
+      if (interaction.kind === 'checklist' && fieldId.startsWith('check-')) {
+        const item = interaction.items.find((entry) => `check-${entry.id}` === fieldId);
+        if (item && expected === '1') entries.push({ label: item.label, value: 'عنصرٌ مطلوبٌ تحديده' });
+        return;
+      }
+      /* Unmappable internal key: skipped — never shown raw to the learner. */
+    });
+  }
+
+  return {
+    entries,
+    modelAnswer: activity.teacher.answerOrGuidance,
+    /* Student-facing only: `checkExplanation` is already shown to the learner
+       after «تحقق من إجابتي». `teacher.explanation` is a teacher note and
+       stays in the password-protected teacher area. */
+    explanation: activity.checkExplanation,
+    heading: U2L1_MODEL_ANSWER_IDS.has(activity.sourceActivityId)
+      ? 'الحل النموذجي المعتمد'
+      : 'إرشادات للإجابة',
+  };
 };
 
 /* ---------------- Source activity widget ---------------- */
@@ -307,6 +397,8 @@ const U2L1ActivityWidget: React.FC<{ activity: U2L1Activity }> = ({ activity }) 
   const answered = keyEntries.filter(([field]) => (values[field] || '').trim() !== '').length;
   const correctCount = keyEntries.filter(([field, expected]) => values[field] === expected).length;
   const allCorrect = keyEntries.length > 0 && correctCount === keyEntries.length;
+  /** Owner-mandated «أظهر الجواب»: approved key only; null ⇒ button hidden. */
+  const revealProps = buildU2L1Reveal(activity);
 
   return (
     <section
@@ -364,6 +456,7 @@ const U2L1ActivityWidget: React.FC<{ activity: U2L1Activity }> = ({ activity }) 
           )}
         </div>
       )}
+      {revealProps && <AnswerReveal {...revealProps} />}
       <footer className="l2-activity-footer">
         <button type="button" className="btn btn-secondary btn-small" onClick={handleSave}>
           حفظ مسودة إجابتي
