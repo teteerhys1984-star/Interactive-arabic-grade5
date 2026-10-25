@@ -56,7 +56,11 @@ export const UNIT1_TEST: AssessmentTest = {
         { id: 'c', text: 'حبال المرساة' },
         { id: 'd', text: 'أشرعة القارب' },
       ],
-      correctChoiceId: 'a', explanation: 'في النص جهّز الصيادون المركب «بالشِّباك القوية والمعدات»؛ فالشباك أدوات الصيد.',
+      // SOURCE FIX (owner-approved, single allowed shared-file edit — Lesson 1 rebuild).
+      // Printed in the textbook (source record L1-027, page 5): «بالشِّباكِ القويّةِ والمتينة».
+      // Previously quoted here as: «بالشِّباك القوية والمعدات» (not in the printed text).
+      // Adopted wording = the printed one; the difference is documented rather than hidden.
+      correctChoiceId: 'a', explanation: 'في النص جهّز الصيادون المركب «بالشِّباكِ القويّةِ والمتينةِ»؛ فالشباك أدوات الصيد.',
       testedSkill: 'معجم الكلمات', source: l1Src(5, 'textbook_reading', 'النَّصُّ'),
     },
     {
