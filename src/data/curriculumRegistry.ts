@@ -14,6 +14,8 @@ import { UNIT1_REVIEW_TEACHER_GUIDE } from './unit1Review/teacherGuide';
 import { UNIT1_REVIEW_DOCUMENT_TITLE } from './unit1Review/sourceMeta';
 import { U2L1_STEPS } from './unit2Lesson1/content';
 import { u2l1Src, U2L1_LOCKED_SOURCE_NOTES, U2L1_LISTENING_AUDIO_GAP } from './unit2Lesson1/sourceMeta';
+import { U2L2_STEPS } from './unit2Lesson2/content';
+import { u2l2Src, U2L2_LISTENING_AUDIO_GAP, U2L2_LOCKED_SOURCE_NOTES } from './unit2Lesson2/sourceMeta';
 
 /**
  * Official Curriculum Registry for Grade 5 Arabic.
@@ -204,6 +206,40 @@ const unit2Lesson1: Lesson = {
   testId: 'unit2-lesson1-test',
 };
 
+/**
+ * Unit 2, Lesson 2 — registered from pages 50–60
+ * (docs/source-locks/unit2-lesson-02-aldhaka-al-istinaai.md).
+ * Same rules as Lesson 1: every block traces to a verified scan, the missing
+ * listening audio and drawn calligraphy shapes stay declared limits, and the
+ * unit remains incomplete (no owner declaration, therefore still no unit test).
+ */
+const unit2Lesson2: Lesson = {
+  metadata: {
+    id: 'unit2-lesson2',
+    unitId: 'unit2',
+    order: 2,
+    title: 'الذَّكاءُ الاصطِناعيُّ',
+    subtitle: 'الذَّكاءُ البَشَريُّ … الذَّكاءُ الاصطِناعيُّ … مَن صَنَع مَن؟',
+    primarySkill: 'reading_comprehension',
+    estimatedMinutes: 90,
+    sources: [
+      u2l2Src(50, 'textbook_exercise', 'أتأمل الصور وأستمع إلى النص', undefined, U2L2_LISTENING_AUDIO_GAP),
+      u2l2Src(51, 'textbook_reading', 'أقرأ: الذكاء الاصطناعي'),
+      u2l2Src(52, 'textbook_exercise', 'الفهم القرائي (١–٥)'),
+      u2l2Src(53, 'textbook_exercise', 'الفهم القرائي (٦–٩) وأتواصل شفوياً: الإذاعة المدرسية', undefined, U2L2_LOCKED_SOURCE_NOTES.drawingTasks),
+      u2l2Src(54, 'textbook_grammar', 'قواعد اللغة: تحويل الجملة الفعلية إلى اسمية'),
+      u2l2Src(55, 'textbook_spelling', 'إملاء: التاء المبسوطة'),
+      u2l2Src(56, 'textbook_spelling', 'إملاء: التاء المربوطة'),
+      u2l2Src(57, 'textbook_spelling', 'التقويم النهائي للتاء والخط: ملاحظة الأحرف'),
+      u2l2Src(58, 'textbook_exercise', 'الخط: حرفا الدال والذال بخط الرقعة', undefined, U2L2_LOCKED_SOURCE_NOTES.calligraphyShapes),
+      u2l2Src(59, 'textbook_expression', 'أعبر كتابياً: حقيقة علمية'),
+      u2l2Src(60, 'activity_book', 'ألعب وأتعلم وأنا وأسرتي'),
+    ],
+  },
+  steps: U2L2_STEPS,
+  testId: 'unit2-lesson2-test',
+};
+
 const unit2: Unit = {
   metadata: {
     id: 'unit2',
@@ -211,9 +247,9 @@ const unit2: Unit = {
     title: 'الوحدة الثانية',
     // No theme: the unit divider page was not supplied.
     isComplete: false, // No owner completion declaration; therefore no unit test.
-    sourcePagesRange: { startPage: 40, endPage: 49 },
+    sourcePagesRange: { startPage: 40, endPage: 60 },
   },
-  lessons: [unit2Lesson1],
+  lessons: [unit2Lesson1, unit2Lesson2],
   // unitTestId intentionally absent until the owner declares completion.
 };
 
