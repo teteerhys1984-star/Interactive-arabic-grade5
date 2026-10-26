@@ -179,7 +179,7 @@ describe('Unit 2 Lesson 2 — الذَّكاءُ الاصطِناعيُّ source
     // The model answer (مفرد نواقل) must not appear before pressing the button.
     expect(within(closed).queryByText(/ناقِلَة/)).toBeNull();
     fireEvent.click(within(closed).getByRole('button', { name: 'أظهر الجواب' }));
-    expect(within(closed).getByText(/ناقِلَة/)).toBeInTheDocument();
+    expect(within(closed).getAllByText(/ناقِلَة/).length).toBeGreaterThan(0);
 
     // An open/performance activity (step 1) shows guidance, never an internal teacher note.
     fireEvent.click(screen.getByRole('button', { name: /^الخطوة 1:/ }));
