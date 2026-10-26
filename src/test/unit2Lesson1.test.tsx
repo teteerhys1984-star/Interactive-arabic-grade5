@@ -34,7 +34,7 @@ describe('Unit 2 Lesson 1 — مخترعٌ من بلادي source-lock implement
     expect(unit2!.metadata.isComplete).toBe(false);
     expect(unit2!.unitTestId).toBeUndefined();
     expect(isUnitTestAvailable('unit2')).toBe(false);
-    expect(unit2!.lessons.map((lesson) => lesson.metadata.id)).toEqual(['unit2-lesson1']);
+    expect(unit2!.lessons.map((lesson) => lesson.metadata.id)).toEqual(['unit2-lesson1', 'unit2-lesson2']);
 
     const unit1 = getUnitById('unit1')!;
     expect(unit1.metadata.isComplete).toBe(true);
