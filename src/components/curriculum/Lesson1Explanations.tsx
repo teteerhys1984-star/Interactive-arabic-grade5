@@ -10,6 +10,9 @@ import { LESSON1_IRAB } from '../../data/lesson1/irab';
 import { ArabicNumber } from '../common/BiDi';
 import { SourceBadge } from '../common/SourceBadge';
 import { AnswerReveal } from '../common/AnswerReveal';
+import { readDraft, writeDraft } from '../../utils/draftStorage';
+
+const LESSON1_CHECK_DRAFT_SCOPE = 'lesson1-platform-checks';
 
 const PlatformLabel: React.FC<{ children?: React.ReactNode }> = ({ children = 'شرح المنصة' }) => (
   <span className="source-label-explain">{children}</span>
@@ -33,13 +36,17 @@ const QuickCheck: React.FC<{
   feedbackIncorrect: string;
   correctAnswerNote?: string;
 }> = ({ id, prompt, options, feedbackCorrect, feedbackIncorrect, correctAnswerNote }) => {
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(() => {
+    const saved = readDraft(LESSON1_CHECK_DRAFT_SCOPE, id).selected;
+    return options.some((option) => option.id === saved) ? saved : null;
+  });
   const [checked, setChecked] = useState(false);
   const selectedOption = options.find((option) => option.id === selected);
   const correctOption = options.find((option) => option.correct);
 
   const pick = (optionId: string) => {
     setSelected(optionId);
+    writeDraft(LESSON1_CHECK_DRAFT_SCOPE, id, { selected: optionId });
     // a new attempt always requires a new check — no stale verdict is left on screen
     setChecked(false);
   };

@@ -66,6 +66,32 @@ export function writeDraft(
   }
 }
 
+/** Reads a JSON-serializable learner draft with no assumption about its shape. */
+export function readDraftValue(lessonId: string, activitySourceId: string): unknown {
+  const store = storage();
+  if (!store) return undefined;
+  try {
+    const raw = store.getItem(draftKey(lessonId, activitySourceId));
+    return raw ? JSON.parse(raw) as unknown : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Stores a JSON-serializable learner draft; never reports success if storage fails. */
+export function writeDraftValue(lessonId: string, activitySourceId: string, value: unknown): boolean {
+  const store = storage();
+  if (!store) return false;
+  try {
+    const serialized = JSON.stringify(value);
+    if (serialized === undefined) return false;
+    store.setItem(draftKey(lessonId, activitySourceId), serialized);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Removes a stored draft (no-op when storage is unavailable). */
 export function clearDraft(lessonId: string, activitySourceId: string): void {
   const store = storage();

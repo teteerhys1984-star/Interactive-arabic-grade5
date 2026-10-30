@@ -262,7 +262,7 @@ describe('Audit fix 3 — real draft saving and restoration (Lesson 3)', () => {
     fireEvent.change(input, { target: { value: 'العربية' } });
 
     fireEvent.click(widget.getByRole('button', { name: 'حفظ مسودة إجابتي' }));
-    expect(widget.getByRole('status')).toHaveTextContent('حُفظت مسودتك في هذا المتصفح');
+    expect(widget.getByRole('status')).toHaveTextContent('حُفظت مسودتك في جلسة التصفح الحالية');
 
     fireEvent.click(widget.getByRole('button', { name: 'مسح مسودتي' }));
     expect((input as HTMLInputElement).value).toBe('');

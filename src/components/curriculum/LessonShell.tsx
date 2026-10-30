@@ -1,43 +1,67 @@
-import React, { useRef, useState } from 'react';
-import { Lesson, LessonStep } from '../../types/curriculum';
+import React, { useEffect, useRef, useState } from 'react';
+import { Lesson, LessonStep, Unit } from '../../types/curriculum';
 import { ArabicNumber } from '../common/BiDi';
 import { SourceBadge } from '../common/SourceBadge';
+import { readLearningLocation, writeLearningLocation } from '../../utils/learningProgress';
 
 export interface LessonShellProps {
   lesson: Lesson;
+  unit?: Unit;
   onOpenTest?: () => void;
+  /** Returns to the current unit page. */
   onExit?: () => void;
+  onGoHome?: () => void;
+  onSelectLesson?: (lessonId: string) => void;
   /** Optional renderer injected by the lesson layer to draw step content. */
   renderStepContent?: (step: LessonStep) => React.ReactNode;
 }
 
+function initialStepIndex(lesson: Lesson): number {
+  const location = readLearningLocation();
+  if (!location || location.unitId !== lesson.metadata.unitId || location.lessonId !== lesson.metadata.id) return 0;
+  const index = lesson.steps.findIndex((step) => step.id === location.stepId);
+  return index >= 0 ? index : 0;
+}
+
 export const LessonShell: React.FC<LessonShellProps> = ({
   lesson,
+  unit,
   onOpenTest,
   onExit,
+  onGoHome,
+  onSelectLesson,
   renderStepContent,
 }) => {
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [visitedStepIndices, setVisitedStepIndices] = useState<Set<number>>(() => new Set([0]));
+  const [currentStepIndex, setCurrentStepIndex] = useState(() => initialStepIndex(lesson));
   const stepButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const steps = lesson.steps || [];
   const totalSteps = steps.length;
   const currentStep: LessonStep | undefined = steps[currentStepIndex];
   const currentStepNumber = currentStepIndex + 1;
-  const visitedCount = visitedStepIndices.size;
-  const progressPercent = totalSteps > 0 ? (visitedCount / totalSteps) * 100 : 0;
+  const lessonIndex = unit?.lessons.findIndex((item) => item.metadata.id === lesson.metadata.id) ?? -1;
+  const nextLesson = lessonIndex >= 0 ? unit?.lessons[lessonIndex + 1] : undefined;
+
+  const persistStep = (step: LessonStep) => {
+    writeLearningLocation({
+      unitId: lesson.metadata.unitId,
+      lessonId: lesson.metadata.id,
+      stepId: step.id,
+    });
+  };
+
+  useEffect(() => {
+    const activeStep = steps[currentStepIndex];
+    if (activeStep) persistStep(activeStep);
+    // The shell is keyed by lesson ID in the app; write only the initial location here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lesson.metadata.id, lesson.metadata.unitId]);
 
   const selectStep = (index: number) => {
-    if (index >= 0 && index < totalSteps) {
-      setCurrentStepIndex(index);
-      setVisitedStepIndices((previous) => {
-        if (previous.has(index)) return previous;
-        const next = new Set(previous);
-        next.add(index);
-        return next;
-      });
-    }
+    if (index < 0 || index >= totalSteps) return;
+    setCurrentStepIndex(index);
+    const nextStep = steps[index];
+    if (nextStep) persistStep(nextStep);
   };
 
   const handleStepKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
@@ -56,25 +80,17 @@ export const LessonShell: React.FC<LessonShellProps> = ({
 
   const navigateByControl = (index: number) => {
     selectStep(index);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const renderStepList = (className = '') => (
     <ol className={`lesson-nav-list ${className}`.trim()}>
       {steps.map((step, index) => {
         const isCurrent = index === currentStepIndex;
-        const isVisited = visitedStepIndices.has(index) && !isCurrent;
-        const accessibleStatus = isCurrent
-          ? 'الخطوة الحالية'
-          : isVisited
-          ? 'سبق عرضها'
-          : 'لم تُنجز بعد';
-
         return (
-          <li
-            key={step.id}
-            className={`lesson-nav-item ${isCurrent ? 'is-current' : ''} ${isVisited ? 'is-visited' : ''}`.trim()}
-          >
+          <li key={step.id} className={`lesson-nav-item ${isCurrent ? 'is-current' : ''}`}>
             <button
               ref={(element) => { stepButtonRefs.current[index] = element; }}
               type="button"
@@ -83,16 +99,13 @@ export const LessonShell: React.FC<LessonShellProps> = ({
               onClick={() => selectStep(index)}
               onKeyDown={(event) => handleStepKeyDown(event, index)}
               aria-current={isCurrent ? 'step' : undefined}
-              aria-label={`الخطوة ${index + 1}: ${step.title}، ${accessibleStatus}`}
+              aria-label={`الخطوة ${index + 1}: ${step.title}${isCurrent ? '، الخطوة الحالية' : '، انتقل إليها'}`}
             >
               <span className="lesson-step-number" aria-hidden="true">
                 <ArabicNumber value={String(index + 1).padStart(2, '0')} />
               </span>
               <span className="lesson-step-name">{step.title}</span>
-              <span className={`lesson-step-status ${isCurrent ? 'status-current' : ''} ${isVisited ? 'status-visited' : ''}`}>
-                {isCurrent ? 'الآن' : isVisited ? 'سابقاً' : ''}
-              </span>
-              {isVisited && <span className="lesson-step-check" aria-hidden="true">✓</span>}
+              {isCurrent && <span className="lesson-step-status status-current">الآن</span>}
               {isCurrent && <span className="lesson-step-current-marker" aria-hidden="true" />}
             </button>
           </li>
@@ -103,6 +116,20 @@ export const LessonShell: React.FC<LessonShellProps> = ({
 
   return (
     <div className="lesson-shell" dir="rtl">
+      {(unit || onGoHome) && (
+        <nav className="lesson-breadcrumbs" aria-label="مسار التنقل">
+          {onGoHome && <button type="button" className="breadcrumb-link" onClick={onGoHome}>الرئيسية</button>}
+          {onGoHome && unit && <span aria-hidden="true">←</span>}
+          {unit && onExit ? (
+            <button type="button" className="breadcrumb-link" onClick={onExit}>{unit.metadata.title}</button>
+          ) : unit ? (
+            <span>{unit.metadata.title}</span>
+          ) : null}
+          {(unit || onGoHome) && <span aria-hidden="true">←</span>}
+          <span aria-current="page">{lesson.metadata.title}</span>
+        </nav>
+      )}
+
       <header className="lesson-shell-header">
         <div className="lesson-header-top">
           <div className="lesson-title-meta">
@@ -119,10 +146,10 @@ export const LessonShell: React.FC<LessonShellProps> = ({
               type="button"
               className="btn btn-ghost lesson-exit-button"
               onClick={onExit}
-              aria-label="الرجوع إلى قائمة الوحدات والدروس"
+              aria-label="العودة إلى صفحة الوحدة"
             >
               <span aria-hidden="true" dir="ltr">→</span>
-              العودة للدروس
+              العودة إلى الوحدة
             </button>
           )}
         </div>
@@ -133,40 +160,18 @@ export const LessonShell: React.FC<LessonShellProps> = ({
           <aside className="lesson-navigation-rail">
             <div className="lesson-navigation-card">
               <div className="lesson-nav-heading">
-                <span className="lesson-nav-kicker">مسار التعلّم</span>
+                <span className="lesson-nav-kicker">موضعك في الدرس</span>
                 <h2>خطوات الدرس</h2>
-                <p>انتقل إلى أي خطوة في الدرس.</p>
+                <p>اختر خطوة للانتقال إليها.</p>
               </div>
 
-              <div className="lesson-progress-summary">
-                <div className="lesson-progress-label">
-                  <span>التقدّم</span>
-                  <span className="lesson-progress-count">
-                    الخطوة <ArabicNumber value={currentStepNumber} /> من <ArabicNumber value={totalSteps} />
-                  </span>
-                </div>
-                <div
-                  className="lesson-progress-track"
-                  role="progressbar"
-                  aria-label="عدد الخطوات التي تمت زيارتها"
-                  aria-valuemin={0}
-                  aria-valuemax={totalSteps}
-                  aria-valuenow={visitedCount}
-                  aria-valuetext={`تمت زيارة ${visitedCount} من ${totalSteps} خطوة؛ موضعك الحالي الخطوة ${currentStepNumber} من ${totalSteps}`}
-                >
-                  <span className="lesson-progress-fill" style={{ width: `${progressPercent}%` }} />
-                </div>
-                <p className="lesson-visited-count">
-                  زُرت <ArabicNumber value={visitedCount} /> من <ArabicNumber value={totalSteps} /> خطوات
-                </p>
+              <div className="lesson-step-position" aria-live="polite">
+                الخطوة <ArabicNumber value={currentStepNumber} /> من <ArabicNumber value={totalSteps} />
               </div>
 
-              <nav aria-label="مسار الدرس">
+              <nav aria-label="خطوات الدرس">
                 {renderStepList()}
               </nav>
-              <p className="lesson-nav-legend">
-                <span aria-hidden="true">✓</span> خطوات سبق عرضها
-              </p>
             </div>
           </aside>
         )}
@@ -175,25 +180,11 @@ export const LessonShell: React.FC<LessonShellProps> = ({
           {totalSteps > 0 && (
             <nav className="lesson-mobile-navigation" aria-label="التنقل بين خطوات الدرس">
               <div className="mobile-progress-heading">
-                <span className="mobile-progress-kicker">موضعك في الدرس</span>
+                <span className="mobile-progress-kicker">الخطوة الحالية</span>
                 <span className="mobile-progress-count">
-                  الخطوة <ArabicNumber value={currentStepNumber} /> من <ArabicNumber value={totalSteps} />
+                  <ArabicNumber value={currentStepNumber} /> من <ArabicNumber value={totalSteps} />
                 </span>
               </div>
-              <div
-                className="lesson-progress-track mobile-progress-track"
-                role="progressbar"
-                aria-label="عدد الخطوات التي تمت زيارتها"
-                aria-valuemin={0}
-                aria-valuemax={totalSteps}
-                aria-valuenow={visitedCount}
-                aria-valuetext={`تمت زيارة ${visitedCount} من ${totalSteps} خطوة؛ موضعك الحالي الخطوة ${currentStepNumber} من ${totalSteps}`}
-              >
-                <span className="lesson-progress-fill" style={{ width: `${progressPercent}%` }} />
-              </div>
-              <p className="lesson-visited-count mobile-visited-count">
-                زُرت <ArabicNumber value={visitedCount} /> من <ArabicNumber value={totalSteps} /> خطوات
-              </p>
               <label className="mobile-step-select-label">
                 <span>اختر خطوة للانتقال إليها</span>
                 <select
@@ -238,7 +229,7 @@ export const LessonShell: React.FC<LessonShellProps> = ({
             )}
           </section>
 
-          <footer className="lesson-shell-footer" aria-label="التنقل بين الخطوات">
+          <footer className="lesson-shell-footer" aria-label="التنقل بين الخطوات والدروس">
             <button
               type="button"
               className="btn btn-secondary lesson-footer-button"
@@ -261,16 +252,28 @@ export const LessonShell: React.FC<LessonShellProps> = ({
               </button>
             )}
 
-            <button
-              type="button"
-              className="btn btn-primary lesson-footer-button"
-              onClick={() => navigateByControl(currentStepIndex + 1)}
-              disabled={currentStepIndex >= totalSteps - 1 || totalSteps === 0}
-              aria-label={currentStepIndex < totalSteps - 1 ? `الانتقال إلى الخطوة ${currentStepIndex + 2}` : 'لا توجد خطوة تالية'}
-            >
-              الخطوة التالية
-              <span className="lesson-nav-arrow" aria-hidden="true" dir="ltr">←</span>
-            </button>
+            {currentStepIndex < totalSteps - 1 && (
+              <button
+                type="button"
+                className="btn btn-primary lesson-footer-button"
+                onClick={() => navigateByControl(currentStepIndex + 1)}
+                aria-label={`الانتقال إلى الخطوة ${currentStepIndex + 2}`}
+              >
+                الخطوة التالية
+                <span className="lesson-nav-arrow" aria-hidden="true" dir="ltr">←</span>
+              </button>
+            )}
+
+            {nextLesson && currentStepIndex === totalSteps - 1 && onSelectLesson && (
+              <button
+                type="button"
+                className="btn btn-secondary lesson-next-lesson-button"
+                onClick={() => onSelectLesson(nextLesson.metadata.id)}
+              >
+                الدرس التالي: {nextLesson.metadata.title}
+                <span className="lesson-nav-arrow" aria-hidden="true" dir="ltr">←</span>
+              </button>
+            )}
           </footer>
         </div>
       </div>

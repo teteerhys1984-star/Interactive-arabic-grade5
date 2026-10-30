@@ -3,6 +3,35 @@ import { AssessmentTest, UserAssessmentAttempt, UserAnswerValue } from '../../ty
 import { QuestionRenderer } from './QuestionRenderer';
 import { evaluateAssessmentAttempt, createFreshAttempt } from '../../utils/testEvaluator';
 import { ArabicNumber } from '../common/BiDi';
+import { clearDraft, readDraftValue, writeDraftValue } from '../../utils/draftStorage';
+
+const ASSESSMENT_DRAFT_SCOPE = 'assessment-answers';
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function readValidAnswers(test: AssessmentTest): Record<string, UserAnswerValue> {
+  const raw = readDraftValue(ASSESSMENT_DRAFT_SCOPE, test.id);
+  if (!isPlainRecord(raw)) return {};
+  const valid: Record<string, UserAnswerValue> = {};
+
+  for (const question of test.questions) {
+    const value = raw[question.id];
+    if (value === undefined) continue;
+    if (question.type === 'multi_select' || question.type === 'ordering') {
+      if (Array.isArray(value) && value.every((item) => typeof item === 'string')) valid[question.id] = value;
+    } else if (question.type === 'matching' || question.type === 'classification') {
+      if (isPlainRecord(value) && Object.values(value).every((item) => typeof item === 'string')) {
+        valid[question.id] = value as Record<string, string>;
+      }
+    } else if (typeof value === 'string') {
+      valid[question.id] = value;
+    }
+  }
+
+  return valid;
+}
 
 export interface AssessmentShellProps {
   test: AssessmentTest;
@@ -16,23 +45,23 @@ export interface AssessmentShellProps {
  * - Restart: Initiates a genuinely fresh attempt.
  */
 export const AssessmentShell: React.FC<AssessmentShellProps> = ({ test, onExit }) => {
-  const [attempt, setAttempt] = useState<UserAssessmentAttempt>(() =>
-    createFreshAttempt(test.id)
-  );
+  const [attempt, setAttempt] = useState<UserAssessmentAttempt>(() => ({
+    ...createFreshAttempt(test.id),
+    answers: readValidAnswers(test),
+  }));
 
   const handleAnswerChange = (questionId: string, answer: UserAnswerValue) => {
     if (attempt.isSubmitted) return;
-    setAttempt((prev) => ({
-      ...prev,
-      answers: {
-        ...prev.answers,
-        [questionId]: answer,
-      },
-    }));
+    setAttempt((prev) => {
+      const answers = { ...prev.answers, [questionId]: answer };
+      writeDraftValue(ASSESSMENT_DRAFT_SCOPE, test.id, answers);
+      return { ...prev, answers };
+    });
   };
 
   const handleSubmit = () => {
     const evalResult = evaluateAssessmentAttempt(test, attempt.answers);
+    clearDraft(ASSESSMENT_DRAFT_SCOPE, test.id);
     setAttempt((prev) => ({
       ...prev,
       isSubmitted: true,
@@ -46,6 +75,7 @@ export const AssessmentShell: React.FC<AssessmentShellProps> = ({ test, onExit }
   };
 
   const handleRestart = () => {
+    clearDraft(ASSESSMENT_DRAFT_SCOPE, test.id);
     setAttempt(createFreshAttempt(test.id));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };

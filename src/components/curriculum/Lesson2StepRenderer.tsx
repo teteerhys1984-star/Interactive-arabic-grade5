@@ -237,12 +237,12 @@ const Lesson2ActivityWidget: React.FC<{ activity: Lesson2Activity }> = ({ activi
           </button>
           {saved && (
             <span className="l2-saved-status" role="status">
-              حُفظت مسودتك في هذا المتصفح وتُستعاد عند العودة إلى النشاط أو إعادة تحميل الصفحة.
+              حُفظت مسودتك في جلسة التصفح الحالية، وتُستعاد عند العودة إلى النشاط خلال الجلسة.
             </span>
           )}
           {saveFailed && (
             <span className="l2-saved-status" role="alert">
-              تعذّر حفظ المسودة في هذا المتصفح؛ انسخ إجابتك قبل مغادرة الصفحة.
+              تعذّر حفظ المسودة في هذه الجلسة؛ انسخ إجابتك قبل مغادرة الصفحة.
             </span>
           )}
           {cleared && (

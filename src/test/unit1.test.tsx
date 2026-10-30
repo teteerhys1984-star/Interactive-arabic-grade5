@@ -85,9 +85,10 @@ describe('Unit 1 comprehensive test and its independent solutions area', () => {
     expect(screen.getByText(/أجبت عن/)).toBeInTheDocument();
   });
 
-  it('exposes the unit test from the home page and a separate 50-solution review area', () => {
+  it('exposes the unit test from the unit page and a separate 50-solution review area', () => {
     render(<App />);
-    expect(screen.getByRole('button', { name: /اختبار الوحدة الأولى الشامل/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'عرض دروس الوحدة الأولى: أحلامي وطموحاتي' }));
+    expect(screen.getByRole('button', { name: 'ابدأ اختبار الوحدة' })).toBeInTheDocument();
 
     cleanup();
     render(<TestSolutions test={UNIT1_TEST} />);

@@ -110,9 +110,9 @@ describe('Unit 2 Lesson 1 — مخترعٌ من بلادي source-lock implement
   it('opens the lesson from the home curriculum list without offering a Unit 2 test', () => {
     render(<App />);
 
-    expect(screen.getByText('قيد التدريس (غير مكتملة)')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /اختبار الوحدة الثانية/ })).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: /مُخْتَرِعٌ مِنْ بِلَادِي/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'عرض دروس الوحدة الثانية' }));
+    fireEvent.click(screen.getByRole('button', { name: /ابدأ الدرس 1: مُخْتَرِعٌ مِنْ بِلَادِي/ }));
     expect(screen.getAllByRole('button', { name: /^الخطوة \d+:/ })).toHaveLength(11);
     expect(screen.getByLabelText('نشاط المصدر U2L1-40-01')).toBeInTheDocument();
   });

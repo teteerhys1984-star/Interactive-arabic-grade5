@@ -3,6 +3,7 @@ import {
   curriculumRegistry,
   getAllUnits,
   getLessonById,
+  getUnitById,
   getUnitReviewByUnitId,
   getUnitReviews,
   isUnitTestAvailable,
@@ -14,6 +15,7 @@ import { LESSON3_TEACHER_GUIDE } from './data/lesson3/teacherGuide';
 import { U2L1_TEACHER_GUIDE } from './data/unit2Lesson1/teacherGuide';
 import { U2L2_TEACHER_GUIDE } from './data/unit2Lesson2/teacherGuide';
 import { UnitCard } from './components/curriculum/UnitCard';
+import { UnitPage } from './components/curriculum/UnitPage';
 import { LessonFlow } from './components/curriculum/LessonFlow';
 import { LessonShell } from './components/curriculum/LessonShell';
 import { Lesson1StepRenderer } from './components/curriculum/Lesson1StepRenderer';
@@ -23,16 +25,32 @@ import { Unit1ReviewSolutions } from './components/teacher/Unit1ReviewSolutions'
 import { TeacherAreaShell } from './components/teacher/TeacherAreaShell';
 import { AssessmentShell } from './components/assessment/AssessmentShell';
 import { TestSolutions } from './components/assessment/TestSolutions';
-import { LatinText } from './components/common/BiDi';
+import { ArabicNumber, LatinText } from './components/common/BiDi';
+import { clearLearningLocation, LearningLocation, readLearningLocation } from './utils/learningProgress';
 
 type NavigationRoute =
   | { view: 'home' }
+  | { view: 'unit'; unitId: string }
   | { view: 'lesson'; lessonId: string }
   | { view: 'lesson_test'; lessonId: string }
   | { view: 'unit_test'; unitId: string }
   | { view: 'unit_review'; unitId: string }
   | { view: 'teacher' }
   | { view: 'solutions'; testId?: string };
+
+function getValidLearningLocation(): LearningLocation | null {
+  const location = readLearningLocation();
+  if (!location) return null;
+  const result = getLessonById(location.lessonId);
+  const valid =
+    result?.unit.metadata.id === location.unitId &&
+    result.lesson.steps.some((step) => step.id === location.stepId);
+  if (!valid) {
+    clearLearningLocation();
+    return null;
+  }
+  return location;
+}
 
 const TEACHER_GUIDES = [LESSON1_TEACHER_GUIDE, LESSON2_TEACHER_GUIDE, LESSON3_TEACHER_GUIDE, U2L1_TEACHER_GUIDE, U2L2_TEACHER_GUIDE];
 
@@ -123,15 +141,21 @@ export const App: React.FC = () => {
   const [lesson1IrabOpen, setLesson1IrabOpen] = useState<boolean>(false);
 
   const units = getAllUnits();
+  const savedLocation = getValidLearningLocation();
 
   const handleGoHome = () => {
     setLesson1IrabOpen(false);
     setRoute({ view: 'home' });
   };
+  const handleOpenUnit = (unitId: string) => {
+    setLesson1IrabOpen(false);
+    setRoute({ view: 'unit', unitId });
+  };
   const handleSelectLesson = (lessonId: string) => {
     setLesson1IrabOpen(false);
-    setRoute({ view: 'lesson', lessonId });
+    if (getLessonById(lessonId)) setRoute({ view: 'lesson', lessonId });
   };
+  const handleReturnToUnit = (unitId: string) => () => handleOpenUnit(unitId);
   const handleOpenTeacher = () => setRoute({ view: 'teacher' });
   const handleOpenSolutions = () => setRoute({ view: 'solutions' });
 
@@ -150,7 +174,7 @@ export const App: React.FC = () => {
           <nav className="main-navigation" aria-label="التنقل الرئيسي">
             <button
               type="button"
-              className={`nav-link ${route.view === 'home' ? 'active' : ''}`}
+              className={`nav-link ${['home', 'unit', 'lesson'].includes(route.view) ? 'active' : ''}`}
               onClick={handleGoHome}
             >
               الوحدات والدروس
@@ -177,9 +201,42 @@ export const App: React.FC = () => {
         {route.view === 'home' && (
           <section className="units-section">
             <div className="section-header">
-              <h2>خطة وحدات المنهج الدراسي</h2>
-              <p>سجل الوحدات الدراسية المعتمدة المستخرجة من الكتاب المدرسي الرسمي.</p>
+              <h1>الوحدات الدراسية</h1>
+              <p>اختر وحدة لعرض دروسها بترتيب المنهج.</p>
             </div>
+
+            {savedLocation ? (
+              <section className="learning-resume" aria-label="متابعة التعلّم">
+                <div>
+                  <span className="learning-resume-kicker">آخر موضع وصلت إليه</span>
+                  <h2>{getLessonById(savedLocation.lessonId)?.lesson.metadata.title}</h2>
+                  <p>
+                    {getUnitById(savedLocation.unitId)?.metadata.title}
+                    {' · '}
+                    الخطوة{' '}
+                    <ArabicNumber
+                      value={(getLessonById(savedLocation.lessonId)?.lesson.steps.findIndex((step) => step.id === savedLocation.stepId) ?? -1) + 1}
+                    />
+                    {' من '}
+                    <ArabicNumber value={getLessonById(savedLocation.lessonId)?.lesson.steps.length ?? 0} />
+                  </p>
+                </div>
+                <button type="button" className="btn btn-primary" onClick={() => handleSelectLesson(savedLocation.lessonId)}>
+                  متابعة التعلّم
+                </button>
+              </section>
+            ) : units[0]?.lessons[0] ? (
+              <section className="learning-resume learning-start" aria-label="بداية التعلّم">
+                <div>
+                  <span className="learning-resume-kicker">بداية واضحة</span>
+                  <h2>{units[0].lessons[0].metadata.title}</h2>
+                  <p>ابدأ من أول درس مسجل في المنهج.</p>
+                </div>
+                <button type="button" className="btn btn-primary" onClick={() => handleOpenUnit(units[0].metadata.id)}>
+                  ابدأ من أول درس
+                </button>
+              </section>
+            ) : null}
 
             {units.length === 0 ? (
               <div className="empty-state-card">
@@ -189,29 +246,49 @@ export const App: React.FC = () => {
               </div>
             ) : (
               <div className="units-grid">
-                {units.map((unit) => {
-                  const review = getUnitReviewByUnitId(unit.metadata.id);
-                  return (
-                    <UnitCard
-                      key={unit.metadata.id}
-                      unit={unit}
-                      onSelectLesson={handleSelectLesson}
-                      onOpenUnitTest={
-                        isUnitTestAvailable(unit.metadata.id)
-                          ? () => setRoute({ view: 'unit_test', unitId: unit.metadata.id })
-                          : undefined
-                      }
-                      review={review}
-                      onOpenReview={
-                        review ? () => setRoute({ view: 'unit_review', unitId: unit.metadata.id }) : undefined
-                      }
-                    />
-                  );
-                })}
+                {units.map((unit) => (
+                  <UnitCard
+                    key={unit.metadata.id}
+                    unit={unit}
+                    onOpenUnit={() => handleOpenUnit(unit.metadata.id)}
+                    hasSavedLocation={savedLocation?.unitId === unit.metadata.id}
+                  />
+                ))}
               </div>
             )}
           </section>
         )}
+
+        {route.view === 'unit' &&
+          (() => {
+            const unit = getUnitById(route.unitId);
+            if (!unit) {
+              return (
+                <div className="empty-state-card">
+                  <h2>الوحدة غير موجودة</h2>
+                  <button type="button" className="btn btn-primary" onClick={handleGoHome}>العودة إلى الوحدات</button>
+                </div>
+              );
+            }
+            const review = getUnitReviewByUnitId(unit.metadata.id);
+            return (
+              <UnitPage
+                unit={unit}
+                review={review}
+                savedLocation={savedLocation}
+                onGoHome={handleGoHome}
+                onSelectLesson={handleSelectLesson}
+                onOpenUnitTest={
+                  isUnitTestAvailable(unit.metadata.id)
+                    ? () => setRoute({ view: 'unit_test', unitId: unit.metadata.id })
+                    : undefined
+                }
+                onOpenReview={
+                  review ? () => setRoute({ view: 'unit_review', unitId: unit.metadata.id }) : undefined
+                }
+              />
+            );
+          })()}
 
         {route.view === 'lesson' &&
           (() => {
@@ -224,16 +301,19 @@ export const App: React.FC = () => {
                 </div>
               );
             }
-            // Lesson 1 renders through its own step renderer (source-fidelity rebuild):
-            // LessonShell is reused unchanged via its `renderStepContent` injection
-            // point, so no shared lesson component is modified for other lessons.
+            // Lesson 1 keeps its dedicated source-fidelity renderer while sharing
+            // the same lesson shell and unit-level navigation as the other lessons.
             if (result.lesson.metadata.id === 'lesson1') {
               return (
                 <>
                   <div hidden={lesson1IrabOpen}>
                     <LessonShell
+                      key={result.lesson.metadata.id}
                       lesson={result.lesson}
-                      onExit={handleGoHome}
+                      unit={result.unit}
+                      onGoHome={handleGoHome}
+                      onExit={handleReturnToUnit(result.unit.metadata.id)}
+                      onSelectLesson={handleSelectLesson}
                       onOpenTest={() => setRoute({ view: 'lesson_test', lessonId: route.lessonId })}
                       renderStepContent={(step) => (
                         <Lesson1StepRenderer step={step} onOpenIrab={() => setLesson1IrabOpen(true)} />
@@ -249,8 +329,12 @@ export const App: React.FC = () => {
             }
             return (
               <LessonFlow
+                key={result.lesson.metadata.id}
                 lesson={result.lesson}
-                onExit={handleGoHome}
+                unit={result.unit}
+                onGoHome={handleGoHome}
+                onExit={handleReturnToUnit(result.unit.metadata.id)}
+                onSelectLesson={handleSelectLesson}
                 onOpenTest={() => setRoute({ view: 'lesson_test', lessonId: route.lessonId })}
               />
             );
@@ -263,7 +347,11 @@ export const App: React.FC = () => {
               return (
                 <div className="empty-state-card">
                   <h3>لا يتوفر اختبار لهذا الدرس</h3>
-                  <button type="button" className="btn btn-primary" onClick={handleGoHome}>العودة</button>
+                  <button type="button" className="btn btn-primary" onClick={() => {
+                    const lesson = getLessonById(route.lessonId)?.lesson;
+                    if (lesson) handleOpenUnit(lesson.metadata.unitId);
+                    else handleGoHome();
+                  }}>العودة إلى الوحدة</button>
                 </div>
               );
             }
@@ -281,7 +369,7 @@ export const App: React.FC = () => {
               return (
                 <div className="empty-state-card">
                   <h3>اختبار الوحدة غير متاح قبل اكتمال الوحدة رسمياً</h3>
-                  <button type="button" className="btn btn-primary" onClick={handleGoHome}>العودة</button>
+                  <button type="button" className="btn btn-primary" onClick={handleReturnToUnit(route.unitId)}>العودة إلى الوحدة</button>
                 </div>
               );
             }
@@ -290,11 +378,11 @@ export const App: React.FC = () => {
               return (
                 <div className="empty-state-card">
                   <h3>لا يتوفر اختبار لهذه الوحدة</h3>
-                  <button type="button" className="btn btn-primary" onClick={handleGoHome}>العودة</button>
+                  <button type="button" className="btn btn-primary" onClick={handleReturnToUnit(route.unitId)}>العودة إلى الوحدة</button>
                 </div>
               );
             }
-            return <AssessmentShell test={test} onExit={handleGoHome} />;
+            return <AssessmentShell test={test} onExit={handleReturnToUnit(route.unitId)} />;
           })()}
 
         {route.view === 'unit_review' &&
@@ -304,11 +392,11 @@ export const App: React.FC = () => {
               return (
                 <div className="empty-state-card">
                   <h3>لا يتوفر تقويم رسمي مسجَّل لهذه الوحدة</h3>
-                  <button type="button" className="btn btn-primary" onClick={handleGoHome}>العودة للقائمة</button>
+                  <button type="button" className="btn btn-primary" onClick={handleReturnToUnit(route.unitId)}>العودة إلى الوحدة</button>
                 </div>
               );
             }
-            return <Unit1ReviewFlow review={review} onExit={handleGoHome} />;
+            return <Unit1ReviewFlow review={review} onExit={handleReturnToUnit(route.unitId)} />;
           })()}
 
         {route.view === 'solutions' &&

@@ -386,7 +386,8 @@ describe('Lesson 1 — standalone i‘rab page', () => {
     vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
     render(<App />);
 
-    fireEvent.click(screen.getByRole('button', { name: /السَّمَكَةُ الذَّهَبِيَّةُ/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'عرض دروس الوحدة الأولى: أحلامي وطموحاتي' }));
+    fireEvent.click(screen.getByRole('button', { name: /ابدأ الدرس 1: السَّمَكَةُ الذَّهَبِيَّةُ/ }));
     const stepButtons = screen.getAllByRole('button', { name: /^الخطوة \d+:/ });
     expect(stepButtons).toHaveLength(10);
     fireEvent.click(stepButtons[5]);
