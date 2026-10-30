@@ -31,40 +31,39 @@ afterEach(() => {
 describe('Lesson side navigation', () => {
   it('shows a right-to-left lesson rail with current and remaining step states', () => {
     const { container } = render(<LessonFlow lesson={lesson} />);
-    const rail = screen.getByRole('navigation', { name: 'مسار الدرس' });
+    const rail = screen.getByRole('navigation', { name: 'خطوات الدرس' });
     const buttons = screen.getAllByRole('button', { name: /^الخطوة \d+:/ });
 
     expect(container.querySelector('.lesson-shell')).toHaveAttribute('dir', 'rtl');
     expect(buttons).toHaveLength(10);
     expect(buttons[0]).toHaveAttribute('aria-current', 'step');
     expect(buttons[0]).toHaveAccessibleName(/الخطوة الحالية/);
-    expect(buttons[1]).toHaveAccessibleName(/لم تُنجز بعد/);
+    expect(buttons[1]).toHaveAccessibleName(/انتقل إليها/);
     expect(rail).toContainElement(buttons[0]);
-    expect(screen.getAllByRole('progressbar')[0]).toHaveAttribute('aria-valuenow', '1');
-    expect(screen.getAllByRole('progressbar')[0]).toHaveAttribute('aria-valuemax', '10');
+    expect(screen.queryByRole('progressbar')).toBeNull();
+    expect(container.querySelector('.lesson-step-position')?.textContent).toContain('من');
     expect(screen.getByLabelText('اختر خطوة للانتقال إليها')).toBeInTheDocument();
   });
 
-  it('preserves free navigation and updates active/visited states and progress', () => {
+  it('preserves free navigation and reports the current step without implying completion', () => {
     render(<LessonFlow lesson={lesson} />);
     const buttons = screen.getAllByRole('button', { name: /^الخطوة \d+:/ });
 
     fireEvent.click(buttons[3]);
 
     expect(buttons[3]).toHaveAttribute('aria-current', 'step');
-    expect(buttons[0]).toHaveAccessibleName(/سبق عرضها/);
-    expect(buttons[1]).toHaveAccessibleName(/لم تُنجز بعد/);
-    expect(buttons[2]).toHaveAccessibleName(/لم تُنجز بعد/);
-    expect(buttons[4]).toHaveAccessibleName(/لم تُنجز بعد/);
-    expect(screen.getAllByRole('progressbar').every((bar) => bar.getAttribute('aria-valuenow') === '2')).toBe(true);
-    expect(screen.getAllByRole('progressbar')[0]).toHaveAttribute('aria-valuetext', 'تمت زيارة 2 من 10 خطوة؛ موضعك الحالي الخطوة 4 من 10');
+    expect(buttons[0]).not.toHaveAttribute('aria-current');
+    expect(buttons[1]).toHaveAccessibleName(/انتقل إليها/);
+    expect(buttons[2]).toHaveAccessibleName(/انتقل إليها/);
+    expect(buttons[4]).toHaveAccessibleName(/انتقل إليها/);
+    expect(screen.queryByRole('progressbar')).toBeNull();
 
     // The existing product permits selecting later steps; preserve that behavior.
     fireEvent.click(buttons[9]);
     expect(buttons[9]).toHaveAttribute('aria-current', 'step');
-    expect(buttons[3]).toHaveAccessibleName(/سبق عرضها/);
-    expect(buttons[8]).toHaveAccessibleName(/لم تُنجز بعد/);
-    expect(screen.getAllByRole('progressbar').every((bar) => bar.getAttribute('aria-valuenow') === '3')).toBe(true);
+    expect(buttons[3]).not.toHaveAttribute('aria-current');
+    expect(buttons[8]).toHaveAccessibleName(/انتقل إليها/);
+    expect(screen.queryByRole('progressbar')).toBeNull();
     expect(screen.getByRole('button', { name: 'بدء اختبار الدرس، عشرون سؤالاً' })).toBeInTheDocument();
   });
 

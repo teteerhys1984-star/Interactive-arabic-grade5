@@ -1,21 +1,27 @@
 import React from 'react';
-import { Lesson } from '../../types/curriculum';
+import { Lesson, Unit } from '../../types/curriculum';
 import { LessonShell } from './LessonShell';
 import { StepRenderer } from './StepRenderer';
 
 /**
  * LessonFlow — the concrete lesson pipeline: LessonShell → StepRenderer.
- * Keeps the foundation LessonShell generic by injecting the step renderer.
+ * Navigation context is passed through without duplicating lesson logic here.
  */
 export const LessonFlow: React.FC<{
   lesson: Lesson;
+  unit?: Unit;
   onOpenTest?: () => void;
   onExit?: () => void;
-}> = ({ lesson, onOpenTest, onExit }) => (
+  onGoHome?: () => void;
+  onSelectLesson?: (lessonId: string) => void;
+}> = ({ lesson, unit, onOpenTest, onExit, onGoHome, onSelectLesson }) => (
   <LessonShell
     lesson={lesson}
+    unit={unit}
     onOpenTest={onOpenTest}
     onExit={onExit}
+    onGoHome={onGoHome}
+    onSelectLesson={onSelectLesson}
     renderStepContent={(step) => <StepRenderer step={step} />}
   />
 );

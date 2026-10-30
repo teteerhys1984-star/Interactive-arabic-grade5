@@ -116,7 +116,6 @@ export const Unit1ReviewFlow: React.FC<Unit1ReviewFlowProps> = ({ review, onExit
     readDraft(DRAFT_SCOPE, PROGRESS_RECORD),
   );
   const [stepIndex, setStepIndex] = useState<number>(0);
-  const [visited, setVisited] = useState<Set<string>>(() => new Set([steps[0].id]));
   const [subIndex, setSubIndex] = useState<number>(0);
   const [showAllSubparts, setShowAllSubparts] = useState<boolean>(false);
   const [storageNote, setStorageNote] = useState<'idle' | 'failed' | 'cleared'>('idle');
@@ -129,17 +128,12 @@ export const Unit1ReviewFlow: React.FC<Unit1ReviewFlowProps> = ({ review, onExit
     const storedStepId = progress.lastStepId;
     if (!storedStepId) return;
     const index = steps.findIndex((step) => step.id === storedStepId);
-    if (index > 0) {
-      setStepIndex(index);
-      setVisited(new Set(steps.slice(0, index + 1).map((step) => step.id)));
-    }
+    if (index > 0) setStepIndex(index);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const currentStep = steps[stepIndex];
   const totalSteps = steps.length;
-  const visitedCount = visited.size;
-  const progressPercent = totalSteps > 0 ? (visitedCount / totalSteps) * 100 : 0;
 
   const questionSubparts = useMemo(
     () => UNIT1_REVIEW_QUESTIONS.flatMap((question) => question.subparts),
@@ -167,11 +161,6 @@ export const Unit1ReviewFlow: React.FC<Unit1ReviewFlowProps> = ({ review, onExit
     setStepIndex(index);
     setSubIndex(0);
     setShowAllSubparts(false);
-    setVisited((previous) => {
-      const next = new Set(previous);
-      next.add(steps[index].id);
-      return next;
-    });
     persistProgress({ ...progress, lastStepId: steps[index].id });
     if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -195,7 +184,6 @@ export const Unit1ReviewFlow: React.FC<Unit1ReviewFlowProps> = ({ review, onExit
     setStorageNote('cleared');
     setStepIndex(0);
     setSubIndex(0);
-    setVisited(new Set([steps[0].id]));
   };
 
   const stepKicker = (() => {
@@ -519,7 +507,7 @@ export const Unit1ReviewFlow: React.FC<Unit1ReviewFlowProps> = ({ review, onExit
           {onExit && (
             <button type="button" className="btn btn-ghost lesson-exit-button" onClick={onExit}>
               <span aria-hidden="true" dir="ltr">→</span>
-              العودة للوحدات والدروس
+              العودة إلى الوحدة
             </button>
           )}
         </div>
@@ -542,17 +530,6 @@ export const Unit1ReviewFlow: React.FC<Unit1ReviewFlowProps> = ({ review, onExit
             الخطوة <ArabicNumber value={toArabicDigits(stepIndex + 1)} /> من <ArabicNumber value={toArabicDigits(totalSteps)} />
           </span>
         </div>
-        <div
-          className="u1r-progress-track"
-          role="progressbar"
-          aria-label="التقدم في خطوات التقويم"
-          aria-valuemin={0}
-          aria-valuemax={totalSteps}
-          aria-valuenow={visitedCount}
-          aria-valuetext={`زرت ${visitedCount} من ${totalSteps} خطوة؛ وأجبت عن ${answeredCount} من ${UNIT1_REVIEW_ANSWERABLE_BRANCHES} فرعاً`}
-        >
-          <span className="u1r-progress-fill" style={{ width: `${progressPercent}%` }} />
-        </div>
         <p className="u1r-progress-note">
           أجبتَ عن <ArabicNumber value={toArabicDigits(answeredCount)} /> من <ArabicNumber value={toArabicDigits(UNIT1_REVIEW_ANSWERABLE_BRANCHES)} /> فرعاً
           من أسئلة التقويم. تُحفظ إجاباتك تلقائياً وتُستعاد عند العودة.
@@ -565,9 +542,7 @@ export const Unit1ReviewFlow: React.FC<Unit1ReviewFlowProps> = ({ review, onExit
               <li key={step.id}>
                 <button
                   type="button"
-                  className={`u1r-step-button ${index === stepIndex ? 'is-current' : ''} ${
-                    visited.has(step.id) ? 'is-visited' : ''
-                  }`}
+                  className={`u1r-step-button ${index === stepIndex ? 'is-current' : ''}`}
                   aria-current={index === stepIndex ? 'step' : undefined}
                   onClick={() => goToStep(index)}
                 >
@@ -641,7 +616,7 @@ export const Unit1ReviewFlow: React.FC<Unit1ReviewFlowProps> = ({ review, onExit
 
       {storageNote === 'failed' && (
         <p className="u1r-storage-alert" role="alert">
-          تعذّر حفظ إجاباتك في هذا المتصفح؛ انسخ ما كتبته قبل مغادرة الصفحة.
+          تعذّر حفظ إجاباتك في جلسة التصفح الحالية؛ انسخ ما كتبته قبل مغادرة الصفحة.
         </p>
       )}
       {storageNote === 'cleared' && (

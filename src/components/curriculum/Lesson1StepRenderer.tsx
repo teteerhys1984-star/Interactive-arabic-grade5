@@ -8,6 +8,7 @@ import { LESSON1_IRAB_PAGE, IRAB_ISSUE_REGISTER } from '../../data/lesson1/irabP
 import { SourceBadge } from '../common/SourceBadge';
 import { AnswerReveal, AnswerRevealEntry, AnswerRevealProps } from '../common/AnswerReveal';
 import { ArabicNumber } from '../common/BiDi';
+import { readDraft, writeDraft } from '../../utils/draftStorage';
 import {
   Lesson1GrammarSupport,
   SpellingExplanation,
@@ -287,10 +288,12 @@ const buildLesson1Reveal = (activity: TextbookActivity): AnswerRevealProps | nul
 /* The compliant activity widget                                      */
 /* ------------------------------------------------------------------ */
 
+const LESSON1_DRAFT_SCOPE = 'lesson1';
+
 const Lesson1ActivityWidget: React.FC<{ activity: TextbookActivity }> = ({ activity }) => {
   const interaction = activity.interaction;
   const fields = useMemo(() => collectFields(interaction), [interaction]);
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Record<string, string>>(() => readDraft(LESSON1_DRAFT_SCOPE, activity.id));
   /** Verdicts of the LAST check are visible only while `checked` is true. */
   const [checked, setChecked] = useState(false);
   /** True once the learner has checked at least once (unlocks the model answer). */
@@ -306,7 +309,11 @@ const Lesson1ActivityWidget: React.FC<{ activity: TextbookActivity }> = ({ activ
    * single/multi choice, classification, tables, diagram blanks, free-form boxes).
    */
   const setVal = (id: string, value: string) => {
-    setValues((previous) => ({ ...previous, [id]: value }));
+    setValues((previous) => {
+      const next = { ...previous, [id]: value };
+      writeDraft(LESSON1_DRAFT_SCOPE, activity.id, next);
+      return next;
+    });
     setChecked(false);
   };
 

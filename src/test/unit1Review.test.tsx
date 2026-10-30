@@ -44,6 +44,15 @@ beforeEach(() => {
 
 afterEach(cleanup);
 
+const openUnit1 = () => {
+  fireEvent.click(screen.getByRole('button', { name: 'عرض دروس الوحدة الأولى: أحلامي وطموحاتي' }));
+};
+
+const openUnit1Review = () => {
+  openUnit1();
+  fireEvent.click(screen.getByRole('button', { name: 'ابدأ المراجعة' }));
+};
+
 const openTeacherArea = () => {
   fireEvent.change(screen.getByLabelText('كلمة مرور المعلم'), { target: { value: 'somer173' } });
   fireEvent.click(screen.getByRole('button', { name: 'دخول بوابة المعلم' }));
@@ -238,30 +247,28 @@ describe('Unit 1 review (تقويم الوحدة الأولى) — structure and
 });
 
 describe('Unit 1 review — Student Area', () => {
-  it('shows the review after the lessons on the home page, outside the lessons list', () => {
+  it('shows the review and unit test in a separate section after the ordered lessons', () => {
     const { container } = render(<App />);
+    openUnit1();
 
-    const lessonsList = container.querySelector('.lessons-list');
+    const lessonsList = container.querySelector('.unit-page-lesson-list');
     expect(lessonsList).not.toBeNull();
     expect(within(lessonsList as HTMLElement).queryByText(/تقويم الوحدة الأولى/)).toBeNull();
     expect(within(lessonsList as HTMLElement).getAllByRole('button')).toHaveLength(3);
 
-    const reviewSection = container.querySelector('.unit-review-section');
+    const reviewSection = container.querySelector('.unit-page-assessments');
     expect(reviewSection).not.toBeNull();
     expect(within(reviewSection as HTMLElement).getByText('تقويم الوحدة الأولى')).toBeInTheDocument();
-    expect(within(reviewSection as HTMLElement).getByText(/درساً رابعاً/)).toBeInTheDocument();
+    expect(within(reviewSection as HTMLElement).getByRole('button', { name: 'ابدأ المراجعة' })).toBeInTheDocument();
 
-    // The lessons list precedes the review section in the DOM.
     const position = (lessonsList as HTMLElement).compareDocumentPosition(reviewSection as HTMLElement);
     expect(position & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-
-    // The 50-question unit test entry is untouched.
-    expect(screen.getByRole('button', { name: /اختبار الوحدة الأولى الشامل/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'ابدأ اختبار الوحدة' })).toBeInTheDocument();
   });
 
   it('opens a stepped, sectioned review with a clear question indicator and navigation', () => {
     const { container } = render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /ابدأ تقويم الوحدة الأولى/ }));
+    openUnit1Review();
 
     expect(container.querySelector('.u1r-shell')).not.toBeNull();
     expect(screen.getByText('تقويم الوحدة الأولى')).toBeInTheDocument();
@@ -298,7 +305,7 @@ describe('Unit 1 review — Student Area', () => {
 
   it('preserves learner answers while navigating between questions', () => {
     const { container } = render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /ابدأ تقويم الوحدة الأولى/ }));
+    openUnit1Review();
     fireEvent.click(screen.getByRole('button', { name: /السؤال ١:/ }));
 
     fireEvent.click(screen.getByRole('radio', { name: 'غير صحيحة ✗' }));
@@ -326,7 +333,7 @@ describe('Unit 1 review — Student Area', () => {
 
   it('renders the printed branches with the verified coloured words and no solution', () => {
     const { container } = render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /ابدأ تقويم الوحدة الأولى/ }));
+    openUnit1Review();
 
     // Question ٤ shows the printed sentence with the verified coloured word in green.
     fireEvent.click(screen.getByRole('button', { name: /السؤال ٤:/ }));
@@ -382,7 +389,7 @@ describe('Unit 1 review — Student Area', () => {
 
   it('offers an editable answers review before finishing, without revealing correctness', () => {
     const { container } = render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /ابدأ تقويم الوحدة الأولى/ }));
+    openUnit1Review();
     fireEvent.click(screen.getByRole('button', { name: /مراجعة إجاباتي والإنهاء/ }));
 
     expect(screen.getByText(/لا تُعرض الإجابات الصحيحة في منطقة الطالب/)).toBeInTheDocument();
