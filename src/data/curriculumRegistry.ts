@@ -16,6 +16,8 @@ import { U2L1_STEPS } from './unit2Lesson1/content';
 import { u2l1Src, U2L1_LOCKED_SOURCE_NOTES, U2L1_LISTENING_AUDIO_GAP } from './unit2Lesson1/sourceMeta';
 import { U2L2_STEPS } from './unit2Lesson2/content';
 import { u2l2Src, U2L2_LISTENING_AUDIO_GAP, U2L2_LOCKED_SOURCE_NOTES } from './unit2Lesson2/sourceMeta';
+import { U2L3_STEPS } from './unit2Lesson3/content';
+import { u2l3Src, U2L3_LISTENING_AUDIO_GAP, U2L3_LOCKED_SOURCE_NOTES } from './unit2Lesson3/sourceMeta';
 
 /**
  * Official Curriculum Registry for Grade 5 Arabic.
@@ -240,6 +242,38 @@ const unit2Lesson2: Lesson = {
   testId: 'unit2-lesson2-test',
 };
 
+/**
+ * Unit 2, Lesson 3 — registered from pages 61–68
+ * (docs/source-locks/unit2-lesson-03-bil-ilmi-tarqa.md).
+ * The eight supplied scans are the only approved source. Unresolved printed
+ * tokens and the absent listening audio are declared limits, never filled in.
+ * No lesson test and no teacher answer guide are registered: the source has no
+ * approved answer key and no key may be invented. The unit stays incomplete.
+ */
+const unit2Lesson3: Lesson = {
+  metadata: {
+    id: 'unit2-lesson3',
+    unitId: 'unit2',
+    order: 3,
+    title: 'بِالْعِلْمِ تَرْقَى',
+    subtitle: 'خيرُ جَليسٍ ...',
+    primarySkill: 'reading_comprehension',
+    estimatedMinutes: 90,
+    sources: [
+      u2l3Src(61, 'textbook_exercise', 'أتأمل الصورتين وأستمع إلى النص', undefined, U2L3_LISTENING_AUDIO_GAP),
+      u2l3Src(62, 'textbook_poetry', 'أقرأ: بالعلم ترقى', undefined, U2L3_LOCKED_SOURCE_NOTES.poemLastStanza),
+      u2l3Src(63, 'textbook_exercise', 'الفهم القرائي (١–١٠)', undefined, U2L3_LOCKED_SOURCE_NOTES.tashkeel),
+      u2l3Src(64, 'textbook_grammar', 'أتواصل شفوياً وقواعد اللغة: بناء الفعل الماضي', undefined, U2L3_LOCKED_SOURCE_NOTES.tashkeel),
+      u2l3Src(65, 'textbook_grammar', 'أطبق والمثالان المعربان والتقويم النهائي', undefined, U2L3_LOCKED_SOURCE_NOTES.finalEvaluationDiagram),
+      u2l3Src(66, 'textbook_spelling', 'التقويم النهائي والإملاء والخط', undefined, U2L3_LOCKED_SOURCE_NOTES.dictationAudio),
+      u2l3Src(67, 'textbook_exercise', 'الخط: الراء والزاي وأعزّز كتابياً', undefined, U2L3_LOCKED_SOURCE_NOTES.handwritingWords),
+      u2l3Src(68, 'activity_book', 'ألعب وأتعلّم وأنا وأسرتي'),
+    ],
+  },
+  steps: U2L3_STEPS,
+  // testId intentionally absent: no approved answer key in the supplied source.
+};
+
 const unit2: Unit = {
   metadata: {
     id: 'unit2',
@@ -247,9 +281,9 @@ const unit2: Unit = {
     title: 'الوحدة الثانية',
     // No theme: the unit divider page was not supplied.
     isComplete: false, // No owner completion declaration; therefore no unit test.
-    sourcePagesRange: { startPage: 40, endPage: 60 },
+    sourcePagesRange: { startPage: 40, endPage: 68 },
   },
-  lessons: [unit2Lesson1, unit2Lesson2],
+  lessons: [unit2Lesson1, unit2Lesson2, unit2Lesson3],
   // unitTestId intentionally absent until the owner declares completion.
 };
 

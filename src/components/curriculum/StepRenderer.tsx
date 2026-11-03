@@ -13,6 +13,7 @@ import { Lesson2StepRenderer } from './Lesson2StepRenderer';
 import { Lesson3StepRenderer } from './Lesson3StepRenderer';
 import { Unit2Lesson1StepRenderer } from './Unit2Lesson1StepRenderer';
 import { Unit2Lesson2StepRenderer } from './Unit2Lesson2StepRenderer';
+import { Unit2Lesson3StepRenderer } from './Unit2Lesson3StepRenderer';
 
 /**
  * StepRenderer — renders a lesson step's content blocks.
@@ -32,6 +33,9 @@ export const StepRenderer: React.FC<{ step: LessonStep }> = ({ step }) => {
   }
   if (step.id.startsWith('u2l2-')) {
     return <Unit2Lesson2StepRenderer step={step} />;
+  }
+  if (step.id.startsWith('u2l3-')) {
+    return <Unit2Lesson3StepRenderer step={step} />;
   }
 
   const content = LESSON1_STEP_CONTENT[step.id];

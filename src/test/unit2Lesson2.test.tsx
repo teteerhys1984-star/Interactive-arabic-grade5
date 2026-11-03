@@ -38,7 +38,8 @@ describe('Unit 2 Lesson 2 — الذَّكاءُ الاصطِناعيُّ source
     expect(unit2!.metadata.isComplete).toBe(false);
     expect(unit2!.unitTestId).toBeUndefined();
     expect(isUnitTestAvailable('unit2')).toBe(false);
-    expect(unit2!.lessons.map((lesson) => lesson.metadata.id)).toEqual(['unit2-lesson1', 'unit2-lesson2']);
+    // Unit 2 now also holds Lesson 3 (pp. 61–68); the first two lessons keep their order.
+    expect(unit2!.lessons.slice(0, 2).map((lesson) => lesson.metadata.id)).toEqual(['unit2-lesson1', 'unit2-lesson2']);
 
     const unit1 = getUnitById('unit1')!;
     expect(unit1.metadata.isComplete).toBe(true);
