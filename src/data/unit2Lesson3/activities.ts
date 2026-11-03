@@ -386,7 +386,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
   },
   {
     id: 'u2l3-a-36', sourceActivityId: 'U2L3-67-03', printedNumber: '—', section: 'أتعلّم', page: 67,
-    instruction: 'أَكْتُبُ أَشْكالَ حَرْفِ الزّايِ (ز) بِخَطِّ الرُّقْعَةِ.', subparts: [],
+    instruction: 'أَكْتُبُ أَشْكالَ حَرْفِ الزّايِ (ز) بِخَطِّ الرُّقْعَةِ', subparts: [],
     interaction: { kind: 'handwriting', modelDescription: 'أشكال حرف الزاي بخط الرقعة تُنفَّذ يدوياً على ورقة مسطّرة.' },
     source: u2l3Src(67, 'textbook_exercise', 'أتعلّم', undefined, U2L3_LOCKED_SOURCE_NOTES.handwritingWords),
     gapNote: U2L3_LOCKED_SOURCE_NOTES.handwritingWords,

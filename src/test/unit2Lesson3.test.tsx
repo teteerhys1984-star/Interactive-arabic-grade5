@@ -10,7 +10,7 @@ import {
 } from '../data/curriculumRegistry';
 import { ALL_ASSESSMENTS, getLessonTestByLessonId } from '../data/assessments';
 import { U2L3_ACTIVITIES, U2L3_ACTIVITY_BY_ID, U2L3_COVERAGE } from '../data/unit2Lesson3/activities';
-import { U2L3_POEM, U2L3_STEPS, U2L3_STEP_CONTENT } from '../data/unit2Lesson3/content';
+import { U2L3_POEM, U2L3_SOURCE_TEXT, U2L3_STEPS, U2L3_STEP_CONTENT } from '../data/unit2Lesson3/content';
 import { U2L3_LOCKED_SOURCE_NOTES } from '../data/unit2Lesson3/sourceMeta';
 import { auditCurriculum } from '../utils/audit';
 import { readLearningLocation, writeLearningLocation } from '../utils/learningProgress';
@@ -86,9 +86,14 @@ describe('Unit 2 Lesson 3 — بِالْعِلْمِ تَرْقَى (ص٦١–٦
     expect(referenced.length).toBe(U2L3_ACTIVITIES.length);
   });
 
-  it('declares the unresolved printed positions instead of guessing them', () => {
+  it('resolves the riddle words from the extra crop and marks only what is still unreadable', () => {
+    // ص٦١: اللفظان ثُبِتا من image-9.png، فحُذفت علامة عدم الحسم من هذا الموضع وحده.
+    expect(U2L3_SOURCE_TEXT.openingRiddle).toBe('خيرُ جَليسٍ ... أُنْسٌ وَوَنِيسٌ، فَمَنْ أنا؟');
+    expect(U2L3_SOURCE_TEXT.openingRiddle).not.toContain('[موضع غير محسوم بصرياً]');
+    expect(U2L3_LOCKED_SOURCE_NOTES.openingRiddle).toContain('image-9.png');
+    // ص٦٢: الشطر الثاني مؤكَّد، والكلمة الأخيرة من الشطر الأول لا تزال معلّمة.
+    expect(U2L3_POEM.stanzas[5].left).toBe('فاحْذَرُوا العُجْمَةَ دابا');
     expect(U2L3_POEM.stanzas[5].right).toContain('[موضع غير محسوم بصرياً]');
-    expect(U2L3_LOCKED_SOURCE_NOTES.openingRiddle).toContain('غير محسومين');
     expect(U2L3_LOCKED_SOURCE_NOTES.poemLastStanza).toContain('غير محسومة');
     expect(U2L3_LOCKED_SOURCE_NOTES.handwritingWords).toContain('لا يستطيع');
     expect(U2L3_COVERAGE.withDeclaredGap).toBeGreaterThan(0);
