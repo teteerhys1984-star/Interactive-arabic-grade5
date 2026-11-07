@@ -44,7 +44,8 @@ describe('session-only learning location', () => {
 
   it('returns from a lesson to its unit, then resumes the saved step and activity draft', () => {
     const { container } = render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: 'ابدأ من أول درس' }));
+    // The hero CTA opens lesson 1 directly; the unit page is its own entry point.
+    fireEvent.click(screen.getByRole('button', { name: /عرض دروس الوحدة الأولى/ }));
     expect(screen.getByRole('heading', { level: 1, name: /الوحدة الأولى/ })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /ابدأ الدرس 1:/ }));
@@ -58,7 +59,7 @@ describe('session-only learning location', () => {
     expect(container.querySelector('.l1-activity input')).toHaveValue('إجابة محفوظة للجلسة');
 
     fireEvent.click(screen.getByRole('button', { name: 'العودة إلى صفحة الوحدة' }));
-    expect(container.querySelector('.unit-page-resume-note')).toHaveTextContent('آخر موضع وصلت إليه: الخطوة 4 من 10');
+    expect(container.querySelector('.unit-page-resume-note')).toHaveTextContent('آخر موضع وصلت إليه: الخطوة ٤ من ١٠');
     fireEvent.click(screen.getByRole('button', { name: /تابع الدرس 1:/ }));
     expect(screen.getByRole('button', { name: /^الخطوة 4:/ })).toHaveAttribute('aria-current', 'step');
     expect(container.querySelector('.l1-activity input')).toHaveValue('إجابة محفوظة للجلسة');
