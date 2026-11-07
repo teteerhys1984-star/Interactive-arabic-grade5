@@ -91,7 +91,10 @@ export const HomePage: React.FC<HomePageProps> = ({
             </li>
             <li>
               <ArabicNumber value={toArabicDigits(units.filter((unit) => unit.metadata.isComplete).length)} />
-              <span>وحدة مكتملة</span>
+              {/* The count is of units whose completion the curriculum owner has
+                  declared. It must never read as work the learner finished, so it
+                  uses the same «مُعلَن» wording as the unit page. */}
+              <span>اكتمال مُعلَن رسميًا</span>
             </li>
           </ul>
 

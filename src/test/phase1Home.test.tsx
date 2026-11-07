@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { App } from '../App';
-import { getLessonById, getUnitById } from '../data/curriculumRegistry';
+import { getAllUnits, getLessonById, getUnitById } from '../data/curriculumRegistry';
 import { getLessonTestByLessonId } from '../data/assessments';
 import { readLearningLocation } from '../utils/learningProgress';
 import { toArabicDigits } from '../utils/arabicDigits';
@@ -275,6 +275,31 @@ describe('Phase 1 — assessment entries', () => {
     expect(screen.getByRole('heading', { level: 1, name: /اختبار الدرس/ })).toBeInTheDocument();
     expect(screen.queryByRole('region', { name: 'نتائج الاختبار' })).toBeNull();
     expect(document.body.textContent).toMatch(/اختبار درس \(20 سؤالاً\)/);
+  });
+});
+
+describe('Phase 1 — the completion count is an owner declaration, not learner progress', () => {
+  it('labels the hero completion stat as a declared state, never as work the learner finished', () => {
+    render(<App />);
+
+    const stats = document.querySelector('.home-hero-stats')!;
+    expect(stats).toBeTruthy();
+
+    // RESULT: the third stat reads as an official declaration…
+    expect(textOf(stats)).toContain('اكتمال مُعلَن رسميًا');
+
+    // …and no phrasing anywhere on the home page can be read as the learner
+    // having completed a unit or a lesson.
+    const homeText = textOf(document.querySelector('.home-page'));
+    expect(homeText).not.toContain('وحدة مكتملة');
+    expect(homeText).not.toContain('أتممت');
+    expect(homeText).not.toContain('أكملت');
+    expect(homeText).not.toMatch(/إنجازك|تقدّمك/);
+
+    // The count itself is still driven purely by metadata.isComplete.
+    const expected = getAllUnits().filter((unit) => unit.metadata.isComplete).length;
+    const thirdStat = stats.querySelectorAll('li')[2];
+    expect(textOf(thirdStat.querySelector('.ar-number'))).toBe(toArabicDigits(expected));
   });
 });
 
