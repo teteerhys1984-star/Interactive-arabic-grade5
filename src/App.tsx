@@ -14,7 +14,7 @@ import { LESSON2_TEACHER_GUIDE } from './data/lesson2/teacherGuide';
 import { LESSON3_TEACHER_GUIDE } from './data/lesson3/teacherGuide';
 import { U2L1_TEACHER_GUIDE } from './data/unit2Lesson1/teacherGuide';
 import { U2L2_TEACHER_GUIDE } from './data/unit2Lesson2/teacherGuide';
-import { UnitCard } from './components/curriculum/UnitCard';
+import { HomePage } from './components/curriculum/HomePage';
 import { UnitPage } from './components/curriculum/UnitPage';
 import { LessonFlow } from './components/curriculum/LessonFlow';
 import { LessonShell } from './components/curriculum/LessonShell';
@@ -25,7 +25,9 @@ import { Unit1ReviewSolutions } from './components/teacher/Unit1ReviewSolutions'
 import { TeacherAreaShell } from './components/teacher/TeacherAreaShell';
 import { AssessmentShell } from './components/assessment/AssessmentShell';
 import { TestSolutions } from './components/assessment/TestSolutions';
-import { ArabicNumber, LatinText } from './components/common/BiDi';
+import { LatinText } from './components/common/BiDi';
+import { EmptyState } from './components/ui/PageChrome';
+import { Icon } from './components/ui/Icon';
 import { clearLearningLocation, LearningLocation, readLearningLocation } from './utils/learningProgress';
 
 type NavigationRoute =
@@ -142,6 +144,15 @@ export const App: React.FC = () => {
 
   const units = getAllUnits();
   const savedLocation = getValidLearningLocation();
+  // Everything the home page shows about the saved position is resolved here,
+  // from the registry, and is `null` when the session has no valid location.
+  const savedLesson = savedLocation ? getLessonById(savedLocation.lessonId)?.lesson : undefined;
+  const savedUnit = savedLocation ? getUnitById(savedLocation.unitId) : undefined;
+  const savedStepIndex = savedLesson && savedLocation
+    ? savedLesson.steps.findIndex((step) => step.id === savedLocation.stepId)
+    : -1;
+  const savedStepNumber = savedStepIndex >= 0 ? savedStepIndex + 1 : null;
+  const savedStepTotal = savedLesson ? savedLesson.steps.length : null;
 
   const handleGoHome = () => {
     setLesson1IrabOpen(false);
@@ -161,15 +172,19 @@ export const App: React.FC = () => {
 
   return (
     <div className="app-root" dir="rtl" lang="ar">
+      <a className="skip-to-content" href="#main-content">
+        تجاوز إلى المحتوى
+      </a>
+
       <header className="app-header">
         <div className="header-container">
-          <div className="brand-area" onClick={handleGoHome} style={{ cursor: 'pointer' }}>
-            <div className="brand-emblem" aria-hidden="true">ض</div>
-            <div className="brand-text-block">
+          <button type="button" className="brand-area" onClick={handleGoHome}>
+            <span className="brand-emblem" aria-hidden="true">ض</span>
+            <span className="brand-text-block">
               <span className="brand-title">اللغة العربية التفاعلية</span>
               <span className="brand-subtitle">الصف الخامس الأساسي · المنظومة التعليمية</span>
-            </div>
-          </div>
+            </span>
+          </button>
 
           <nav className="main-navigation" aria-label="التنقل الرئيسي">
             <button
@@ -199,64 +214,20 @@ export const App: React.FC = () => {
 
       <main className={`app-main ${route.view === 'lesson' ? 'app-main-lesson' : ''}`} id="main-content">
         {route.view === 'home' && (
-          <section className="units-section">
-            <div className="section-header">
-              <h1>الوحدات الدراسية</h1>
-              <p>اختر وحدة لعرض دروسها بترتيب المنهج.</p>
-            </div>
-
-            {savedLocation ? (
-              <section className="learning-resume" aria-label="متابعة التعلّم">
-                <div>
-                  <span className="learning-resume-kicker">آخر موضع وصلت إليه</span>
-                  <h2>{getLessonById(savedLocation.lessonId)?.lesson.metadata.title}</h2>
-                  <p>
-                    {getUnitById(savedLocation.unitId)?.metadata.title}
-                    {' · '}
-                    الخطوة{' '}
-                    <ArabicNumber
-                      value={(getLessonById(savedLocation.lessonId)?.lesson.steps.findIndex((step) => step.id === savedLocation.stepId) ?? -1) + 1}
-                    />
-                    {' من '}
-                    <ArabicNumber value={getLessonById(savedLocation.lessonId)?.lesson.steps.length ?? 0} />
-                  </p>
-                </div>
-                <button type="button" className="btn btn-primary" onClick={() => handleSelectLesson(savedLocation.lessonId)}>
-                  متابعة التعلّم
-                </button>
-              </section>
-            ) : units[0]?.lessons[0] ? (
-              <section className="learning-resume learning-start" aria-label="بداية التعلّم">
-                <div>
-                  <span className="learning-resume-kicker">بداية واضحة</span>
-                  <h2>{units[0].lessons[0].metadata.title}</h2>
-                  <p>ابدأ من أول درس مسجل في المنهج.</p>
-                </div>
-                <button type="button" className="btn btn-primary" onClick={() => handleOpenUnit(units[0].metadata.id)}>
-                  ابدأ من أول درس
-                </button>
-              </section>
-            ) : null}
-
-            {units.length === 0 ? (
-              <div className="empty-state-card">
-                <span className="empty-icon" aria-hidden="true">📚</span>
-                <h3>في انتظار تزويد صفحات الكتاب المدرسي</h3>
-                <p>لم يتم إدراج أي دروس أو وحدات تخمينية أو وهمية التزاماً بالمعايير الصارمة لنزاهة المنهج.</p>
-              </div>
-            ) : (
-              <div className="units-grid">
-                {units.map((unit) => (
-                  <UnitCard
-                    key={unit.metadata.id}
-                    unit={unit}
-                    onOpenUnit={() => handleOpenUnit(unit.metadata.id)}
-                    hasSavedLocation={savedLocation?.unitId === unit.metadata.id}
-                  />
-                ))}
-              </div>
-            )}
-          </section>
+          <HomePage
+            units={units}
+            savedLocation={savedLocation}
+            savedLessonLabel={savedLesson?.metadata.title ?? null}
+            savedUnitLabel={savedUnit?.metadata.title ?? null}
+            savedStepNumber={savedStepNumber}
+            savedStepTotal={savedStepTotal}
+            getReview={getUnitReviewByUnitId}
+            isUnitTestAvailable={isUnitTestAvailable}
+            onOpenUnit={handleOpenUnit}
+            onSelectLesson={handleSelectLesson}
+            onOpenReview={(unitId) => setRoute({ view: 'unit_review', unitId })}
+            onOpenUnitTest={(unitId) => setRoute({ view: 'unit_test', unitId })}
+          />
         )}
 
         {route.view === 'unit' &&
@@ -264,10 +235,16 @@ export const App: React.FC = () => {
             const unit = getUnitById(route.unitId);
             if (!unit) {
               return (
-                <div className="empty-state-card">
-                  <h2>الوحدة غير موجودة</h2>
-                  <button type="button" className="btn btn-primary" onClick={handleGoHome}>العودة إلى الوحدات</button>
-                </div>
+                <EmptyState
+                  icon={<Icon name="book" size={26} />}
+                  title="الوحدة غير موجودة"
+                  description="قد يكون الرابط قديمًا أو أن الوحدة لم تُسجَّل بعد."
+                  action={
+                    <button type="button" className="btn btn-primary" onClick={handleGoHome}>
+                      العودة إلى الوحدات
+                    </button>
+                  }
+                />
               );
             }
             const review = getUnitReviewByUnitId(unit.metadata.id);
@@ -295,10 +272,16 @@ export const App: React.FC = () => {
             const result = getLessonById(route.lessonId);
             if (!result) {
               return (
-                <div className="empty-state-card">
-                  <h3>الدرس غير موجود</h3>
-                  <button type="button" className="btn btn-primary" onClick={handleGoHome}>العودة للقائمة</button>
-                </div>
+                <EmptyState
+                  icon={<Icon name="book" size={26} />}
+                  title="الدرس غير موجود"
+                  description="لم يُعثر على هذا الدرس في سجلّ المنهج."
+                  action={
+                    <button type="button" className="btn btn-primary" onClick={handleGoHome}>
+                      العودة للقائمة
+                    </button>
+                  }
+                />
               );
             }
             // Lesson 1 keeps its dedicated source-fidelity renderer while sharing
@@ -345,14 +328,24 @@ export const App: React.FC = () => {
             const test = getLessonTestByLessonId(route.lessonId);
             if (!test) {
               return (
-                <div className="empty-state-card">
-                  <h3>لا يتوفر اختبار لهذا الدرس</h3>
-                  <button type="button" className="btn btn-primary" onClick={() => {
-                    const lesson = getLessonById(route.lessonId)?.lesson;
-                    if (lesson) handleOpenUnit(lesson.metadata.unitId);
-                    else handleGoHome();
-                  }}>العودة إلى الوحدة</button>
-                </div>
+                <EmptyState
+                  icon={<Icon name="exam" size={26} />}
+                  title="لا يتوفر اختبار لهذا الدرس"
+                  description="لم يُسجَّل اختبار معتمد لهذا الدرس في المصدر."
+                  action={
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => {
+                        const lesson = getLessonById(route.lessonId)?.lesson;
+                        if (lesson) handleOpenUnit(lesson.metadata.unitId);
+                        else handleGoHome();
+                      }}
+                    >
+                      العودة إلى الوحدة
+                    </button>
+                  }
+                />
               );
             }
             return (
@@ -367,19 +360,30 @@ export const App: React.FC = () => {
           (() => {
             if (!isUnitTestAvailable(route.unitId)) {
               return (
-                <div className="empty-state-card">
-                  <h3>اختبار الوحدة غير متاح قبل اكتمال الوحدة رسمياً</h3>
-                  <button type="button" className="btn btn-primary" onClick={handleReturnToUnit(route.unitId)}>العودة إلى الوحدة</button>
-                </div>
+                <EmptyState
+                  icon={<Icon name="lock" size={26} />}
+                  title="اختبار الوحدة غير متاح قبل اكتمال الوحدة رسمياً"
+                  description="يُفتح اختبار الوحدة فقط بعد إعلان صاحب المشروع أن آخر درس في الوحدة قد سُجّل."
+                  action={
+                    <button type="button" className="btn btn-primary" onClick={handleReturnToUnit(route.unitId)}>
+                      العودة إلى الوحدة
+                    </button>
+                  }
+                />
               );
             }
             const test = getUnitTestByUnitId(route.unitId);
             if (!test) {
               return (
-                <div className="empty-state-card">
-                  <h3>لا يتوفر اختبار لهذه الوحدة</h3>
-                  <button type="button" className="btn btn-primary" onClick={handleReturnToUnit(route.unitId)}>العودة إلى الوحدة</button>
-                </div>
+                <EmptyState
+                  icon={<Icon name="exam" size={26} />}
+                  title="لا يتوفر اختبار لهذه الوحدة"
+                  action={
+                    <button type="button" className="btn btn-primary" onClick={handleReturnToUnit(route.unitId)}>
+                      العودة إلى الوحدة
+                    </button>
+                  }
+                />
               );
             }
             return <AssessmentShell test={test} onExit={handleReturnToUnit(route.unitId)} />;
@@ -390,10 +394,15 @@ export const App: React.FC = () => {
             const review = getUnitReviewByUnitId(route.unitId);
             if (!review) {
               return (
-                <div className="empty-state-card">
-                  <h3>لا يتوفر تقويم رسمي مسجَّل لهذه الوحدة</h3>
-                  <button type="button" className="btn btn-primary" onClick={handleReturnToUnit(route.unitId)}>العودة إلى الوحدة</button>
-                </div>
+                <EmptyState
+                  icon={<Icon name="review" size={26} />}
+                  title="لا يتوفر تقويم رسمي مسجَّل لهذه الوحدة"
+                  action={
+                    <button type="button" className="btn btn-primary" onClick={handleReturnToUnit(route.unitId)}>
+                      العودة إلى الوحدة
+                    </button>
+                  }
+                />
               );
             }
             return <Unit1ReviewFlow review={review} onExit={handleReturnToUnit(route.unitId)} />;
