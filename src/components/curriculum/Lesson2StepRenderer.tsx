@@ -6,6 +6,7 @@ import { AnswerReveal, AnswerRevealProps } from '../common/AnswerReveal';
 import { getLesson2Activity, Lesson2Activity, Lesson2Interaction } from '../../data/lesson2/activities';
 import { LESSON2_STEP_CONTENT, Lesson2Block } from '../../data/lesson2/content';
 import { clearDraft, readDraft, writeDraft } from '../../utils/draftStorage';
+import { Lesson2Explanations } from './Lesson2Explanations';
 
 const LESSON2_DRAFT_SCOPE = 'lesson2';
 
@@ -60,7 +61,11 @@ export const Lesson2StepRenderer: React.FC<{ step: LessonStep }> = ({ step }) =>
   return (
     <div className="step-renderer lesson2-step-renderer">
       {content.blocks.map((block, index) => (
-        <Lesson2BlockView key={`${step.id}-${index}`} block={block} />
+        <React.Fragment key={`${step.id}-${index}`}>
+          <Lesson2BlockView block={block} />
+          {block.kind === 'explanation' && step.id === 'l2-s5' && block.heading === 'كيف أتحقق؟' && <Lesson2Explanations stepId="l2-s5" />}
+          {block.kind === 'explanation' && step.id === 'l2-s6' && block.heading === 'طريقة فحص سريعة' && <Lesson2Explanations stepId="l2-s6" />}
+        </React.Fragment>
       ))}
     </div>
   );
