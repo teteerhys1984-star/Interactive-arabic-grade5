@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LessonStep } from '../../types/curriculum';
+import { LessonStep, SourceReference } from '../../types/curriculum';
 import { ArabicNumber } from '../common/BiDi';
 import { SourceBadge } from '../common/SourceBadge';
 import { AnswerReveal, AnswerRevealProps } from '../common/AnswerReveal';
@@ -66,16 +66,56 @@ export const Lesson2StepRenderer: React.FC<{ step: LessonStep }> = ({ step }) =>
   );
 };
 
+// --- Extracted Common Components ---
+
+const Lesson2CommonDraftTextArea: React.FC<{
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  rows?: number;
+  placeholder?: string;
+}> = ({ id, label, value, onChange, rows = 3, placeholder = 'اكتب إجابتك هنا…' }) => (
+  <label className="inter-field" htmlFor={id}>
+    <span className="inter-label">{label}</span>
+              <textarea
+      id={id}
+      className="inter-textarea"
+      rows={rows}
+      value={value}
+      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => onChange(e.target.value)}
+      placeholder={placeholder}
+    />
+  </label>
+);
+
+const Lesson2CommonSourceGapInteraction: React.FC<{ reason: string; preservedPrompt?: string }> = ({ reason, preservedPrompt }) => (
+  <div className="l2-interaction-gap">
+    {preservedPrompt && <p className="l2-preserved-prompt">المطلوب المحفوظ: {preservedPrompt}</p>}
+    <p>{reason}</p>
+  </div>
+);
+
+const Lesson2BlockHeader: React.FC<{
+  label: string;
+  source: SourceReference;
+  heading: string;
+}> = ({ label, source, heading }) => (
+  <>
+    <header className="block-source-head">
+      <span className="source-label-original">{label}</span>
+      <SourceBadge source={source} />
+    </header>
+    <h3 className="block-heading">{heading}</h3>
+  </>
+);
+
 const Lesson2BlockView: React.FC<{ block: Lesson2Block }> = ({ block }) => {
   switch (block.kind) {
     case 'source_info':
       return (
         <section className={`l2-source-info ${block.availability === 'gap' ? 'l2-source-gap-panel' : ''}`}>
-          <header className="block-source-head">
-            <span className="source-label-original">مادة موثقة من المصدر</span>
-            <SourceBadge source={block.source} />
-          </header>
-          <h3 className="block-heading">{block.heading}</h3>
+          <Lesson2BlockHeader label="مادة موثقة من المصدر" source={block.source} heading={block.heading} />
           <ul className="l2-source-info-list">
             {block.lines.map((line) => <li key={line}>{line}</li>)}
           </ul>
@@ -89,11 +129,7 @@ const Lesson2BlockView: React.FC<{ block: Lesson2Block }> = ({ block }) => {
     case 'source_sentences':
       return (
         <section className="block-source-sentences">
-          <header className="block-source-head">
-            <span className="source-label-original">النص الأصلي من المصدر</span>
-            <SourceBadge source={block.source} />
-          </header>
-          <h3 className="block-heading">{block.heading}</h3>
+          <Lesson2BlockHeader label="النص الأصلي من المصدر" source={block.source} heading={block.heading} />
           <ul className="source-sentence-list">
             {block.sentences.map((sentence) => <li key={sentence}>{sentence}</li>)}
           </ul>
@@ -102,11 +138,7 @@ const Lesson2BlockView: React.FC<{ block: Lesson2Block }> = ({ block }) => {
     case 'vocab':
       return (
         <section className="block-vocab">
-          <header className="block-source-head">
-            <span className="source-label-original">معجم الكلمات (من المصدر)</span>
-            <SourceBadge source={block.source} />
-          </header>
-          <h3 className="block-heading">{block.heading}</h3>
+          <Lesson2BlockHeader label="معجم الكلمات (من المصدر)" source={block.source} heading={block.heading} />
           <div className="vocab-grid">
             {block.items.map((item) => (
               <article className="vocab-card" key={item.term}>
@@ -120,11 +152,7 @@ const Lesson2BlockView: React.FC<{ block: Lesson2Block }> = ({ block }) => {
     case 'rule':
       return (
         <section className="block-rule">
-          <header className="block-source-head">
-            <span className="source-label-original">القاعدة (من المصدر)</span>
-            <SourceBadge source={block.source} />
-          </header>
-          <h3 className="block-heading">{block.heading}</h3>
+          <Lesson2BlockHeader label="القاعدة (من المصدر)" source={block.source} heading={block.heading} />
           <div className="rule-box">
             {block.lines.map((line) => <p key={line}>{line}</p>)}
           </div>
@@ -133,11 +161,7 @@ const Lesson2BlockView: React.FC<{ block: Lesson2Block }> = ({ block }) => {
     case 'instruction':
       return (
         <section className="block-instruction">
-          <header className="block-source-head">
-            <span className="source-label-original">توجيه من المصدر</span>
-            <SourceBadge source={block.source} />
-          </header>
-          <h3 className="block-heading">{block.heading}</h3>
+          <Lesson2BlockHeader label="توجيه من المصدر" source={block.source} heading={block.heading} />
           <p className="instruction-text">{block.text}</p>
         </section>
       );
@@ -262,43 +286,15 @@ interface InteractionProps {
   update: (id: string, value: string) => void;
 }
 
-const DraftTextArea: React.FC<{
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  rows?: number;
-  placeholder?: string;
-}> = ({ id, label, value, onChange, rows = 3, placeholder = 'اكتب إجابتك هنا…' }) => (
-  <label className="inter-field" htmlFor={id}>
-    <span className="inter-label">{label}</span>
-    <textarea
-      id={id}
-      className="inter-textarea"
-      rows={rows}
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      placeholder={placeholder}
-    />
-  </label>
-);
-
-const SourceGapInteraction: React.FC<{ reason: string; preservedPrompt?: string }> = ({ reason, preservedPrompt }) => (
-  <div className="l2-interaction-gap">
-    {preservedPrompt && <p className="l2-preserved-prompt">المطلوب المحفوظ: {preservedPrompt}</p>}
-    <p>{reason}</p>
-  </div>
-);
-
 const Lesson2InteractionView: React.FC<InteractionProps> = ({ interaction, values, update }) => {
   switch (interaction.kind) {
     case 'source_gap':
-      return <SourceGapInteraction reason={interaction.reason} preservedPrompt={interaction.preservedPrompt} />;
+      return <Lesson2CommonSourceGapInteraction reason={interaction.reason} preservedPrompt={interaction.preservedPrompt} />;
     case 'text_fields':
       return (
         <div className="inter-text-inputs">
           {interaction.fields.map((field) => field.multiline ? (
-            <DraftTextArea
+            <Lesson2CommonDraftTextArea
               key={field.id}
               id={`l2-${field.id}`}
               label={field.label}
@@ -307,24 +303,24 @@ const Lesson2InteractionView: React.FC<InteractionProps> = ({ interaction, value
               placeholder={field.placeholder}
             />
           ) : (
-            <label className="inter-field" key={field.id} htmlFor={`l2-${field.id}`}>
-              <span className="inter-label">{field.label}</span>
-              <input
-                id={`l2-${field.id}`}
-                className="inter-input"
-                type="text"
-                value={values[field.id] || ''}
-                onChange={(event) => update(field.id, event.target.value)}
-                placeholder={field.placeholder || 'اكتب إجابتك هنا'}
-              />
-            </label>
+              <label className="inter-field" key={field.id} htmlFor={`l2-${field.id}`}>
+                <span className="inter-label">{field.label}</span>
+                <input
+                  id={`l2-${field.id}`}
+                  className="inter-input"
+                  type="text"
+                  value={values[field.id] || ''}
+                  onChange={(e) => update(field.id, e.target.value)}
+                  placeholder={field.placeholder || 'اكتب إجابتك هنا'}
+                />
+              </label>
           ))}
         </div>
       );
     case 'single_choice':
       return (
         <div className="inter-choices" role="radiogroup" aria-label="خيارات النشاط">
-          {interaction.disabledReason && <SourceGapInteraction reason={interaction.disabledReason} />}
+          {interaction.disabledReason && <Lesson2CommonSourceGapInteraction reason={interaction.disabledReason} />}
           {interaction.choices.map((choice) => {
             const selected = values.choice === choice.id;
             return (
@@ -363,7 +359,7 @@ const Lesson2InteractionView: React.FC<InteractionProps> = ({ interaction, value
       );
     case 'write':
       return (
-        <DraftTextArea
+        <Lesson2CommonDraftTextArea
           id="l2-write"
           label={interaction.label || 'مساحة الكتابة'}
           rows={interaction.rows || 4}
@@ -376,7 +372,7 @@ const Lesson2InteractionView: React.FC<InteractionProps> = ({ interaction, value
       return (
         <div className="l2-speak-panel">
           {interaction.disabledReason ? (
-            <SourceGapInteraction reason={interaction.disabledReason} />
+            <Lesson2CommonSourceGapInteraction reason={interaction.disabledReason} />
           ) : (
             <>
               <p className="inter-speak-note">🗣 أداء شفهي: حضّر كلامك ثم نفّذه أمام زملائك أو معلمك.</p>
@@ -385,7 +381,7 @@ const Lesson2InteractionView: React.FC<InteractionProps> = ({ interaction, value
                   {interaction.criteria.map((criterion) => <li key={criterion}>{criterion}</li>)}
                 </ul>
               )}
-              <DraftTextArea
+              <Lesson2CommonDraftTextArea
                 id="l2-speech-prep"
                 label={interaction.preparationLabel || 'مخطط أدائي'}
                 value={values.speech || ''}
@@ -405,7 +401,7 @@ const Lesson2InteractionView: React.FC<InteractionProps> = ({ interaction, value
               <span aria-hidden="true">←</span>
               <select
                 value={values[`match-${left.id}`] || ''}
-                onChange={(event) => update(`match-${left.id}`, event.target.value)}
+                onChange={(e) => update(`match-${left.id}`, e.target.value)}
                 aria-label={`مطابقة ${left.text}`}
               >
                 <option value="">اختر المقابل</option>
@@ -416,7 +412,7 @@ const Lesson2InteractionView: React.FC<InteractionProps> = ({ interaction, value
         </div>
       );
     case 'ordering': {
-      if (interaction.disabledReason) return <SourceGapInteraction reason={interaction.disabledReason} />;
+      if (interaction.disabledReason) return <Lesson2CommonSourceGapInteraction reason={interaction.disabledReason} />;
       const initialOrder = interaction.items.map((item) => item.id).join('|');
       const itemIds = (values.order || initialOrder).split('|').filter(Boolean);
       const move = (currentIndex: number, direction: -1 | 1) => {
@@ -452,9 +448,9 @@ const Lesson2InteractionView: React.FC<InteractionProps> = ({ interaction, value
           {interaction.items.map((item) => (
             <label className="l2-classification-row" key={item.id}>
               <span>{item.text}</span>
-              <select
+                <select
                 value={values[`classify-${item.id}`] || ''}
-                onChange={(event) => update(`classify-${item.id}`, event.target.value)}
+                onChange={(e) => update(`classify-${item.id}`, e.target.value)}
                 aria-label={`تصنيف ${item.text}`}
               >
                 <option value="">اختر التصنيف</option>
@@ -472,17 +468,17 @@ const Lesson2InteractionView: React.FC<InteractionProps> = ({ interaction, value
             <section>
               <h4>حقوقي</h4>
               <ul>{interaction.rights.map((right) => <li key={right}>{right}</li>)}</ul>
-              <DraftTextArea id="l2-right-1" label="حق أضيفه ١" value={values.right1 || ''} onChange={(value) => update('right1', value)} rows={2} />
-              <DraftTextArea id="l2-right-2" label="حق أضيفه ٢" value={values.right2 || ''} onChange={(value) => update('right2', value)} rows={2} />
+              <Lesson2CommonDraftTextArea id="l2-right-1" label="حق أضيفه ١" value={values.right1 || ''} onChange={(value) => update('right1', value)} rows={2} />
+              <Lesson2CommonDraftTextArea id="l2-right-2" label="حق أضيفه ٢" value={values.right2 || ''} onChange={(value) => update('right2', value)} rows={2} />
             </section>
             <section>
               <h4>واجباتي</h4>
               <ul>{interaction.duties.map((duty) => <li key={duty}>{duty}</li>)}</ul>
-              <DraftTextArea id="l2-duty-1" label="واجب أضيفه ١" value={values.duty1 || ''} onChange={(value) => update('duty1', value)} rows={2} />
-              <DraftTextArea id="l2-duty-2" label="واجب أضيفه ٢" value={values.duty2 || ''} onChange={(value) => update('duty2', value)} rows={2} />
+              <Lesson2CommonDraftTextArea id="l2-duty-1" label="واجب أضيفه ١" value={values.duty1 || ''} onChange={(value) => update('duty1', value)} rows={2} />
+              <Lesson2CommonDraftTextArea id="l2-duty-2" label="واجب أضيفه ٢" value={values.duty2 || ''} onChange={(value) => update('duty2', value)} rows={2} />
             </section>
           </div>
-          <DraftTextArea id="l2-balance-reason" label="كيف يصبح الميزان متوازناً؟" value={values.balanceReason || ''} onChange={(value) => update('balanceReason', value)} />
+          <Lesson2CommonDraftTextArea id="l2-balance-reason" label="كيف يصبح الميزان متوازناً؟" value={values.balanceReason || ''} onChange={(value) => update('balanceReason', value)} />
         </div>
       );
     case 'interview_plan':
@@ -508,20 +504,20 @@ const Lesson2InteractionView: React.FC<InteractionProps> = ({ interaction, value
             ))}
           </ol>
           <div className="l2-interview-fields">
-            <DraftTextArea id="l2-interview-topic" label="موضوع المقابلة" value={values.topic || ''} onChange={(value) => update('topic', value)} rows={2} />
-            <DraftTextArea id="l2-interview-opening" label="عبارة الافتتاح والخاتمة" value={values.opening || ''} onChange={(value) => update('opening', value)} rows={2} />
-            <DraftTextArea id="l2-interview-questions" label="أسئلتي القصيرة المباشرة" value={values.questions || ''} onChange={(value) => update('questions', value)} rows={4} />
+            <Lesson2CommonDraftTextArea id="l2-interview-topic" label="موضوع المقابلة" value={values.topic || ''} onChange={(value) => update('topic', value)} rows={2} />
+            <Lesson2CommonDraftTextArea id="l2-interview-opening" label="عبارة الافتتاح والخاتمة" value={values.opening || ''} onChange={(value) => update('opening', value)} rows={2} />
+            <Lesson2CommonDraftTextArea id="l2-interview-questions" label="أسئلتي القصيرة المباشرة" value={values.questions || ''} onChange={(value) => update('questions', value)} rows={4} />
           </div>
         </div>
       );
     case 'handwriting':
       return interaction.disabledReason ? (
-        <SourceGapInteraction reason={interaction.disabledReason} />
+        <Lesson2CommonSourceGapInteraction reason={interaction.disabledReason} />
       ) : (
         <div className="l2-handwriting-workspace">
           <p className="l2-interaction-instruction">{interaction.modelDescription}</p>
           {interaction.modelText && <p className="l2-calligraphy-model">{interaction.modelText}</p>}
-          <DraftTextArea id="l2-handwriting" label="اكتب محاكاتك أو ملاحظتك عن الهمزة والمد والألف" value={values.handwriting || ''} onChange={(value) => update('handwriting', value)} rows={4} />
+          <Lesson2CommonDraftTextArea id="l2-handwriting" label="اكتب محاكاتك أو ملاحظتك عن الهمزة والمد والألف" value={values.handwriting || ''} onChange={(value) => update('handwriting', value)} rows={4} />
         </div>
       );
     default:
