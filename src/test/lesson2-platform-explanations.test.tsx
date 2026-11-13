@@ -73,9 +73,10 @@ describe('Lesson 2 platform explanations', () => {
     fireEvent.click(within(classify).getByRole('button', { name: 'تحقّق' }));
     expect(within(classify).getByRole('status')).toHaveTextContent('أخذ هنا فعل ماضٍ');
     const reason = exercise('أعلّل همزة القطع');
+    expect(within(reason).getByText('لماذا كُتبت الهمزة في الفعل الماضي أقبلَ همزة قطع؟')).toBeInTheDocument();
     select(reason, 'السبب', 'past3');
     fireEvent.click(within(reason).getByRole('button', { name: 'تحقّق' }));
-    expect(within(reason).getByRole('status')).toHaveTextContent('أقبل فعل رباعي وليس ثلاثيًا');
+    expect(within(reason).getByRole('status')).toHaveTextContent('أقبلَ فعل رباعي وليس ثلاثيًا');
     expect(within(reason).getByRole('status')).toHaveTextContent('لأنها في فعل ماضٍ رباعي');
     select(reason, 'السبب', 'past4');
     expect(within(reason).queryByRole('status')).not.toBeInTheDocument();
