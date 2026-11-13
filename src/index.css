@@ -3502,6 +3502,332 @@ h4 { font-size: var(--text-lg); }
   }
 }
 
+/* ===== Lesson 2 platform panels (steps l2-s5 / l2-s6) ===== */
+/* PR #17 — presentation & accessibility polish only. Content, prompts,    */
+/* options, answer keys, and the draft contract are untouched.            */
+
+.l2-platform-panel-header h3 {
+  margin-top: .2rem;
+  margin-bottom: 0;
+}
+
+.l2-platform-body {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 2vw, 1.35rem);
+  padding: clamp(1rem, 2.4vw, 1.5rem);
+}
+
+.l2-platform-lead {
+  display: flex;
+  flex-direction: column;
+  gap: .62rem;
+  min-width: 0;
+}
+
+.l2-platform-lead p {
+  max-width: 78ch;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: .95rem;
+  line-height: var(--leading-prose);
+}
+
+/* ---- one exercise = title → question → fields → action → feedback ---- */
+.l2-platform-exercise {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  min-width: 0;
+  padding: clamp(.9rem, 2vw, 1.25rem);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface-card);
+}
+
+.l2-exercise-head {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  min-width: 0;
+}
+
+.l2-exercise-head .source-label-explain {
+  width: fit-content;
+  margin-bottom: 0;
+}
+
+.l2-exercise-head h4 {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 1.08rem;
+  line-height: var(--leading-snug);
+}
+
+.l2-exercise-prompt {
+  margin: 0;
+  color: var(--ink-700);
+  font-size: .95rem;
+  line-height: 1.9;
+}
+
+.l2-exercise-rows {
+  display: flex;
+  flex-direction: column;
+  gap: .95rem;
+  min-width: 0;
+}
+
+.l2-exercise-row {
+  min-width: 0;
+}
+
+.l2-exercise-row .inter-field {
+  gap: .42rem;
+}
+
+.l2-exercise-row .inter-label {
+  color: var(--ink-900);
+  font-size: .95rem;
+}
+
+/* ---- choice fields: visibly enabled, 46px target, explicit chevron --- */
+.l2-exercise-select {
+  width: 100%;
+  min-height: 46px;
+  padding-block: .6rem;
+  padding-inline-start: .9rem;
+  padding-inline-end: 2.4rem;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%230F4C81' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 8l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left .8rem center;
+  background-size: 14px 14px;
+  color: var(--ink-900);
+  font-family: var(--font-arabic-body);
+  font-size: var(--text-md);
+  line-height: 1.5;
+  cursor: pointer;
+  transition: border-color .16s ease, background-color .16s ease, box-shadow .16s ease;
+}
+
+[dir='ltr'] .l2-exercise-select {
+  background-position: right .8rem center;
+}
+
+.l2-exercise-select:hover {
+  border-color: var(--brand-600);
+  box-shadow: 0 0 0 3px var(--brand-50);
+}
+
+.l2-exercise-select:focus-visible {
+  outline: 3px solid var(--brand-500);
+  outline-offset: 2px;
+  border-color: var(--brand-700);
+}
+
+.l2-exercise-select:disabled {
+  background-color: var(--surface-muted);
+  color: var(--ink-500);
+  cursor: not-allowed;
+}
+
+.l2-exercise-row.is-correct .l2-exercise-select {
+  border-color: var(--ok-700);
+  background-color: var(--ok-50);
+}
+
+.l2-exercise-row.is-wrong .l2-exercise-select {
+  border-color: var(--danger-700);
+  border-style: dashed;
+  background-color: var(--danger-50);
+}
+
+/* ---- action row ------------------------------------------------------ */
+.l2-exercise-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .65rem 1rem;
+  padding-top: .15rem;
+}
+
+/* 44px minimum, kept visually in scale with the panel (no oversized CTA) */
+.l2-platform-exercise .l2-check-button {
+  min-height: 44px;
+  padding-block: .62rem;
+  padding-inline: 1.6rem;
+  font-size: var(--text-sm);
+}
+
+.l2-exercise-hint {
+  flex: 1 1 15rem;
+  min-width: 0;
+  margin: 0;
+  color: var(--ink-500);
+  font-size: .85rem;
+  line-height: 1.7;
+}
+
+.l2-exercise-save-alert {
+  margin: 0;
+  padding: .6rem .8rem;
+  border: 1px solid var(--warn-700);
+  border-radius: var(--r-sm);
+  background: var(--warn-50);
+  color: var(--warn-700);
+  font-size: .88rem;
+  line-height: 1.8;
+}
+
+/* ---- feedback: hue + icon + word + border style (never hue alone) ---- */
+.l2-platform-exercise .l2-check-result {
+  gap: .75rem;
+  margin-top: 0;
+  padding: clamp(.85rem, 1.8vw, 1.1rem);
+  border: 1px solid var(--brand-200);
+  border-radius: var(--r-md);
+  background: var(--brand-50);
+}
+
+.l2-check-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .45rem .6rem;
+  margin: 0;
+  color: var(--brand-800);
+  font-size: .92rem;
+  font-weight: 650;
+  line-height: 1.7;
+}
+
+.l2-check-summary .source-label-explain {
+  margin-bottom: 0;
+}
+
+.l2-check-lines {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.l2-check-line {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: .3rem .55rem;
+  padding: .7rem .85rem;
+  border: 1px solid;
+  border-inline-start-width: 5px;
+  border-radius: var(--r-sm);
+  background: #ffffff;
+}
+
+.l2-check-mark {
+  grid-column: 1;
+  grid-row: 1;
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.l2-check-verdict {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: start;
+  padding: .06rem .55rem;
+  border: 1px solid;
+  border-radius: var(--r-pill);
+  background: #ffffff;
+  font-size: .85rem;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+.l2-check-line-body {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin: 0;
+  color: var(--ink-700);
+  font-size: .92rem;
+  line-height: 1.9;
+}
+
+.l2-check-line-body strong {
+  color: var(--ink-900);
+}
+
+.l2-check-line.is-correct {
+  border-color: var(--ok-700);
+  border-style: solid;
+  background: var(--ok-50);
+}
+
+.l2-check-line.is-correct .l2-check-mark,
+.l2-check-line.is-correct .l2-check-verdict {
+  color: var(--ok-700);
+}
+
+.l2-check-line.is-wrong {
+  border-color: var(--danger-700);
+  border-style: dashed;
+  border-inline-start-style: solid;
+  background: var(--danger-50);
+}
+
+.l2-check-line.is-wrong .l2-check-mark,
+.l2-check-line.is-wrong .l2-check-verdict {
+  color: var(--danger-700);
+}
+
+@media (max-width: 700px) {
+  .l2-exercise-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .l2-platform-exercise .l2-check-button {
+    width: 100%;
+  }
+
+  .l2-exercise-hint {
+    flex: 0 0 auto;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .l2-exercise-select,
+  .l2-check-line {
+    border-width: 2px;
+  }
+
+  .l2-check-line {
+    border-inline-start-width: 5px;
+  }
+}
+
+@media (forced-colors: active) {
+  .l2-exercise-select {
+    border: 2px solid ButtonText;
+    background-image: none;
+    background-color: Canvas;
+    color: ButtonText;
+  }
+
+  .l2-check-line,
+  .l2-check-verdict {
+    border-color: CanvasText;
+  }
+}
+
 /* ================================================================== */
 /* تقويم الوحدة الأولى — Unit 1 Review (pages 36–38)                   */
 /* Student flow, unit-card entry, and the teacher solutions section.   */
