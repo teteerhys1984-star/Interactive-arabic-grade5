@@ -16,5 +16,8 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
+    // CSS is processed so tests can assert the design-system contract of the
+    // stylesheet they render against (e.g. the 44px minimum check button).
+    css: true,
   },
 });
