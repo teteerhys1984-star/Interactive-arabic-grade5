@@ -15,7 +15,7 @@ const getStep = (stepKey: string) => {
 
 // 1. Draft persistence: real cycle — write, save, unmount, re-render, verify restoration from storage
 describe('Lesson 2 Experimental — Draft persistence', () => {
-  it('saves, isolates, and restores Lesson 2 activity drafts when navigating steps', () => {
+  it('saves and restores a Lesson 2 activity draft after unmount and re-render', () => {
     // Start clean: remove any draft from prior runs.
     clearDraft('lesson2', 'L2-14-02');
 
@@ -55,6 +55,49 @@ describe('Lesson 2 Experimental — Draft persistence', () => {
 
     // Clean up so the draft does not leak into other tests.
     clearDraft('lesson2', 'L2-14-02');
+  });
+
+  it('isolates drafts between two activities on the same step', () => {
+    // Clear any prior drafts.
+    clearDraft('lesson2', 'L2-14-02');
+    clearDraft('lesson2', 'L2-14-01');
+
+    const step = getStep('l2-s3');
+    const { unmount } = render(<Lesson2StepRenderer step={step} />);
+
+    // Write to L2-14-02 (multiline textarea, wisdom field).
+    const widget1402 = screen.getByLabelText(/نشاط المصدر L2-14-02/);
+    const textarea1402 = within(widget1402).getAllByPlaceholderText('اكتب إجابتك هنا…')[0];
+    fireEvent.change(textarea1402, { target: { value: 'تنمو وتزداد' } });
+    fireEvent.click(within(widget1402).getByText('حفظ مسودة إجابتي'));
+
+    // Write to L2-14-01 (single-line input, plural-taj field).
+    const widget1401 = screen.getByLabelText(/نشاط المصدر L2-14-01/);
+    const input1401 = within(widget1401).getByLabelText(/تاج/);
+    fireEvent.change(input1401, { target: { value: 'تيجان' } });
+    fireEvent.click(within(widget1401).getByText('حفظ مسودة إجابتي'));
+
+    // Both drafts must be stored independently — no cross-contamination.
+    expect(readDraft('lesson2', 'L2-14-02')).toEqual({ wisdom: 'تنمو وتزداد' });
+    expect(readDraft('lesson2', 'L2-14-01')).toEqual({ 'plural-taj': 'تيجان' });
+
+    // Unmount and re-render — both drafts must be restored independently.
+    unmount();
+    const { unmount: unmount2 } = render(<Lesson2StepRenderer step={step} />);
+
+    const restoredWidget1402 = screen.getByLabelText(/نشاط المصدر L2-14-02/);
+    const restoredTextarea1402 = within(restoredWidget1402).getAllByPlaceholderText('اكتب إجابتك هنا…')[0] as HTMLTextAreaElement;
+    expect(restoredTextarea1402.value).toBe('تنمو وتزداد');
+
+    const restoredWidget1401 = screen.getByLabelText(/نشاط المصدر L2-14-01/);
+    const restoredInput1401 = within(restoredWidget1401).getByLabelText(/تاج/) as HTMLInputElement;
+    expect(restoredInput1401.value).toBe('تيجان');
+
+    unmount2();
+
+    // Clean up.
+    clearDraft('lesson2', 'L2-14-02');
+    clearDraft('lesson2', 'L2-14-01');
   });
 });
 
