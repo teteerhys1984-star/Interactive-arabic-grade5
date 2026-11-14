@@ -5457,19 +5457,16 @@ h4 { font-size: var(--text-lg); }
   grid-template-columns: 2rem minmax(0, 1fr) auto;
 }
 
-.lesson-step-current-marker {
-  grid-column: 3;
-  grid-row: 1;
-}
-
+/*
+ * A current row gets a fourth track — [number] [name] [«الآن» label] [dot].
+ * The label and the dot must each own a cell: they used to be forced into
+ * column 3 together, so the dot (`justify-self: center`) was painted over the
+ * label's last letters in RTL. Only the current row carries the extra track, so
+ * every other row keeps exactly the width and wrapping it had before.
+ */
 .lesson-nav-item.is-current .lesson-nav-button {
+  grid-template-columns: 2rem minmax(0, 1fr) auto auto;
   border-inline-start-width: 3px;
-}
-
-.lesson-nav-item.is-current .lesson-step-status {
-  grid-column: 3;
-  grid-row: 1;
-  margin-inline-end: .7rem;
 }
 
 .lesson-shell-footer {
