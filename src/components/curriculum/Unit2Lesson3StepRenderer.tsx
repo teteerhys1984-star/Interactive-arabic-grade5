@@ -8,6 +8,7 @@ import {
   U2L3Interaction,
 } from '../../data/unit2Lesson3/activities';
 import { U2L3Block, U2L3_POEM, U2L3_STEP_CONTENT } from '../../data/unit2Lesson3/content';
+import { U2L3_LISTENING_AUDIO_GAP, U2L3_LOCKED_SOURCE_NOTES } from '../../data/unit2Lesson3/sourceMeta';
 import { clearDraft, readDraft, writeDraft } from '../../utils/draftStorage';
 import './unit2Lesson3.css';
 
@@ -22,6 +23,21 @@ import './unit2Lesson3.css';
  * NO grading widget: the supplied source carries no approved key.
  */
 const U2L3_DRAFT_SCOPE = 'unit2lesson3';
+
+// Student-facing summaries are keyed by the unchanged, authoritative source notes.
+// Unknown notes fail closed rather than exposing internal audit details.
+const STUDENT_SOURCE_NOTES: Record<string, string> = {
+  [U2L3_LOCKED_SOURCE_NOTES.openingRiddle]: 'اللفظان في الإطار مثبتان. بعض الحركات الدقيقة فقط تحتاج صورة أوضح.',
+  [U2L3_LOCKED_SOURCE_NOTES.poemLastStanza]: 'الكلمة الأخيرة في الشطر الأول غير واضحة في الصورة المتاحة، لذلك لم نكتبها. الشطر الثاني مثبت.',
+  [U2L3_LOCKED_SOURCE_NOTES.finalEvaluationDiagram]: 'بعض البطاقات والدوائر فارغة في الكتاب. اكتب عملك وفق المثال؛ لا تضع المنصة إجابات في الفراغات.',
+  [U2L3_LOCKED_SOURCE_NOTES.handwritingWords]: 'شاهد أشكال الخط في الكتاب ونفّذها يدويًا على ورقة مسطّرة؛ لا يعرضها خط الحاسوب كما رُسمت.',
+  [U2L3_LISTENING_AUDIO_GAP]: 'تسجيل الاستماع غير متوفر. اقرأ نص ص٦٢ بصوت عالٍ أو اطلب إلى معلّمك قراءته، ثم نفّذ النشاطين.',
+  [U2L3_LOCKED_SOURCE_NOTES.dictationAudio]: 'تسجيل الإملاء غير متوفر. ينفّذ المعلم الإملاء بقراءة النص المطبوع.',
+  [U2L3_LOCKED_SOURCE_NOTES.tashkeel]: 'بعض الحركات في نصوص الصفحات ٦٢ و٦٣ و٦٤ و٦٦ لا تظهر بوضوح كافٍ في الصور المتاحة، لذلك لم نضف حركات غير مؤكدة.',
+};
+
+const studentSourceNote = (note: string | undefined): string =>
+  (note && STUDENT_SOURCE_NOTES[note]) || 'توجد ملاحظة حول المصدر؛ راجع معلّمك.';
 
 export const Unit2Lesson3StepRenderer: React.FC<{ step: LessonStep }> = ({ step }) => {
   const content = U2L3_STEP_CONTENT[step.id];
@@ -42,7 +58,7 @@ type SourceBlock = Extract<U2L3Block, { kind: 'source_info' | 'source_sentences'
 const SourceSection: React.FC<{ label: string; block: SourceBlock; children: React.ReactNode }> = ({ label, block, children }) => (
   <section className={`l2-source-info ${block.kind === 'source_info' && block.gap ? 'l2-source-gap-panel' : ''}`}>
     <header className="block-source-head">
-      <span className="source-label-original">{label}</span>
+      <span className={block.kind === 'source_info' && block.gap ? 'source-label-explain' : 'source-label-original'}>{label}</span>
       <SourceBadge source={block.source} />
     </header>
     {'heading' in block && <h3 className="block-heading">{block.heading}</h3>}
@@ -54,11 +70,12 @@ const U2L3BlockView: React.FC<{ block: U2L3Block }> = ({ block }) => {
   switch (block.kind) {
     case 'source_info':
       return (
-        <SourceSection label="مادة موثقة من الكتاب" block={block}>
+        <SourceSection label={block.gap ? 'ملاحظة المنصة' : 'مادة موثقة من الكتاب'} block={block}>
           <ul className="l2-source-info-list">
-            {block.lines.map((line, index) => <li key={index}>{line}</li>)}
+            {block.gap
+              ? <li>{studentSourceNote(block.source.uncertaintyNote)}</li>
+              : block.lines.map((line, index) => <li key={index}>{line}</li>)}
           </ul>
-          {block.gap && <aside className="l2-gap-notice" role="note"><strong>حدّ مصدر معلن:</strong> يلزم قصّ أدق؛ لم يُثبت النصّ غير المحسوم.</aside>}
         </SourceSection>
       );
     case 'source_sentences':
@@ -133,7 +150,7 @@ const U2L3BlockView: React.FC<{ block: U2L3Block }> = ({ block }) => {
         <section className="block-explanation l2-platform-explanation">
           <span className="source-label-explain">ملاحظة المنصة</span>
           <h3 className="block-heading">{block.heading}</h3>
-          {block.lines.map((line, index) => <p key={index}>{line}</p>)}
+          {block.lines.map((line, index) => <p key={index}>{line === U2L3_LOCKED_SOURCE_NOTES.tashkeel ? studentSourceNote(line) : line}</p>)}
         </section>
       );
     case 'activity': {
@@ -201,7 +218,7 @@ const U2L3ActivityWidget: React.FC<{ activity: U2L3Activity }> = ({ activity }) 
       )}
       {activity.gapNote && (
         <aside className="l2-gap-notice" role="note">
-          <strong>حدّ مصدر معلن:</strong> {activity.gapNote}
+          <strong>ملاحظة المنصة:</strong> {studentSourceNote(activity.gapNote)}
         </aside>
       )}
       <U2L3InteractionView
