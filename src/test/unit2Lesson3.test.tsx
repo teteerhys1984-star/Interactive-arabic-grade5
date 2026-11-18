@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { App } from '../App';
 import { LessonFlow } from '../components/curriculum/LessonFlow';
+import { Unit2Lesson3StepRenderer } from '../components/curriculum/Unit2Lesson3StepRenderer';
 import {
   curriculumRegistry,
   getLessonById,
@@ -168,4 +169,66 @@ describe('Unit 2 Lesson 3 — بِالْعِلْمِ تَرْقَى (ص٦١–٦
     fireEvent.click(screen.getByRole('button', { name: /^الخطوة 9:/ }));
     expect(screen.queryByRole('button', { name: /بدء اختبار الدرس/ })).toBeNull();
   });
+  it('labels and summarizes every source limit without exposing audit details', () => {
+    const expected: Record<number, string[]> = {
+      0: [
+        'اللفظان في الإطار مثبتان. بعض الحركات الدقيقة فقط تحتاج صورة أوضح.',
+        'تسجيل الاستماع غير متوفر. اقرأ نص ص٦٢ بصوت عالٍ أو اطلب إلى معلّمك قراءته، ثم نفّذ النشاطين.',
+      ],
+      1: ['الكلمة الأخيرة في الشطر الأول غير واضحة في الصورة المتاحة، لذلك لم نكتبها. الشطر الثاني مثبت.'],
+      5: ['بعض البطاقات والدوائر فارغة في الكتاب. اكتب عملك وفق المثال؛ لا تضع المنصة إجابات في الفراغات.'],
+      6: [
+        'تسجيل الإملاء غير متوفر. ينفّذ المعلم الإملاء بقراءة النص المطبوع.',
+        'شاهد أشكال الخط في الكتاب ونفّذها يدويًا على ورقة مسطّرة؛ لا يعرضها خط الحاسوب كما رُسمت.',
+      ],
+      7: ['شاهد أشكال الخط في الكتاب ونفّذها يدويًا على ورقة مسطّرة؛ لا يعرضها خط الحاسوب كما رُسمت.'],
+      8: [
+        'بعض الحركات في نصوص الصفحات ٦٢ و٦٣ و٦٤ و٦٦ لا تظهر بوضوح كافٍ في الصور المتاحة، لذلك لم نضف حركات غير مؤكدة.',
+        'لا يُسجَّل اختبار للدرس لأن المرفقات لا تتضمّن مفتاح إجابة معتمد؛ ولا تُنشئ المنصة أسئلة أو خيارات أو مفاتيح تصحيح من عندها.',
+      ],
+    };
+    const view = render(<Unit2Lesson3StepRenderer step={U2L3_STEPS[0]} />);
+    U2L3_STEPS.forEach((step, index) => {
+      view.rerender(<Unit2Lesson3StepRenderer step={step} />);
+      (expected[index] || []).forEach((text) => expect(screen.getAllByText(text).length).toBeGreaterThan(0));
+      const blocks = U2L3_STEP_CONTENT[step.id].blocks;
+      const gapBlocks = blocks.filter((block) => block.kind === 'source_info' && block.gap);
+      const gapActivities = blocks.filter((block) => block.kind === 'activity' && U2L3_ACTIVITY_BY_ID[block.activityId]?.gapNote);
+      expect(view.container.querySelectorAll('.l2-source-gap-panel')).toHaveLength(gapBlocks.length);
+      expect(view.container.querySelectorAll('.l2-activity-gap .l2-gap-notice')).toHaveLength(gapActivities.length);
+      view.container.querySelectorAll('.l2-source-gap-panel').forEach((panel) => {
+        expect(panel.querySelector('.block-source-head')).toHaveTextContent('ملاحظة المنصة');
+        expect(panel.querySelector('.source-badge')).toBeInTheDocument();
+        expect(panel.querySelector('h3')).toHaveTextContent('حدّ مصدر معلن');
+      });
+      view.container.querySelectorAll('.l2-activity-gap .l2-gap-notice').forEach((notice) => {
+        expect(notice.querySelector('strong')).toHaveTextContent('ملاحظة المنصة');
+        expect(notice).not.toHaveTextContent('حدّ مصدر معلن');
+      });
+      view.container.querySelectorAll('.l2-platform-explanation').forEach((note) => {
+        expect(note.querySelector('.source-label-explain')).toHaveTextContent('ملاحظة المنصة');
+      });
+      expect(view.container).not.toHaveTextContent(/image-\d+|OCR|١٢٠٠٪|1200%|يلزم قصّ أدق؛ لم يُثبت النصّ غير المحسوم/i);
+    });
+  });
+
+  it('keeps ordinary source labels, unresolved text, and blank learner work intact', () => {
+    const view = render(<Unit2Lesson3StepRenderer step={U2L3_STEPS[0]} />);
+    const opening = screen.getByRole('heading', { name: 'افتتاح الدرس (من الكتاب)' }).closest('section')!;
+    expect(within(opening).getByText('مادة موثقة من الكتاب')).toBeInTheDocument();
+    expect(within(opening).getByText(U2L3_SOURCE_TEXT.openingRiddle)).toBeInTheDocument();
+    view.rerender(<Unit2Lesson3StepRenderer step={U2L3_STEPS[1]} />);
+    expect(screen.getByText(/لُغَةُ الضّادِ \[موضع غير محسوم بصرياً\]/)).toBeInTheDocument();
+    view.rerender(<Unit2Lesson3StepRenderer step={U2L3_STEPS[5]} />);
+    const diagram = screen.getByLabelText('نشاط المصدر U2L3-65-02');
+    expect(within(diagram).getByLabelText('عملي وفق المثال')).toHaveValue('');
+    expect(within(diagram).queryByRole('button', { name: /تحقق|الإجابة/ })).toBeNull();
+    view.rerender(<Unit2Lesson3StepRenderer step={U2L3_STEPS[8]} />);
+    const cards = screen.getByLabelText('نشاط المصدر U2L3-68-01');
+    expect(within(cards).queryByRole('note')).toBeNull();
+    const fields = within(cards).getAllByRole('textbox');
+    expect(fields).toHaveLength(4);
+    fields.forEach((field) => expect(field).toHaveValue(''));
+  });
+
 });
