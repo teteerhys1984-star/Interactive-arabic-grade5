@@ -246,12 +246,13 @@ describe('Phase 1 — assessment entries', () => {
     expect(within(unit2Panel).queryByRole('button', { name: /اختبار الوحدة/ })).toBeNull();
     expect(within(unit2Panel).getByText('يُفتح بعد إعلان اكتمال الوحدة رسميًا')).toBeInTheDocument();
 
-    // Unit 2 page: same rule, and the review entry does not appear either.
+    // Unit 2 page: the unit test stays locked (no owner completion declaration),
+    // while the approved unit review of pages 69–70 is offered as its own entry.
     fireEvent.click(screen.getByRole('button', { name: `عرض دروس ${UNIT2}` }));
     expect(screen.getByRole('heading', { level: 1, name: UNIT2 })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'ابدأ اختبار الوحدة' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'ابدأ المراجعة' })).toBeNull();
-    expect(document.querySelector('.unit-page-assessments')).toBeNull();
+    expect(screen.getByRole('button', { name: 'ابدأ المراجعة' })).toBeInTheDocument();
+    expect(document.querySelector('.unit-page-assessments')).not.toBeNull();
 
     // RESULT: the three lessons of Unit 2 are still listed in curriculum order.
     const rows = document.querySelectorAll('.unit-page-lesson-row .unit-page-lesson-copy h3');
