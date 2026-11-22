@@ -7127,3 +7127,209 @@ h4 { font-size: var(--text-lg); }
   background: #e6f4e6;
   border-color: #8fc98f;
 }
+
+/* ============================================================
+   Teacher solutions browser — units → lessons drill-down
+   («الأدلة وحلول التدريبات» inside the Teacher Area).
+   Additive styles only; the pre-existing teacher/guide/ledger
+   styles above are unchanged.
+   ============================================================ */
+.teacher-solutions-browser {
+  display: flex;
+  flex-direction: column;
+}
+
+.teacher-view-eyebrow {
+  margin: 0 0 0.2rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.teacher-view-title {
+  margin: 0 0 0.4rem;
+  font-size: 1.55rem;
+  line-height: 1.35;
+  color: var(--color-text-primary);
+}
+
+.teacher-view-title:focus {
+  outline: 3px solid var(--brand-500, #14795f);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.teacher-view-subtitle {
+  margin: 0 0 var(--space-md);
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+}
+
+.teacher-browse-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+}
+
+.teacher-unit-card,
+.teacher-lesson-card,
+.teacher-review-entry {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(16, 42, 36, 0.08));
+}
+
+.teacher-lesson-card--missing,
+.teacher-review-entry--missing {
+  background: var(--color-bg-subtle);
+  border: 1px dashed var(--color-border);
+  box-shadow: none;
+}
+
+.teacher-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.teacher-order-badge {
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.teacher-card-title {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+}
+
+.teacher-card-meta {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.teacher-card-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.teacher-card-cta-btn {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.teacher-missing-note {
+  margin: 0;
+  color: var(--color-warning);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.7;
+}
+
+.teacher-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.teacher-pill--ok {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.teacher-pill--muted {
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text-muted);
+}
+
+.teacher-pill--missing {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.teacher-backbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin: var(--space-sm) 0 var(--space-lg);
+}
+
+.teacher-section-heading {
+  margin: var(--space-xl) 0 var(--space-sm);
+  padding-top: var(--space-lg);
+  border-top: 2px solid var(--color-border-subtle);
+  font-size: 1.05rem;
+  color: var(--color-text-primary);
+}
+
+.teacher-review-section {
+  margin-top: var(--space-md);
+}
+
+.teacher-link-alert {
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning);
+  color: var(--color-warning);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-md);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.teacher-link-alert ul {
+  margin: 0.3rem 0 0;
+  padding-inline-start: 1.2rem;
+}
+
+.teacher-link-alert code {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-size: 0.85em;
+}
+
+/* Phones: single column, full-width CTAs, and a horizontally scrollable tab bar. */
+@media (max-width: 640px) {
+  .teacher-browse-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .teacher-card-cta-btn {
+    width: 100%;
+    align-self: stretch;
+  }
+
+  .teacher-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 0.35rem;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-btn {
+    white-space: nowrap;
+  }
+}

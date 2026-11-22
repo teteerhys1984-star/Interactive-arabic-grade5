@@ -414,14 +414,16 @@ describe('Unit 1 review — Student Area', () => {
 });
 
 describe('Unit 1 review — Teacher Area', () => {
-  it('keeps the teacher gate and adds an independent review-solutions section', () => {
+  it('keeps the teacher gate and moves the review solutions under Unit 1', () => {
     render(
       <TeacherAreaShell
         curriculum={curriculumRegistry}
         teacherGuides={TEACHER_GUIDES}
         tests={ALL_ASSESSMENTS}
         accessPassword="somer173"
-        reviewSolutions={<div>قسم حلول التقويم</div>}
+        unitReviewSolutions={[
+          { unitId: 'unit1', label: 'حلول تقويم الوحدة الأولى', content: <div>قسم حلول التقويم</div> },
+        ]}
       />,
     );
 
@@ -433,8 +435,14 @@ describe('Unit 1 review — Teacher Area', () => {
     expect(screen.queryByRole('tab', { name: 'حلول تقويم الوحدة الأولى' })).toBeNull();
 
     openTeacherArea();
-    const reviewTab = screen.getByRole('tab', { name: 'حلول تقويم الوحدة الأولى' });
-    fireEvent.click(reviewTab);
+    // The independent review tab is gone; the review is an entry under Unit 1.
+    expect(screen.queryByRole('tab', { name: 'حلول تقويم الوحدة الأولى' })).toBeNull();
+    fireEvent.click(screen.getByRole('tab', { name: 'الأدلة وحلول التدريبات' }));
+    expect(screen.queryByText('قسم حلول التقويم')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'عرض دروس وحلول الوحدة الأولى: أحلامي وطموحاتي' }));
+    // Not rendered as part of any lesson; only inside the review entry.
+    expect(screen.queryByText('قسم حلول التقويم')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'عرض حلول تقويم الوحدة الأولى' }));
     expect(screen.getByText('قسم حلول التقويم')).toBeInTheDocument();
 
     // Existing tabs still work as before.
@@ -446,7 +454,11 @@ describe('Unit 1 review — Teacher Area', () => {
     const { container } = render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'بوابة المعلم والإشراف' }));
     openTeacherArea();
-    fireEvent.click(screen.getByRole('tab', { name: 'حلول تقويم الوحدة الأولى' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'الأدلة وحلول التدريبات' }));
+    // No review solutions are loaded at the units level.
+    expect(container.querySelectorAll('.u1r-solution-card')).toHaveLength(0);
+    fireEvent.click(screen.getByRole('button', { name: 'عرض دروس وحلول الوحدة الأولى: أحلامي وطموحاتي' }));
+    fireEvent.click(screen.getByRole('button', { name: 'عرض حلول تقويم الوحدة الأولى' }));
 
     expect(screen.getAllByText('حلول تقويم الوحدة الأولى').length).toBeGreaterThan(0);
     // 10 printable source records (7 questions + timing + instructions + closing).
@@ -477,7 +489,9 @@ describe('Unit 1 review — Teacher Area', () => {
     const { container } = render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'بوابة المعلم والإشراف' }));
     openTeacherArea();
-    fireEvent.click(screen.getByRole('tab', { name: 'حلول تقويم الوحدة الأولى' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'الأدلة وحلول التدريبات' }));
+    fireEvent.click(screen.getByRole('button', { name: 'عرض دروس وحلول الوحدة الأولى: أحلامي وطموحاتي' }));
+    fireEvent.click(screen.getByRole('button', { name: 'عرض حلول تقويم الوحدة الأولى' }));
 
     // Nothing is pending any more: no card, record or row is marked incomplete.
     expect(PENDING_SOURCE_SUBPART_IDS).toEqual([]);

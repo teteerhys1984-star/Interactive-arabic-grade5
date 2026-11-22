@@ -125,8 +125,10 @@ describe('Lesson 2 — source-lock implementation', () => {
     fireEvent.change(screen.getByLabelText('كلمة مرور المعلم'), { target: { value: 'somer173' } });
     fireEvent.click(screen.getByRole('button', { name: 'دخول بوابة المعلم' }));
     fireEvent.click(screen.getByRole('tab', { name: 'الأدلة وحلول التدريبات' }));
+    fireEvent.click(screen.getByRole('button', { name: 'عرض دروس وحلول الوحدة الأولى: أحلامي وطموحاتي' }));
+    fireEvent.click(screen.getByRole('button', { name: /^عرض حلول الدرس .*: بالرأي والرأي الآخر$/ }));
     expect(screen.getAllByText(/الحل النموذجي:/)).toHaveLength(53);
-    expect(screen.getByText(/دليل الدرس: الحلول النموذجية المفصلة/)).toBeInTheDocument();
+    expect(screen.getByText(/دليل الدرس الثاني: بالرأي والرأي الآخر/)).toBeInTheDocument();
   });
 
   it('renders all 20 explanatory test solutions separately from the test interface', () => {

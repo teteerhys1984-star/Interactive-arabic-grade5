@@ -5,7 +5,6 @@ import {
   getLessonById,
   getUnitById,
   getUnitReviewByUnitId,
-  getUnitReviews,
   isUnitTestAvailable,
 } from './data/curriculumRegistry';
 import { ALL_ASSESSMENTS, getLessonTestByLessonId, getUnitTestByUnitId } from './data/assessments';
@@ -488,8 +487,19 @@ export const App: React.FC = () => {
             teacherGuides={TEACHER_GUIDES}
             tests={ALL_ASSESSMENTS}
             accessPassword="somer173"
-            reviewSolutions={getUnitReviews().length > 0 ? <Unit1ReviewSolutions /> : undefined}
-            reviewSectionLabel="حلول تقويم الوحدة الأولى"
+            unitReviewSolutions={[
+              {
+                unitId: 'unit1',
+                label: 'حلول تقويم الوحدة الأولى',
+                content: <Unit1ReviewSolutions />,
+              },
+              {
+                unitId: 'unit2',
+                label: 'تقويم الوحدة الثانية',
+                absenceNote:
+                  'لا توجد حلول معلم معتمدة لتقويم الوحدة الثانية حاليًا، ولن تُعرض حلول تقريبية أو تخمينية.',
+              },
+            ]}
           />
         )}
       </main>

@@ -271,6 +271,8 @@ describe('Curriculum, assessment and source-fidelity checks', () => {
     fireEvent.change(screen.getByLabelText('كلمة مرور المعلم'), { target: { value: 'somer173' } });
     fireEvent.click(screen.getByRole('button', { name: 'دخول بوابة المعلم' }));
     fireEvent.click(screen.getByRole('tab', { name: 'الأدلة وحلول التدريبات' }));
+    fireEvent.click(screen.getByRole('button', { name: 'عرض دروس وحلول الوحدة الأولى: أحلامي وطموحاتي' }));
+    fireEvent.click(screen.getByRole('button', { name: /^عرض حلول الدرس .*: السَّمَكَةُ الذَّهَبِيَّةُ$/ }));
     expect(screen.getAllByText(/الحل النموذجي:/)).toHaveLength(39);
     expect(screen.getByText('الأهداف التربوية')).toBeInTheDocument();
   });
