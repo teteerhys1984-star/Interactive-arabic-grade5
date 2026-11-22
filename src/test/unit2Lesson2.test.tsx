@@ -258,6 +258,8 @@ describe('Unit 2 Lesson 2 — الذَّكاءُ الاصطِناعيُّ source
     fireEvent.change(screen.getByLabelText('كلمة مرور المعلم'), { target: { value: 'somer173' } });
     fireEvent.click(screen.getByRole('button', { name: 'دخول بوابة المعلم' }));
     fireEvent.click(screen.getByRole('tab', { name: 'الأدلة وحلول التدريبات' }));
+    fireEvent.click(screen.getByRole('button', { name: 'عرض دروس وحلول الوحدة الثانية' }));
+    fireEvent.click(screen.getByRole('button', { name: /^عرض حلول الدرس .*: الذَّكاءُ الاصطِناعيُّ$/ }));
     expect(screen.getAllByText(/الحل النموذجي:/)).toHaveLength(51);
     expect(screen.getByText('شروح القواعد التفصيلية')).toBeInTheDocument();
     expect(screen.getByText('شروح الإملاء التفصيلية')).toBeInTheDocument();

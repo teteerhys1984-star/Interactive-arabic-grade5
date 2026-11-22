@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AssessmentTest, CurriculumRegistry, TeacherLessonGuide } from '../../types/curriculum';
 import { auditCurriculum, AuditReport } from '../../utils/audit';
 import { ArabicNumber, LatinText } from '../common/BiDi';
+import { TeacherSolutionsBrowser, UnitReviewSolutionsEntry } from './TeacherSolutionsBrowser';
 
 export interface TeacherAreaShellProps {
   curriculum: CurriculumRegistry;
@@ -10,12 +11,14 @@ export interface TeacherAreaShellProps {
   /** Client-side access gate for the separate Teacher Area. */
   accessPassword?: string;
   /**
-   * Optional independent section for the official unit review solutions
-   * (textbook «تقويم الوحدة»). Rendered as its own tab so the established
-   * lesson guides / audit tabs keep their current behaviour unchanged.
+   * Solutions for each unit's official «تقويم الوحدة», keyed explicitly by
+   * unit id. Units with a registered review (`unit.reviewId`) but no entry —
+   * or an entry without `content` — render the approved absence note instead
+   * of any invented solution. Rendered inside the «الأدلة وحلول التدريبات»
+   * tab as an independent entry under its unit, never as a separate tab and
+   * never inside a lesson.
    */
-  reviewSolutions?: React.ReactNode;
-  reviewSectionLabel?: string;
+  unitReviewSolutions?: UnitReviewSolutionsEntry[];
 }
 
 export const TeacherAreaShell: React.FC<TeacherAreaShellProps> = ({
@@ -23,10 +26,9 @@ export const TeacherAreaShell: React.FC<TeacherAreaShellProps> = ({
   teacherGuides = [],
   tests = [],
   accessPassword = 'somer173',
-  reviewSolutions,
-  reviewSectionLabel = 'حلول تقويم الوحدة الأولى',
+  unitReviewSolutions = [],
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'audit' | 'solutions' | 'review'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'audit' | 'solutions'>('overview');
   const [password, setPassword] = useState('');
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
@@ -102,16 +104,6 @@ export const TeacherAreaShell: React.FC<TeacherAreaShellProps> = ({
           >
             مدقق الجودة والنزاهة ({auditReport.issues.length})
           </button>
-          {reviewSolutions && (
-            <button
-              role="tab"
-              aria-selected={activeTab === 'review'}
-              className={`tab-btn ${activeTab === 'review' ? 'tab-active' : ''}`}
-              onClick={() => setActiveTab('review')}
-            >
-              {reviewSectionLabel}
-            </button>
-          )}
         </nav>
       </header>
 
@@ -148,118 +140,14 @@ export const TeacherAreaShell: React.FC<TeacherAreaShellProps> = ({
         </div>
       )}
 
-      {/* Separate section: official unit review solutions (تقويم الوحدة) */}
-      {activeTab === 'review' && reviewSolutions && (
-        <div className="teacher-tab-content">{reviewSolutions}</div>
-      )}
-
-      {/* Tab 2: Solutions */}
+      {/* Tab 2: Solutions — units → lessons → one lesson (plus independent unit reviews) */}
       {activeTab === 'solutions' && (
         <div className="teacher-tab-content">
-          {teacherGuides.length === 0 ? (
-            <div className="empty-state-card">
-              <span className="empty-icon" aria-hidden="true">📑</span>
-              <h3>لا توجد حلول أو أدلة مدرجة حالياً</h3>
-              <p>
-                ستُدرج الحلول النموذجية المفصلة وشروحات القواعد وتصويبات الأخطاء الشائعة فور استلام صور وصفحات الكتاب المدرسي وتفريغها رسمياً.
-              </p>
-            </div>
-          ) : (
-            <div className="solutions-list">
-              {teacherGuides.map((guide) => (
-                <div key={guide.lessonId} className="teacher-guide">
-                  <h3 className="guide-title">دليل الدرس: الحلول النموذجية المفصلة</h3>
-                  <div className="guide-objectives">
-                    <h4>الأهداف التربوية</h4>
-                    <ul>
-                      {guide.pedagogicalObjectives.map((o, i) => (
-                        <li key={i}>{o}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  {guide.grammarNotes && guide.grammarNotes.length > 0 && (
-                    <div className="guide-objectives">
-                      <h4>شروح القواعد التفصيلية</h4>
-                      <ul>
-                        {guide.grammarNotes.map((note, i) => (
-                          <li key={i}>{note}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {guide.spellingRules && guide.spellingRules.length > 0 && (
-                    <div className="guide-objectives">
-                      <h4>شروح الإملاء التفصيلية</h4>
-                      <ul>
-                        {guide.spellingRules.map((rule, i) => (
-                          <li key={i}>{rule}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {guide.sourceAlerts && guide.sourceAlerts.length > 0 && (
-                    <div className="guide-objectives teacher-source-alerts">
-                      <h4>تنبيهات حدود المصدر</h4>
-                      <ul>
-                        {guide.sourceAlerts.map((alert, i) => (
-                          <li key={i}>{alert}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {guide.sourceCoverage && (
-                    <details className="teacher-coverage-ledger">
-                      <summary>
-                        سجل تغطية المصدر: <ArabicNumber value={guide.sourceCoverage.length} /> نشاطاً
-                      </summary>
-                      <p>
-                        يثبت هذا السجل المسار: نشاط المصدر ← خطوة الدرس/نشاط الطالب ← حل المعلم.
-                      </p>
-                      <div className="teacher-coverage-table-wrap">
-                        <table>
-                          <thead>
-                            <tr>
-                              <th scope="col">المصدر</th>
-                              <th scope="col">الصفحة</th>
-                              <th scope="col">خطوة الدرس</th>
-                              <th scope="col">نشاط الطالب</th>
-                              <th scope="col">حل المعلم</th>
-                              <th scope="col">الحالة</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {guide.sourceCoverage.map((entry) => (
-                              <tr key={entry.sourceActivityId}>
-                                <td>{entry.sourceActivityId}</td>
-                                <td><ArabicNumber value={entry.pageNumber} /></td>
-                                <td>{entry.lessonStepId}</td>
-                                <td>{entry.lessonActivityId}</td>
-                                <td>{entry.teacherSolutionId}</td>
-                                <td>{entry.availability === 'available' ? 'ممثل' : 'فجوة مصدر معلنة'}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </details>
-                  )}
-                  {guide.exerciseSolutions.map((sol, i) => (
-                    <article key={i} className="guide-solution-card">
-                      <header className="guide-solution-head">
-                        <span className="guide-ex-name">{sol.sourceExercise}</span>
-                        <span className="guide-page">صفحة <ArabicNumber value={sol.pageNumber} /></span>
-                      </header>
-                      <p className="guide-answer">الحل النموذجي: {sol.officialSolution}</p>
-                      <p className="guide-explain">الشرح التربوي: {sol.didacticExplanation}</p>
-                      {sol.commonStudentMistakes?.map((m, j) => (
-                        <p key={j} className="guide-mistake">⚠ {m}</p>
-                      ))}
-                    </article>
-                  ))}
-                </div>
-              ))}
-            </div>
-          )}
+          <TeacherSolutionsBrowser
+            curriculum={curriculum}
+            teacherGuides={teacherGuides}
+            unitReviewSolutions={unitReviewSolutions}
+          />
         </div>
       )}
 
