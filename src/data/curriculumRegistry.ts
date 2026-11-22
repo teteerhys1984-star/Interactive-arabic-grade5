@@ -18,6 +18,14 @@ import { U2L2_STEPS } from './unit2Lesson2/content';
 import { u2l2Src, U2L2_LISTENING_AUDIO_GAP, U2L2_LOCKED_SOURCE_NOTES } from './unit2Lesson2/sourceMeta';
 import { U2L3_STEPS } from './unit2Lesson3/content';
 import { u2l3Src, U2L3_LISTENING_AUDIO_GAP, U2L3_LOCKED_SOURCE_NOTES } from './unit2Lesson3/sourceMeta';
+import { UNIT2_REVIEW_SOURCE_RECORDS } from './unit2Review/sourceAudit';
+import {
+  UNIT2_REVIEW_DOCUMENT_TITLE,
+  UNIT2_REVIEW_ENGLISH_LABEL,
+  UNIT2_REVIEW_ID,
+  UNIT2_REVIEW_TITLE,
+  UNIT2_REVIEW_UNIT_ID,
+} from './unit2Review/sourceMeta';
 
 /**
  * Official Curriculum Registry for Grade 5 Arabic.
@@ -285,9 +293,58 @@ const unit2: Unit = {
   },
   lessons: [unit2Lesson1, unit2Lesson2, unit2Lesson3],
   // unitTestId intentionally absent until the owner declares completion.
+  // Official textbook review («تقويم الوحدة الثانية», pages 69–70): an
+  // assessment extension that follows the three lessons. It is NOT a lesson and
+  // does NOT change the unit's completion state.
+  reviewId: UNIT2_REVIEW_ID,
 };
 
-export const unitReviews: UnitReview[] = [unit1Review];
+/**
+ * «تقويم الوحدة الثانية» — official unit review registration (pages 69–70).
+ *
+ * Linked to Unit 2 through `unit2.reviewId`, kept out of `unit2.lessons` so the
+ * lesson count, order and content are untouched, and registered with NO unit
+ * test: the unit stays incomplete.
+ *
+ * The printed counts are DERIVED from the audited source records; they are
+ * descriptive only, never rendered and never asserted by tests:
+ *  - question records = printed numbered questions,
+ *  - branch records   = printed branches,
+ *  - the whole array  = locked source records.
+ *
+ * `isCoverageVerified` stays false: two printed questions (٢ and ٤) have no
+ * student element by an explicit owner decision, and no approved teacher
+ * solutions exist for any question — and none may be invented.
+ */
+const unit2Review: UnitReview = {
+  metadata: {
+    id: UNIT2_REVIEW_ID,
+    unitId: UNIT2_REVIEW_UNIT_ID,
+    kind: 'unit_review',
+    title: UNIT2_REVIEW_TITLE,
+    englishLabel: UNIT2_REVIEW_ENGLISH_LABEL,
+    description:
+      'مراجعة لما تعلّمه الطالب في دروس الوحدة الثانية، وفق صفحتي تقويم الوحدة الرسميتين في الكتاب المدرسي (٦٩–٧٠).',
+    sourcePagesRange: { startPage: 69, endPage: 70 },
+    printedQuestions: UNIT2_REVIEW_SOURCE_RECORDS.filter((record) => record.kind === 'question').length,
+    printedBranches: UNIT2_REVIEW_SOURCE_RECORDS.filter((record) => record.kind === 'branch').length,
+    sourceRecords: UNIT2_REVIEW_SOURCE_RECORDS.length,
+    source: {
+      documentTitle: UNIT2_REVIEW_DOCUMENT_TITLE,
+      term: 1,
+      pageNumber: 69,
+      pageEndNumber: 70,
+      sectionName: 'تقويم الوحدة',
+      sourceType: 'textbook_exercise',
+      readabilityVerified: true,
+    },
+    coverageReportRef: 'docs/coverage/unit2-review-coverage.md',
+    sourceAuditRef: 'docs/source-locks/unit2-review-pages-69-70.md',
+    isCoverageVerified: false,
+  },
+};
+
+export const unitReviews: UnitReview[] = [unit1Review, unit2Review];
 
 export const curriculumRegistry: CurriculumRegistry = {
   grade: 5,

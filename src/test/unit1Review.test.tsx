@@ -80,7 +80,10 @@ describe('Unit 1 review (تقويم الوحدة الأولى) — structure and
     expect(review?.metadata.printedBranches).toBe(23);
     expect(review?.metadata.sourceRecords).toBe(10);
     expect(review?.metadata.isCoverageVerified).toBe(true);
-    expect(getUnitReviews()).toHaveLength(1);
+    expect(getUnitReviews().map((review) => review.metadata.id)).toEqual([
+      'unit1-review',
+      'unit2-review',
+    ]);
   });
 
   it('keeps the lesson tests and the 50-question unit test exactly as they were', () => {

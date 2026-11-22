@@ -21,6 +21,7 @@ import { LessonShell } from './components/curriculum/LessonShell';
 import { Lesson1StepRenderer } from './components/curriculum/Lesson1StepRenderer';
 import { Lesson1IrabPage } from './components/curriculum/Lesson1IrabPage';
 import { Unit1ReviewFlow } from './components/curriculum/Unit1ReviewFlow';
+import { Unit2ReviewFlow } from './components/curriculum/Unit2ReviewFlow';
 import { Unit1ReviewSolutions } from './components/teacher/Unit1ReviewSolutions';
 import { TeacherAreaShell } from './components/teacher/TeacherAreaShell';
 import { AssessmentShell } from './components/assessment/AssessmentShell';
@@ -405,7 +406,13 @@ export const App: React.FC = () => {
                 />
               );
             }
-            return <Unit1ReviewFlow review={review} onExit={handleReturnToUnit(route.unitId)} />;
+            // Each registered review renders through its own student flow; the
+            // route stays the same (`unit_review`) for every unit.
+            return review.metadata.unitId === 'unit2' ? (
+              <Unit2ReviewFlow review={review} onExit={handleReturnToUnit(route.unitId)} />
+            ) : (
+              <Unit1ReviewFlow review={review} onExit={handleReturnToUnit(route.unitId)} />
+            );
           })()}
 
         {route.view === 'solutions' &&
