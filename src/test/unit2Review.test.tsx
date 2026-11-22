@@ -94,9 +94,17 @@ describe('Unit 2 review (تقويم الوحدة الثانية) — registratio
       expect(record.status).toBe('implemented');
       expect(record.page).toBe(question.page);
       expect(record.text).toBe(question.instruction);
+
+      // The question stem keeps the full SourceReference of its audited record:
+      // page, sectionName, itemNumber and sourceType must all match exactly.
+      expect(question.source.pageNumber).toBe(record.source.pageNumber);
       expect(question.source.pageNumber).toBe(question.page);
+      expect(question.source.sectionName).toBe(record.source.sectionName);
+      expect(question.source.itemNumber).toBe(record.source.itemNumber);
+      expect(question.source.sourceType).toBe(record.source.sourceType);
+      expect(question.source.documentTitle).toBe(record.source.documentTitle);
       expect([69, 70]).toContain(question.source.pageNumber);
-      expect(question.source.readabilityVerified).toBe(true);
+      expect(question.source.readabilityVerified).toBe(record.source.readabilityVerified);
       expect(question.source.sectionName).toContain('تقويم الوحدة');
 
       // Every answer space must keep its own audited branch reference:
@@ -271,13 +279,15 @@ describe('Unit 2 review — no grading, no hints', () => {
       document.querySelectorAll('.u2r-reflections input'),
     ) as HTMLInputElement[];
     expect(reflectionInputs).toHaveLength(2);
-    fireEvent.change(reflectionInputs[0], { target: { value: 'تعلّمتُ البناء للمعلوم' } });
+    // Surrounding spaces are part of what the learner wrote: the summary must
+    // show the value verbatim, not a trimmed copy.
+    fireEvent.change(reflectionInputs[0], { target: { value: '  تعلّمتُ البناء للمعلوم  ' } });
     fireEvent.change(reflectionInputs[1], { target: { value: 'تحويل الجملة الاسمية' } });
 
     fireEvent.click(stepButtons()[stepButtons().length - 1]);
     const reflectionSummary = document.querySelector('[aria-label="ملخص التأمّل الختامي"]');
     expect(reflectionSummary).not.toBeNull();
-    expect(reflectionSummary?.textContent).toContain('تعلّمتُ البناء للمعلوم');
+    expect(reflectionSummary?.textContent).toContain('  تعلّمتُ البناء للمعلوم  ');
     expect(reflectionSummary?.textContent).toContain('تحويل الجملة الاسمية');
     // Still no grade, no correctness wording next to the reflections.
     expect(reflectionSummary?.textContent).not.toMatch(/صحيح|خطأ|درجة/);

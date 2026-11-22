@@ -265,11 +265,13 @@ export const Unit2ReviewFlow: React.FC<Unit2ReviewFlowProps> = ({ review, onExit
   );
 
   /* Only reflections the learner actually wrote are shown here — no placeholder
-     row, no score, and never a condition to finish. */
+     row, no score, and never a condition to finish.
+     `trim()` is used ONLY to decide whether the field is empty: the displayed
+     value is the learner's own text, unmodified, spaces included. */
   const reflectionAnswers = UNIT2_REVIEW_REFLECTIONS.map((reflection) => ({
     reflection,
-    value: (values[`${reflection.id}-value`] ?? '').trim(),
-  })).filter((entry) => entry.value.length > 0);
+    value: values[`${reflection.id}-value`] ?? '',
+  })).filter((entry) => entry.value.trim().length > 0);
 
   const renderFinish = () => (
     <div className="u2r-finish">
