@@ -143,12 +143,34 @@ export const Unit2ReviewFlow: React.FC<Unit2ReviewFlowProps> = ({ review, onExit
   /* Field rendering — always empty, never hinted                        */
   /* ------------------------------------------------------------------ */
 
-  const renderField = (field: Unit2ReviewField, extraClass = '') => {
+  /**
+   * An answer space either belongs to an audited printed branch (the five
+   * questions) or to the two un-numbered closing reflections (no audit record).
+   */
+  type RenderableField = Pick<Unit2ReviewField, 'id' | 'label' | 'rows' | 'printedText' | 'tone'> &
+    Partial<Pick<Unit2ReviewField, 'sourceRecordId' | 'source'>>;
+
+  const renderField = (field: RenderableField, extraClass = '') => {
     const key = unit2AnswerKey(field.id);
     const value = values[key] ?? '';
     const tone = field.tone ? ` u2r-tone-${field.tone}` : '';
+    /* Source traceability of the branch this answer space belongs to. */
+    const sourceAttrs: Record<string, string | number> =
+      field.source && field.sourceRecordId
+        ? {
+            'data-source-record': field.sourceRecordId,
+            'data-source-page': field.source.pageNumber,
+            'data-source-section': field.source.sectionName ?? '',
+            'data-source-item': field.source.itemNumber ?? '',
+            'data-source-type': field.source.sourceType,
+          }
+        : {};
     return (
-      <div className={`u2r-field${tone}${extraClass ? ` ${extraClass}` : ''}`} key={field.id}>
+      <div
+        className={`u2r-field${tone}${extraClass ? ` ${extraClass}` : ''}`}
+        key={field.id}
+        {...sourceAttrs}
+      >
         {field.printedText && <span className="u2r-field-printed">{field.printedText}</span>}
         {field.rows > 1 ? (
           <textarea
@@ -207,10 +229,11 @@ export const Unit2ReviewFlow: React.FC<Unit2ReviewFlowProps> = ({ review, onExit
       {question.sharedText && <p className="u2r-shared-text">{question.sharedText}</p>}
 
       {question.layout === 'dialogue' ? (
+        /* Two printed bubbles, no visible names: the characters are never named
+           or described, and each field keeps its aria-label for screen readers. */
         <div className="u2r-dialogue">
           {question.fields.map((field) => (
             <div className="u2r-dialogue-bubble" key={field.id}>
-              <span className="u2r-bubble-label">{field.label}</span>
               {renderField(field, 'u2r-bubble-field')}
             </div>
           ))}
@@ -240,6 +263,13 @@ export const Unit2ReviewFlow: React.FC<Unit2ReviewFlowProps> = ({ review, onExit
       </div>
     </div>
   );
+
+  /* Only reflections the learner actually wrote are shown here — no placeholder
+     row, no score, and never a condition to finish. */
+  const reflectionAnswers = UNIT2_REVIEW_REFLECTIONS.map((reflection) => ({
+    reflection,
+    value: (values[`${reflection.id}-value`] ?? '').trim(),
+  })).filter((entry) => entry.value.length > 0);
 
   const renderFinish = () => (
     <div className="u2r-finish">
@@ -281,6 +311,31 @@ export const Unit2ReviewFlow: React.FC<Unit2ReviewFlowProps> = ({ review, onExit
           );
         })}
       </div>
+
+      {reflectionAnswers.length > 0 && (
+        <section className="u2r-summary-card" aria-label="ملخص التأمّل الختامي">
+          <header className="u2r-summary-head">
+            <span className="u2r-branch-badge">تأمّل ختامي (اختياري)</span>
+            <button
+              type="button"
+              className="btn btn-ghost btn-small"
+              onClick={() =>
+                goToStep(steps.findIndex((step) => step.id === 'u2r-step-reflections'))
+              }
+            >
+              تعديل التأمّل
+            </button>
+          </header>
+          <ul className="u2r-summary-items">
+            {reflectionAnswers.map(({ reflection, value }) => (
+              <li key={reflection.id}>
+                <span className="u2r-summary-label">{reflection.printedText}</span>
+                <p className="u2r-summary-value">{value}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="u2r-finish-actions">
         {!isFinished ? (

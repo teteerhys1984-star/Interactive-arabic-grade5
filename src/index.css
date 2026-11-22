@@ -7026,12 +7026,6 @@ h4 { font-size: var(--text-lg); }
   gap: .4rem;
 }
 
-.u2r-bubble-label {
-  font-size: .8rem;
-  font-weight: 700;
-  color: var(--color-text-muted);
-}
-
 .u2r-bubble-field .u2r-input {
   width: 100%;
 }

@@ -88,7 +88,7 @@ describe('Unit 2 review (تقويم الوحدة الثانية) — registratio
     expect(unit2.metadata.sourcePagesRange).toEqual({ startPage: 40, endPage: 68 });
   });
 
-  it('4. links every implemented element to an audited source record and excludes questions ٢ and ٤', () => {
+  it('4. links every implemented question AND branch to an audited source record and excludes questions ٢ and ٤', () => {
     for (const question of UNIT2_REVIEW_QUESTIONS) {
       const record = unit2ReviewRecord(`U2R-${question.page}-Q${question.printedNumber}`);
       expect(record.status).toBe('implemented');
@@ -98,14 +98,50 @@ describe('Unit 2 review (تقويم الوحدة الثانية) — registratio
       expect([69, 70]).toContain(question.source.pageNumber);
       expect(question.source.readabilityVerified).toBe(true);
       expect(question.source.sectionName).toContain('تقويم الوحدة');
-    }
 
-    // No field may point at an excluded printed question.
-    for (const question of UNIT2_REVIEW_QUESTIONS) {
+      // Every answer space must keep its own audited branch reference:
+      // page, sectionName, itemNumber and sourceType are all verified.
       for (const field of question.fields) {
+        const branch = unit2ReviewRecord(field.sourceRecordId);
+        expect(branch.kind).toBe('branch');
+        expect(branch.status).toBe('implemented');
+        expect(branch.printedNumber).toBe(question.printedNumber);
+        expect(branch.page).toBe(field.source.pageNumber);
+        expect([69, 70]).toContain(branch.page);
+        expect(branch.text.length).toBeGreaterThan(0);
+
+        expect(field.source.pageNumber).toBe(branch.source.pageNumber);
+        expect(field.source.sectionName).toBe(branch.source.sectionName);
+        expect(field.source.itemNumber).toBe(branch.source.itemNumber);
+        expect(field.source.sourceType).toBe(branch.source.sourceType);
+        expect(field.source.sectionName).toContain('تقويم الوحدة');
+        expect(field.source.readabilityVerified).toBe(true);
         expect(field.id).not.toMatch(/-Q2|-Q4/);
       }
     }
+
+    // The rendered fields carry the same branch traceability in the DOM.
+    render(<App />);
+    openUnit2Review();
+    const seenRecords: string[] = [];
+    for (let index = 0; index < stepButtons().length; index += 1) {
+      fireEvent.click(stepButtons()[index]);
+      const renderedFields = Array.from(
+        document.querySelectorAll('.u2r-field[data-source-record]'),
+      ) as HTMLElement[];
+      for (const rendered of renderedFields) {
+        const recordId = rendered.getAttribute('data-source-record')!;
+        const branch = unit2ReviewRecord(recordId);
+        expect(branch.status).toBe('implemented');
+        expect(rendered.getAttribute('data-source-page')).toBe(String(branch.source.pageNumber));
+        expect(rendered.getAttribute('data-source-section')).toBe(branch.source.sectionName ?? '');
+        expect(rendered.getAttribute('data-source-item')).toBe(String(branch.source.itemNumber));
+        expect(rendered.getAttribute('data-source-type')).toBe(branch.source.sourceType);
+        seenRecords.push(recordId);
+      }
+    }
+    expect(seenRecords.length).toBeGreaterThanOrEqual(10);
+    expect(seenRecords.every((recordId) => !/-Q2|-Q4/.test(recordId))).toBe(true);
 
     // The audit records the two excluded questions, and nothing else, as excluded.
     const excludedNumbers = Array.from(
@@ -179,6 +215,20 @@ describe('Unit 2 review — no grading, no hints', () => {
       }
       expect(shellText()).not.toMatch(/تلميح|مثال|اكتب هنا/);
     }
+
+    // Question 5: two bubbles with no visible character label — the wording is
+    // an aria-label only, and no name or description of either figure is shown.
+    const q5Index = stepButtons().findIndex((button) => button.textContent?.trim() === 'السؤال ٥');
+    fireEvent.click(stepButtons()[q5Index]);
+    expect(shellText()).not.toContain('الشخصية');
+    expect(document.querySelectorAll('.u2r-bubble-label')).toHaveLength(0);
+    const bubbles = Array.from(document.querySelectorAll('.u2r-dialogue textarea'));
+    expect(bubbles).toHaveLength(2);
+    expect(bubbles.map((bubble) => bubble.getAttribute('aria-label'))).toEqual([
+      'الفقاعة ١',
+      'الفقاعة ٢',
+    ]);
+    expect(bubbles.every((bubble) => bubble.getAttribute('placeholder') === null)).toBe(true);
   });
 
   it('9. never exposes an answer key, a score or teacher solutions', () => {
@@ -198,7 +248,7 @@ describe('Unit 2 review — no grading, no hints', () => {
     ).toBe(false);
   });
 
-  it('10. allows finishing without filling the two optional reflections', () => {
+  it('10. allows finishing without the reflections, and shows them in the summary when written', () => {
     render(<App />);
     openUnit2Review();
 
@@ -206,8 +256,31 @@ describe('Unit 2 review — no grading, no hints', () => {
       fireEvent.click(screen.getByRole('button', { name: /الخطوة التالية/ }));
     }
     expect(shellText()).toContain('مراجعة الإجابات');
+    // Nothing written → no reflection block in the closing summary.
+    expect(document.querySelector('[aria-label="ملخص التأمّل الختامي"]')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'إنهاء المراجعة' }));
     expect(screen.getByRole('status')).toHaveTextContent('تم إنهاء مراجعتك');
+
+    // Write the two optional reflections, then return to the summary.
+    fireEvent.click(screen.getByRole('button', { name: 'متابعة المراجعة والتعديل' }));
+    const reflectionIndex = stepButtons().findIndex(
+      (button) => button.textContent?.trim() === 'تأمّل ختامي (اختياري)',
+    );
+    fireEvent.click(stepButtons()[reflectionIndex]);
+    const reflectionInputs = Array.from(
+      document.querySelectorAll('.u2r-reflections input'),
+    ) as HTMLInputElement[];
+    expect(reflectionInputs).toHaveLength(2);
+    fireEvent.change(reflectionInputs[0], { target: { value: 'تعلّمتُ البناء للمعلوم' } });
+    fireEvent.change(reflectionInputs[1], { target: { value: 'تحويل الجملة الاسمية' } });
+
+    fireEvent.click(stepButtons()[stepButtons().length - 1]);
+    const reflectionSummary = document.querySelector('[aria-label="ملخص التأمّل الختامي"]');
+    expect(reflectionSummary).not.toBeNull();
+    expect(reflectionSummary?.textContent).toContain('تعلّمتُ البناء للمعلوم');
+    expect(reflectionSummary?.textContent).toContain('تحويل الجملة الاسمية');
+    // Still no grade, no correctness wording next to the reflections.
+    expect(reflectionSummary?.textContent).not.toMatch(/صحيح|خطأ|درجة/);
   });
 
   it('11. renders the audited wording verbatim for every implemented question', () => {

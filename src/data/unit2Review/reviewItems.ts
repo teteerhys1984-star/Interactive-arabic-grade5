@@ -1,5 +1,5 @@
 import { SourceReference } from '../../types/curriculum';
-import { unit2ReviewRecord } from './sourceAudit';
+import { Unit2ReviewSourceRecord, unit2ReviewRecord } from './sourceAudit';
 
 /**
  * «تقويم الوحدة الثانية» — student-side inventory (pages 69–70).
@@ -24,7 +24,15 @@ import { unit2ReviewRecord } from './sourceAudit';
 export interface Unit2ReviewField {
   /** Stable learner-answer key. */
   id: string;
-  /** Platform wording used as the accessible name and in the closing summary. */
+  /**
+   * Audited branch record this answer space belongs to. Every implemented
+   * branch therefore keeps its own page / sectionName / itemNumber / sourceType
+   * traceability, exactly like the printed page.
+   */
+  sourceRecordId: string;
+  /** Source reference of the audited branch record (page, item, section, type). */
+  source: SourceReference;
+  /** Platform wording used as the accessible name (`aria-label`) only — never rendered visually. */
   label: string;
   /** Printed height of the answer space (1 = one printed line). */
   rows: number;
@@ -60,6 +68,33 @@ export interface Unit2ReviewReflection {
 
 const questionSource = (id: string): SourceReference => unit2ReviewRecord(id).source;
 
+/**
+ * Builds one answer space from its audited branch record, so a field can never
+ * drift from the printed page it comes from.
+ */
+const fieldFromRecord = (
+  recordId: string,
+  options: {
+    label?: string;
+    rows?: number;
+    tone?: Unit2ReviewField['tone'];
+    printedText?: false;
+    /** Several printed bubbles may share one printed branch record. */
+    idSuffix?: string;
+  } = {},
+): Unit2ReviewField => {
+  const record: Unit2ReviewSourceRecord = unit2ReviewRecord(recordId);
+  return {
+    id: `${recordId}${options.idSuffix ? `-${options.idSuffix}` : ''}-value`,
+    sourceRecordId: recordId,
+    source: record.source,
+    label: options.label ?? record.label,
+    rows: options.rows ?? 1,
+    ...(options.tone ? { tone: options.tone } : {}),
+    ...(options.printedText === false ? {} : { printedText: record.text }),
+  };
+};
+
 /* ------------------------------------------------------------------ */
 /* Question 1 — page 69                                               */
 /* ------------------------------------------------------------------ */
@@ -74,12 +109,9 @@ const q1: Unit2ReviewQuestion = {
   section: 'السؤال ١',
   instruction: unit2ReviewRecord('U2R-69-Q1').text,
   layout: 'statement_list',
-  fields: Q1_BRANCH_IDS.map((recordId, index) => ({
-    id: `${recordId}-value`,
-    label: Q1_BRANCH_LABELS[index],
-    rows: 1,
-    printedText: unit2ReviewRecord(recordId).text,
-  })),
+  fields: Q1_BRANCH_IDS.map((recordId, index) =>
+    fieldFromRecord(recordId, { label: Q1_BRANCH_LABELS[index] }),
+  ),
   source: questionSource('U2R-69-Q1'),
 };
 
@@ -95,9 +127,9 @@ const q3: Unit2ReviewQuestion = {
   instruction: unit2ReviewRecord('U2R-69-Q3').text,
   layout: 'word_boxes',
   fields: [
-    { id: 'U2R-69-Q3-A-value', label: 'خانة الصفّ', rows: 1, printedText: unit2ReviewRecord('U2R-69-Q3-A').text, tone: 'yellow' },
-    { id: 'U2R-69-Q3-B-value', label: 'خانة الملعب', rows: 1, printedText: unit2ReviewRecord('U2R-69-Q3-B').text, tone: 'pink' },
-    { id: 'U2R-69-Q3-C-value', label: 'خانة السباحة', rows: 1, printedText: unit2ReviewRecord('U2R-69-Q3-C').text, tone: 'green' },
+    fieldFromRecord('U2R-69-Q3-A', { label: 'خانة الصفّ', tone: 'yellow' }),
+    fieldFromRecord('U2R-69-Q3-B', { label: 'خانة الملعب', tone: 'pink' }),
+    fieldFromRecord('U2R-69-Q3-C', { label: 'خانة السباحة', tone: 'green' }),
   ],
   source: questionSource('U2R-69-Q3'),
 };
@@ -113,9 +145,24 @@ const q5: Unit2ReviewQuestion = {
   section: 'السؤال ٥',
   instruction: unit2ReviewRecord('U2R-70-Q5').text,
   layout: 'dialogue',
+  // The printed dialogue is ONE branch record with two bubbles; both bubbles
+  // therefore point at that same record — no extra record, no character names,
+  // and no visible label: the wording "الفقاعة ١/٢" is an aria-label only.
   fields: [
-    { id: 'U2R-70-Q5-A-value', label: 'الشخصية ١', rows: 3, tone: 'blue' },
-    { id: 'U2R-70-Q5-B-value', label: 'الشخصية ٢', rows: 3, tone: 'green' },
+    fieldFromRecord('U2R-70-Q5-A', {
+      label: 'الفقاعة ١',
+      rows: 3,
+      tone: 'blue',
+      printedText: false,
+      idSuffix: 'bubble1',
+    }),
+    fieldFromRecord('U2R-70-Q5-A', {
+      label: 'الفقاعة ٢',
+      rows: 3,
+      tone: 'green',
+      printedText: false,
+      idSuffix: 'bubble2',
+    }),
   ],
   source: questionSource('U2R-70-Q5'),
 };
@@ -132,7 +179,7 @@ const q6: Unit2ReviewQuestion = {
   instruction: unit2ReviewRecord('U2R-70-Q6').text,
   sharedText: unit2ReviewRecord('U2R-70-Q6-A').text,
   layout: 'single_line',
-  fields: [{ id: 'U2R-70-Q6-A-value', label: 'التحويل', rows: 1 }],
+  fields: [fieldFromRecord('U2R-70-Q6-A', { label: 'التحويل', printedText: false })],
   source: questionSource('U2R-70-Q6'),
 };
 
@@ -148,7 +195,7 @@ const q7: Unit2ReviewQuestion = {
   instruction: unit2ReviewRecord('U2R-70-Q7').text,
   sharedText: unit2ReviewRecord('U2R-70-Q7-A').text,
   layout: 'single_line',
-  fields: [{ id: 'U2R-70-Q7-A-value', label: 'التحويل', rows: 1 }],
+  fields: [fieldFromRecord('U2R-70-Q7-A', { label: 'التحويل', printedText: false })],
   source: questionSource('U2R-70-Q7'),
 };
 
