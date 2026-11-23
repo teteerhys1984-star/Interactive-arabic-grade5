@@ -52,7 +52,7 @@ describe('Unit 2 Lesson 3 — بِالْعِلْمِ تَرْقَى (ص٦١–٦
   it('keeps the curriculum audit error-free with no invented lesson test or answer key', () => {
     const audit = auditCurriculum(curriculumRegistry, ALL_ASSESSMENTS, []);
     expect(audit.errorsCount).toBe(0);
-    expect(audit.totalLessons).toBe(6);
+    expect(audit.totalLessons).toBe(7);
   });
 
   it('covers all eight pages in printed order with unique, traceable activities', () => {

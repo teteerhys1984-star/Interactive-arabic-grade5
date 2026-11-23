@@ -15,7 +15,7 @@ describe('Interactive Arabic Grade 5 - Lesson 1 & Foundation Contracts', () => {
     expect(curriculumRegistry.subject).toBe('اللغة العربية');
     // Unit 2 (first lesson, pp. 40–49) was registered after this contract was
     // written; Unit 1 itself must stay intact, as asserted below.
-    expect(curriculumRegistry.units).toHaveLength(2);
+    expect(curriculumRegistry.units).toHaveLength(3);
 
     const unit1 = curriculumRegistry.units[0];
     expect(unit1.metadata.id).toBe('unit1');

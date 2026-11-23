@@ -83,7 +83,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           <ul className="home-hero-stats" aria-label="ملخّص المحتوى المتاح">
             <li>
               <ArabicNumber value={toArabicDigits(units.length)} />
-              <span>{units.length === 1 ? 'وحدة' : 'وحدتان'}</span>
+              <span>{units.length === 1 ? 'وحدة' : units.length === 2 ? 'وحدتان' : 'وحدات'}</span>
             </li>
             <li>
               <ArabicNumber value={toArabicDigits(totalLessons)} />
@@ -192,7 +192,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           id="home-units-title"
           title="الوحدات الدراسية"
           count={units.length}
-          countLabel={units.length === 1 ? 'وحدة' : 'وحدتان'}
+          countLabel={units.length === 1 ? 'وحدة' : units.length === 2 ? 'وحدتان' : 'وحدات'}
           hint="كل وحدة تجمع دروسها بترتيب المنهج، ثم المراجعة والاختبار في نهاية الوحدة."
         />
 

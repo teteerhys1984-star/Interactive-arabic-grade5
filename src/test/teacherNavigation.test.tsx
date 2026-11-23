@@ -27,6 +27,7 @@ const UNIT2_REVIEW_ABSENCE =
   'لا توجد حلول معلم معتمدة لتقويم الوحدة الثانية حاليًا، ولن تُعرض حلول تقريبية أو تخمينية.';
 const UNIT1_UNIT_TITLE = 'الوحدة الأولى: أحلامي وطموحاتي';
 const UNIT2_UNIT_TITLE = 'الوحدة الثانية';
+const UNIT3_UNIT_TITLE = 'الوحدة الثالثة';
 const UNIT1_TAB_NAME = `عرض دروس وحلول ${UNIT1_UNIT_TITLE}`;
 const UNIT2_TAB_NAME = `عرض دروس وحلول ${UNIT2_UNIT_TITLE}`;
 
@@ -88,20 +89,22 @@ describe('Teacher Area — solutions drill-down (units → lessons)', () => {
     openSolutionsTab();
 
     expect(screen.getByRole('heading', { level: 2, name: 'وحدات المنهج والأدلة والحلول' })).toBeInTheDocument();
-    // Exactly the two registered units, in order.
+    // Exactly the three registered units, in order.
     const unitButtons = screen.getAllByRole('button', { name: /^عرض دروس وحلول / });
     expect(unitButtons.map((button) => button.textContent)).toEqual([
       `عرض دروس وحلول ${UNIT1_UNIT_TITLE}`,
       `عرض دروس وحلول ${UNIT2_UNIT_TITLE}`,
+      `عرض دروس وحلول ${UNIT3_UNIT_TITLE}`,
     ]);
 
-    // Derived counts: unit 1 → 3/3 guides (39+53+51=143), unit 2 → 2/3 (45+51=96).
+    // Derived counts: unit 1 → 3/3 guides (39+53+51=143), unit 2 → 2/3 (45+51=96), unit 3 → 0/1 (no guide).
     const stats = Array.from(container.querySelectorAll('.teacher-card-stats')).map((node) => node.textContent);
-    expect(stats).toHaveLength(2);
+    expect(stats).toHaveLength(3);
     expect(stats[0]).toContain('٣/٣');
     expect(stats[0]).toContain('١٤٣');
     expect(stats[1]).toContain('٢/٣');
     expect(stats[1]).toContain('٩٦');
+    expect(stats[2]).toContain('٠/١');
 
     // No solution content or unit-review content is mounted at this level.
     expect(screen.queryByText(/الحل النموذجي:/)).toBeNull();
