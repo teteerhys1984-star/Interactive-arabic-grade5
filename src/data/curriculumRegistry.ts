@@ -18,6 +18,8 @@ import { U2L2_STEPS } from './unit2Lesson2/content';
 import { u2l2Src, U2L2_LISTENING_AUDIO_GAP, U2L2_LOCKED_SOURCE_NOTES } from './unit2Lesson2/sourceMeta';
 import { U2L3_STEPS } from './unit2Lesson3/content';
 import { u2l3Src, U2L3_LISTENING_AUDIO_GAP, U2L3_LOCKED_SOURCE_NOTES } from './unit2Lesson3/sourceMeta';
+import { U3L1_STEPS } from './unit3Lesson1/content';
+import { u3l1Src, U3L1_LISTENING_AUDIO_GAP, U3L1_LOCKED_SOURCE_NOTES } from './unit3Lesson1/sourceMeta';
 import { UNIT2_REVIEW_SOURCE_RECORDS } from './unit2Review/sourceAudit';
 import {
   UNIT2_REVIEW_DOCUMENT_TITLE,
@@ -316,6 +318,55 @@ const unit2: Unit = {
  * student element by an explicit owner decision, and no approved teacher
  * solutions exist for any question — and none may be invented.
  */
+/**
+ * Unit 3, Lesson 1 — registered from pages 73–83
+ * (docs/source-locks/unit3-lesson-01-al-ulama-as-sighar.md).
+ * The eleven supplied scans are the only approved source. The absent
+ * listening audio, the unproven poem/listening relation, and the
+ * handwriting models are declared limits, never filled in. No lesson test
+ * and no teacher answer guide are registered: the source has no approved
+ * answer key and no key may be invented. The unit stays incomplete.
+ */
+const unit3Lesson1: Lesson = {
+  metadata: {
+    id: 'unit3-lesson1',
+    unitId: 'unit3',
+    order: 1,
+    title: 'العُلَماءُ الصِّغارُ',
+    subtitle: 'كيف يغدو بنا الحاضر أجمل؟',
+    primarySkill: 'reading_comprehension',
+    estimatedMinutes: 90,
+    sources: [
+      u3l1Src(73, 'textbook_exercise', 'أتأمّل الصورتين وأستمع إلى النص', undefined, U3L1_LISTENING_AUDIO_GAP),
+      u3l1Src(74, 'textbook_poetry', 'أقرأ: العلماء الصغار', undefined, U3L1_LOCKED_SOURCE_NOTES.poemListeningRelation),
+      u3l1Src(75, 'textbook_exercise', 'الفهم القرائي (١–١٠)'),
+      u3l1Src(76, 'textbook_grammar', 'أتواصل شفوياً وقواعد اللغة: إعراب الفعل المضارع'),
+      u3l1Src(77, 'textbook_grammar', 'أطبّق والقاعدة'),
+      u3l1Src(78, 'textbook_grammar', 'التقويم النهائي وإملاء: الهمزة المتوسطة', undefined, U3L1_LOCKED_SOURCE_NOTES.dictationAudio),
+      u3l1Src(79, 'textbook_spelling', 'الهمزة المتوسطة والتقويم النهائي'),
+      u3l1Src(80, 'textbook_exercise', 'الخط: السين والشين', undefined, U3L1_LOCKED_SOURCE_NOTES.handwritingModels),
+      u3l1Src(81, 'textbook_expression', 'أعبّر كتابياً: الرسالة', undefined, U3L1_LOCKED_SOURCE_NOTES.printedDate),
+      u3l1Src(82, 'textbook_expression', 'أقرأ الرسالة وأطبّق'),
+      u3l1Src(83, 'activity_book', 'ألعب وأتعلّم وأنا وأسرتي'),
+    ],
+  },
+  steps: U3L1_STEPS,
+  // testId intentionally absent: no approved answer key in the supplied source.
+};
+
+const unit3: Unit = {
+  metadata: {
+    id: 'unit3',
+    order: 3,
+    title: 'الوحدة الثالثة',
+    // No theme: the unit divider page was not supplied.
+    isComplete: false, // No owner completion declaration; therefore no unit test.
+    sourcePagesRange: { startPage: 73, endPage: 83 },
+  },
+  lessons: [unit3Lesson1],
+  // unitTestId intentionally absent until the owner declares completion.
+};
+
 const unit2Review: UnitReview = {
   metadata: {
     id: UNIT2_REVIEW_ID,
@@ -350,7 +401,7 @@ export const curriculumRegistry: CurriculumRegistry = {
   grade: 5,
   subject: 'اللغة العربية',
   academicYear: '2024-2025',
-  units: [unit1, unit2],
+  units: [unit1, unit2, unit3],
 };
 
 /**

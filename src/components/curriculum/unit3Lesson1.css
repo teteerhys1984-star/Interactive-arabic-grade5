@@ -1,0 +1,67 @@
+/* Unit 2 Lesson 3 — laptop-first RTL styling.
+   Reuses the shared lesson/source/activity design system (src/index.css).
+   Only the few layout primitives specific to this lesson are defined here. */
+
+.u3l1-step-renderer { display: flex; flex-direction: column; gap: 1rem; }
+
+/* Verbatim poem: two printed columns, right half first in RTL reading order. */
+.u3l1-poem {
+  margin-top: .35rem;
+  padding: .9rem 1.1rem;
+  background: #fff;
+  border: 1px solid var(--line, #cfd9d7);
+  border-radius: 10px;
+}
+.u3l1-poem-line {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 2.2rem;
+  padding: .1rem 0;
+  font-size: 1.12rem;
+  line-height: 2;
+  color: #233b39;
+}
+.u3l1-poem-right { text-align: right; }
+.u3l1-poem-left { text-align: right; }
+.u3l1-poem-separator {
+  text-align: center;
+  color: #b98ba8;
+  letter-spacing: .35rem;
+  font-size: .8rem;
+  line-height: 1.4;
+  user-select: none;
+}
+.u3l1-poem-poet {
+  margin: .5rem 0 0;
+  text-align: left;
+  font-size: .95rem;
+  color: #4c625f;
+}
+
+/* Printed gap / limit panels stay visually distinguished from book text. */
+.u3l1-step-renderer .l2-gap-notice { margin-top: .6rem; }
+.u3l1-printed-parts {
+  margin: .1rem 0 .85rem;
+  padding-inline-start: 1rem;
+  border-inline-start: 2px solid var(--line, #cfd9d7);
+  color: #29423f;
+  line-height: 1.9;
+}
+.u3l1-printed-parts p { margin: .1rem 0; }
+
+/* Source table (printed empty row) and learner work table. */
+.u3l1-source-table,
+.u3l1-work-table { width: 100%; border-collapse: collapse; }
+.u3l1-source-table th,
+.u3l1-work-table th { text-align: right; }
+.u3l1-source-table td { min-height: 2.4rem; }
+.u3l1-work-table input { min-width: 8rem; }
+
+/* Choice groups and card inputs: compact, no oversized cards. */
+.u3l1-choice-groups { display: flex; flex-direction: column; gap: .9rem; }
+.u3l1-choice-group .inter-label { display: block; margin-bottom: .35rem; }
+.u3l1-choices-row { flex-direction: row; flex-wrap: wrap; gap: .5rem; }
+.u3l1-choices-row .inter-choice { flex: 0 1 auto; padding: .45rem 1rem; }
+.u3l1-cards { display: flex; flex-wrap: wrap; gap: .7rem; align-items: end; }
+.u3l1-cards .inter-field { flex: 1 1 13rem; min-width: 11rem; }
+.u3l1-cards .btn { align-self: end; }
