@@ -399,7 +399,7 @@ const U3L1InteractionView: React.FC<InteractionProps> = ({ interaction, values, 
           {interaction.modelText && <p className="l2-calligraphy-model">{interaction.modelText}</p>}
           <DraftTextArea
             id={`${activityId}-handwriting`}
-            label="اكتب محاكاتك رقمياً أو ملاحظتك الخطية (الرسم الحقيقي على ورقة مسطّرة بقلمك)"
+            label="ملاحظاتك حول التدريب (يُنفّذ الخط يدوياً على ورقة مسطّرة بقلمك)"
             value={values.handwriting || ''}
             onChange={(value) => update('handwriting', value)}
             rows={4}

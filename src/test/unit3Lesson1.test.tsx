@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import { App } from '../App';
 import { LessonFlow } from '../components/curriculum/LessonFlow';
 import { Unit3Lesson1StepRenderer } from '../components/curriculum/Unit3Lesson1StepRenderer';
+import { SourceBadge } from '../components/common/SourceBadge';
 import {
   curriculumRegistry,
   getLessonById,
@@ -44,6 +45,26 @@ describe('Unit 3 Lesson 1 — العُلَماءُ الصِّغار (ص٧٣–٨
     expect(getLessonTestByLessonId('unit2-lesson2')).toBeDefined();
     expect(getLessonById('unit3-lesson-that-does-not-exist')).toBeNull();
     expect(ALL_ASSESSMENTS.some((test) => test.lessonId === 'unit3-lesson1')).toBe(false);
+  });
+
+  it('attributes the independent summary to the platform without a printed page', () => {
+    const summary = U3L1_STEPS.find((step) => step.id === 'u3l1-s11')!;
+    expect(summary.source).toEqual({
+      documentTitle: 'شرح المنصة',
+      sourceType: 'enrichment',
+      sectionName: 'خلاصة الدرس',
+    });
+    const { container } = render(<SourceBadge source={summary.source!} />);
+    expect(container.querySelector('.source-doc')).toHaveTextContent('شرح المنصة');
+    expect(container.querySelector('.source-page')).toBeNull();
+  });
+
+  it('keeps handwriting manual on ruled paper and uses the field only for notes', () => {
+    const handwritingStep = U3L1_STEPS.find((step) => step.id === 'u3l1-s8')!;
+    render(<Unit3Lesson1StepRenderer step={handwritingStep} />);
+    expect(screen.getAllByLabelText(/ملاحظاتك حول التدريب/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/يُكتب.*ورقة مسطّرة|يُكتَب.*ورقة مسطّرة|يُنفّذ.*ورقة مسطّرة/).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/محاكاتك رقمياً/)).toBeNull();
   });
 
   it('keeps the curriculum audit error-free with no invented lesson test or answer key', () => {

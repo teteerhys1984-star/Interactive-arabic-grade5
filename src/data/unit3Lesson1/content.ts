@@ -73,7 +73,7 @@ export const U3L1_STEPS: LessonStep[] = [
   },
   {
     id: 'u3l1-s11', stepNumber: 11, title: 'خلاصة الدرس', type: 'summary',
-    source: u3l1Src(83, 'activity_book', 'خلاصة الدرس'),
+    source: { documentTitle: 'شرح المنصة', sourceType: 'enrichment', sectionName: 'خلاصة الدرس' },
   },
 ];
 

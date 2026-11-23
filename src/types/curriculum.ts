@@ -44,6 +44,13 @@ export interface SourceReference {
   uncertaintyNote?: string;
 }
 
+/** A platform-authored step source that has no printed book page. */
+export interface PlatformSourceReference {
+  documentTitle: string;
+  sourceType: 'enrichment';
+  sectionName?: string;
+}
+
 // ==========================================
 // 2. CURRICULUM HIERARCHY
 // ==========================================
@@ -59,7 +66,7 @@ export interface LessonStep {
     | 'rule_formulation'
     | 'interactive_practice'
     | 'summary';
-  source?: SourceReference;
+  source?: SourceReference | PlatformSourceReference;
 }
 
 export interface LessonMetadata {
