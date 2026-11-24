@@ -85,9 +85,9 @@
 
 | الأمر | النتيجة |
 |---|---|
-| `npm test` | **344 / 344** في 24 ملفًا |
+| `npm test` | **347 / 347** في 24 ملفًا |
 | `npm run typecheck` | نظيف |
 | `npm run build` | نجح |
 | بوابة التدقيق | 0 أخطاء · 25 تحذيرًا (كما قبل) |
 
-اختبارات مثبَّتة على القرار: `disclosureCoverage.test.ts` (23 — منها 5 جديدة تحصر القوائم والقواعد)، `revealParity.test.ts` (49: مطابقة السلوك القديم، ثم جدول الـ32 قرارًا صريحًا، ثم ثبات المحتوى)، `goldenBaseline.test.ts` (16 مقابل لقطة مجمَّدة من `b774c3d`)، `lesson1Rebuild.test.tsx` (36 — منها اختبارا العنوان)، `unit2Lesson1.test.tsx` (14).
+اختبارات مثبَّتة على القرار: `disclosureCoverage.test.ts` (23 — منها 5 جديدة تحصر القوائم والقواعد)، `revealParity.test.ts` (49: مطابقة السلوك القديم، ثم جدول الـ32 قرارًا صريحًا، ثم ثبات المحتوى)، `goldenBaseline.test.ts` (19 مقابل لقطة مجمَّدة من `b774c3d`، منها اختبار يثبت أن تغيير `interaction.kind` يُفشل البوابة)، `lesson1Rebuild.test.tsx` (36 — منها اختبارا العنوان)، `unit2Lesson1.test.tsx` (14).
