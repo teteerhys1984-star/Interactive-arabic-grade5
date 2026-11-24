@@ -1,4 +1,4 @@
-import { LessonStep } from '../../types/curriculum';
+import { AnswerDisclosure, LessonStep } from '../../types/curriculum';
 import { u2l1Src, U2L1_LISTENING_AUDIO_GAP, U2L1_LOCKED_SOURCE_NOTES } from './sourceMeta';
 
 /**
@@ -30,7 +30,9 @@ export type U2L1Block =
   | { kind: 'worked_example'; heading: string; origin: 'book' | 'platform'; example: string; steps: string[]; source?: ReturnType<typeof u2l1Src> }
   | { kind: 'comparison'; heading: string; columns: string[]; rows: string[][]; note?: string }
   | { kind: 'common_errors'; heading: string; items: { wrong: string; correct: string; why: string }[] }
-  | { kind: 'check'; id: string; heading: string; prompt: string; mode: 'single' | 'multi'; choices: U2L1CheckChoice[]; correctIds: string[]; explanation: string };
+  | { kind: 'check'; id: string; heading: string; prompt: string; mode: 'single' | 'multi'; choices: U2L1CheckChoice[]; correctIds: string[]; explanation: string
+      /** Explicit disclosure: platform comprehension checks carry an approved key. */
+      disclosure: AnswerDisclosure };
 
 export interface U2L1StepContent {
   stepId: string;
@@ -208,6 +210,7 @@ export const U2L1_STEP_CONTENT: Record<string, U2L1StepContent> = {
           { id: 'd', text: 'مروحة تولّد الطاقة الكهربائية' },
         ],
         correctIds: ['a'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l1-check-s2-cause' },
         explanation: 'في القسم الثاني: «وأرادَ أنْ يُنَمِّيَ الزراعةَ، فاخترعَ الغربالَ للدرّاساتِ». والدرّاسات آلات تفصل الحبوب عن القش فخدمت الزراعة مباشرة، أما بقية الاختراعات فلكلٍّ منها دافع مختلف في النص.',
       },
       {
@@ -284,6 +287,7 @@ export const U2L1_STEP_CONTENT: Record<string, U2L1StepContent> = {
           { id: 'd', text: 'قرأ الطالب النص في كتابه.' },
         ],
         correctIds: ['b'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l1-check-s3-figurative' },
         explanation: 'الحديقة لا تضحك حقيقة؛ شُبِّه تفتّحُ أزهارها بضحكة إنسان، فهي صورة خيالية. أما العبارات الثلاث الأخرى فأحداث يمكن وقوعها كما هي، فهي حقائق.',
       },
     ],
@@ -349,6 +353,7 @@ export const U2L1_STEP_CONTENT: Record<string, U2L1StepContent> = {
           { id: 'd', text: 'تقييم الأصدقاء للأداء' },
         ],
         correctIds: ['a'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l1-check-s4-order' },
         explanation: 'بدأ مجد بجمع المادة («عدت إلى مصادر التعلم ومكتبة المدرسة وقرأتُ...») ثم كتب الأفكار وراجع معلمه فضبط وتدرّب، وأخيراً ألقى. فالإلقاء آخر الخطوات لا أولها، والشكر والتقييم يأتيان حتى بعد الإلقاء.',
       },
     ],
@@ -423,6 +428,7 @@ export const U2L1_STEP_CONTENT: Record<string, U2L1StepContent> = {
           { id: 'd', text: 'يقرأُ الطالبُ النصَّ.' },
         ],
         correctIds: ['b'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l1-check-s5-nominal' },
         explanation: '«المخترعُ» اسم بدأت به الجملة فهو مبتدأ، و«مثابرٌ» أخبرنا به عنه فهو خبر — جملة اسمية. بقية الجمل تبدأ بأفعال (اخترعَ/اكتبِ/يقرأُ) فهي فعلية.',
       },
       { kind: 'activity', activityId: 'u2l1-a-26' },
@@ -481,6 +487,7 @@ export const U2L1_STEP_CONTENT: Record<string, U2L1StepContent> = {
           { id: 'd', text: 'الكبيرةُ وجميلةٌ معاً' },
         ],
         correctIds: ['b'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l1-check-s6-naat' },
         explanation: 'المبتدأ «الحديقةُ». اسأل: أيُّ حديقة؟ الجواب «الكبيرةُ» فهي نعت حدّدها ولم يُخبر عنها. واسأل: ما خبر الحديقة؟ «جميلةٌ» — بها تمّ الكلام، فهي الخبر.',
       },
       {
@@ -545,6 +552,7 @@ export const U2L1_STEP_CONTENT: Record<string, U2L1StepContent> = {
           { id: 'inshaa', text: 'إنشاء' },
         ],
         correctIds: ['intaqala', 'ilam'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l1-check-s7-wasl' },
         explanation: '«انتقلَ» ماضٍ خماسي (ا-ن-ت-ق-ل) و«اعلمْ» أمر ثلاثي (علِمَ)، ومحلهما قائمة الوصل. أما «أَحْسَنَ» فماضٍ رباعي و«إنشاء» مصدر رباعي (أنشأ)، وكلاهما في قائمة القطع.',
       },
       { kind: 'activity', activityId: 'u2l1-a-33' },
@@ -616,6 +624,7 @@ export const U2L1_STEP_CONTENT: Record<string, U2L1StepContent> = {
           { id: 'd', text: 'نصف نقطة على السطر' },
         ],
         correctIds: ['a'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l1-check-s8-measure' },
         explanation: 'هذا نص الفائدة الأول؛ فهي تقرر للأحرف الثلاثة مقداراً واحداً في الانفراد ونهاية الكلمة: نقطتين فوق السطر وواحدة تحته. (أما بداية الكلمة فلها حكم الشكلين التالي في الفائدة.)',
       },
     ],
@@ -734,6 +743,7 @@ export const U2L1_STEP_CONTENT: Record<string, U2L1StepContent> = {
           { id: 'd', text: 'لا يوجد خبر في الجملة' },
         ],
         correctIds: ['b'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l1-check-s11-grammar' },
         explanation: 'المبتدأ «العلمُ». ما خبره؟ «مفاتيحُ». فهو الخبر مرفوع بالضمة الظاهرة، وما بعده (المستقبل) مضاف إليه مجرور ليس خبراً.',
       },
       {
@@ -747,6 +757,7 @@ export const U2L1_STEP_CONTENT: Record<string, U2L1StepContent> = {
           { id: 'd', text: 'إسْتَعْلَمْت' },
         ],
         correctIds: ['b'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l1-check-s11-spelling' },
         explanation: 'استعلم فعل سداسي الأحرف (ا-س-ت-ع-ل-م) فأول همزته وصل: تُرسم ألفاً مجردة ولا همزة فوقها ولا تحتها. فبقية الرسوم المطروحة رسوم قطع غير صحيحة لهذه الكلمة.',
       },
       {
@@ -760,6 +771,7 @@ export const U2L1_STEP_CONTENT: Record<string, U2L1StepContent> = {
           { id: 'd', text: 'الحاجة إلى الاختراع انتهت في عصرنا.' },
         ],
         correctIds: ['b'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l1-check-s11-reading' },
         explanation: 'يختم الكاتب: «ما زال يجول ويجول في عالم الفكر مؤمناً بقدرته على خدمة الإنسانية فيتابع اختراعاته ويُهدي إلينا أثمن هدايا العلم». فالغاية خدمة الإنسانية، والمثابرة وقود الاستمرار.',
       },
     ],

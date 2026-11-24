@@ -10,6 +10,7 @@ import { LESSON3_TEST } from './lessonTest';
  * declared locked uncertainties.
  */
 export const LESSON3_TEACHER_GUIDE: TeacherLessonGuide = {
+  kind: 'approved',
   lessonId: 'lesson3',
   unitId: 'unit1',
   pedagogicalObjectives: [

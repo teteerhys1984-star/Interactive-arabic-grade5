@@ -1,4 +1,5 @@
 import { SourceReference } from '../../types/curriculum';
+import type { AnswerDisclosure } from '../../types/curriculum';
 import { src } from './sourceMeta';
 
 /**
@@ -219,6 +220,12 @@ export const GRAMMAR_PLATFORM_EXPLANATION = {
     // shown only AFTER the learner presses «تحقّق» — the correct answer plus its reason
     correctAnswerNote:
       'الإجابة «جملة فعلية» لأنّ أوّل كلمة أساسية في المثال هي الفعل «يَبْني»، والجملة التي تبدأ بفعلٍ فعليةٌ ولو جاء الاسم بعدها (الصَّيّادُ فاعل).',
+    // typed so the literal kind survives inference (the drill object is not
+    // otherwise annotated); the renderer must still receive the explicit kind.
+    disclosure: {
+      kind: 'approved_key',
+      sourceRef: 'platform:lesson1-grammar-quick-check',
+    } as AnswerDisclosure,
   },
 };
 
@@ -297,6 +304,10 @@ export const SPELLING_PLATFORM_EXPLANATION = {
     // shown only AFTER the learner presses «تحقّق» — the correct answer plus its reason
     correctAnswerNote:
       'الإجابة «همزة وصل» لأنّ ألف «امْنَحْني» كُتبت بلا رسم همزة، وتُلفظ عند البدء بالكلمة وتسقط من النطق عند وصلها بما قبلها (فعل أمرٍ ثلاثي).',
+    disclosure: {
+      kind: 'approved_key',
+      sourceRef: 'platform:lesson1-hamza-quick-check',
+    } as AnswerDisclosure,
   },
 };
 

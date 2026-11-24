@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { LESSON2_PLATFORM_EXERCISES, PlatformExercise } from '../../data/lesson2/platformExplanations';
 import { readDraft, writeDraft } from '../../utils/draftStorage';
 import { ArabicNumber } from '../common/BiDi';
+import { AnswerReveal } from '../common/AnswerReveal';
+import { resolveAnswerReveal } from '../common/answerDisclosure';
 
 const SCOPE = 'lesson2-platform-checks';
 
@@ -36,6 +38,27 @@ const Exercise: React.FC<{ exercise: PlatformExercise }> = ({ exercise }) => {
   const [saveFailed, setSaveFailed] = useState(false);
   const complete = exercise.rows.every((row) => row.options.some((option) => option.id === values[row.id]));
   const correctCount = exercise.rows.filter((row) => values[row.id] === row.correctId).length;
+
+  /**
+   * «أظهر الجواب» through the SAME shared resolver as the activities. The
+   * exercise declares its own `disclosure`; the approved key is only the text
+   * that gets located. Without an approved disclosure the resolver returns
+   * null and no button is rendered at all.
+   */
+  const revealProps = resolveAnswerReveal(
+    {
+      id: exercise.id,
+      sourceActivityId: exercise.id,
+      disclosure: exercise.disclosure,
+      entries: exercise.rows
+        .map((row) => ({
+          label: row.label,
+          value: row.options.find((option) => option.id === row.correctId)?.label ?? '',
+        }))
+        .filter((entry) => entry.value.trim().length > 0),
+    },
+    'student',
+  );
 
   const update = (rowId: string, value: string) => {
     const next = { ...values, [rowId]: value };
@@ -99,6 +122,8 @@ const Exercise: React.FC<{ exercise: PlatformExercise }> = ({ exercise }) => {
             : 'أكمل جميع الحقول ليصبح زرّ التحقّق متاحًا.'}
         </p>
       </div>
+
+      {revealProps && <AnswerReveal {...revealProps} />}
 
       {saveFailed && (
         <p role="alert" className="l2-exercise-save-alert">

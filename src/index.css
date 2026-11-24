@@ -7192,6 +7192,40 @@ h4 { font-size: var(--text-lg); }
   box-shadow: none;
 }
 
+/*
+ * Declared absence (third teacher-portal state): registered, documented, and
+ * deliberately empty of solutions. A dashed border distinguishes it from a
+ * lesson whose guide is missing entirely.
+ */
+.teacher-lesson-card--declared-absence {
+  background: var(--color-bg-subtle);
+  border: 1px dashed var(--color-border);
+  box-shadow: none;
+}
+
+.teacher-absence-inline {
+  margin: 0;
+  display: grid;
+  gap: 2px;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.teacher-absence-inline dt {
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.teacher-absence-inline dd {
+  margin: 0 0 var(--space-sm);
+  line-height: 1.7;
+}
+
+.teacher-declared-absence .teacher-absence-reason p {
+  margin: 0 0 var(--space-sm);
+  line-height: 1.8;
+}
+
 .teacher-card-top {
   display: flex;
   align-items: center;

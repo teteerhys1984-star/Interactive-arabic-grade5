@@ -10,6 +10,7 @@ import { LESSON2_TEST } from './lessonTest';
  * as source gaps deliberately explain the limitation instead of fabricating an answer.
  */
 export const LESSON2_TEACHER_GUIDE: TeacherLessonGuide = {
+  kind: 'approved',
   lessonId: 'lesson2',
   unitId: 'unit1',
   pedagogicalObjectives: [

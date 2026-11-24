@@ -1,4 +1,4 @@
-import { LessonStep } from '../../types/curriculum';
+import { AnswerDisclosure, LessonStep } from '../../types/curriculum';
 import { u2l2Src, U2L2_LISTENING_AUDIO_GAP } from './sourceMeta';
 
 /**
@@ -28,7 +28,9 @@ export type U2L2Block =
   | { kind: 'worked_example'; heading: string; origin: 'book' | 'platform'; example: string; steps: string[]; source?: ReturnType<typeof u2l2Src> }
   | { kind: 'comparison'; heading: string; columns: string[]; rows: string[][]; note?: string }
   | { kind: 'common_errors'; heading: string; items: { wrong: string; correct: string; why: string }[] }
-  | { kind: 'check'; id: string; heading: string; prompt: string; mode: 'single' | 'multi'; choices: U2L2CheckChoice[]; correctIds: string[]; explanation: string };
+  | { kind: 'check'; id: string; heading: string; prompt: string; mode: 'single' | 'multi'; choices: U2L2CheckChoice[]; correctIds: string[]; explanation: string
+      /** Explicit disclosure: platform comprehension checks carry an approved key. */
+      disclosure: AnswerDisclosure };
 
 export interface U2L2StepContent {
   stepId: string;
@@ -227,6 +229,7 @@ export const U2L2_STEP_CONTENT: Record<string, U2L2StepContent> = {
           { id: 'd', text: 'تقرير عن برامج الحاسوب' },
         ],
         correctIds: ['a'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l2-check-s2-purpose' },
         explanation: 'النص يذكر صراحة أن رسالة منبثقة ظاهرة في جانب الشاشة تهنئ الناس بالعيد؛ أما اللعب ومكالمة الأصدقاء فلم يردا، وحديث البرامج جاء في رسالة تالية لا في الرسالة الأولى.',
       },
       {
@@ -282,6 +285,7 @@ export const U2L2_STEP_CONTENT: Record<string, U2L2StepContent> = {
           { id: 'd', text: 'الإبرة' },
         ],
         correctIds: ['a'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l2-check-s3-vocab' },
         explanation: 'الدارات قطع إلكترونية من تكوين الحاسوب ووردت في كلام سامي «آلة من معدن ونواقل ودارات». أما المحراث والمنارة والإبرة فمن حقول دلالية أخرى غير حقل الحاسوب.',
       },
     ],
@@ -325,6 +329,7 @@ export const U2L2_STEP_CONTENT: Record<string, U2L2StepContent> = {
           { id: 'd', text: 'رسم لوحة على السبورة' },
         ],
         correctIds: ['a'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l2-check-s4-radio' },
         explanation: 'الحديث الإذاعي يبدأ بتحية تخاطب المستمعين ثم يعرض الموضوع ويختم بالشكر؛ وبقية العناصر لا علاقة لها ببنية الحديث الشفهي.',
       },
     ],
@@ -391,6 +396,7 @@ export const U2L2_STEP_CONTENT: Record<string, U2L2StepContent> = {
           { id: 'd', text: 'صمّمْ الداراتِ.' },
         ],
         correctIds: ['a'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l2-check-s5-convert' },
         explanation: '«المهندسُ» فاعل تقدّم على فعله «يصمّم» فصار مبتدأ والجملة الفعلية بعده خبر، وهي تحويل مباشر للجملة الفعلية في الخيار (ب). أما (ج) فاسمية أصلية لا تحويل، و(د) فعلية أمر.',
       },
       {
@@ -458,6 +464,7 @@ export const U2L2_STEP_CONTENT: Record<string, U2L2StepContent> = {
           { id: 'd', text: 'حَديقة' },
         ],
         correctIds: ['a'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l2-check-s6-basita' },
         explanation: 'مكتبات جمع مؤنث سالم يُختم بألف وتاء مبسوطة. أما مدرسة وشجرة وحديقة فأسماء مفردة مؤنثة تُختم بتاء مربوطة.',
       },
     ],
@@ -510,6 +517,7 @@ export const U2L2_STEP_CONTENT: Record<string, U2L2StepContent> = {
           { id: 'd', text: 'همزةً' },
         ],
         correctIds: ['a'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l2-check-s7-pron' },
         explanation: 'مدرسة اسم مفرد مؤنث آخره تاء مربوطة، والمربوطة تُلفظ هاءً عند الوقف. أما التاء المبسوطة في الأفعال وجمع المؤنث السالم فتبقى تاءً وقفاً.',
       },
     ],
@@ -575,6 +583,7 @@ export const U2L2_STEP_CONTENT: Record<string, U2L2StepContent> = {
           { id: 'd', text: 'بدءاً من منتصف السطر نحو الهامش الأيمن فقط' },
         ],
         correctIds: ['a'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l2-check-s9-direction' },
         explanation: 'نص الفائدة يحدد الاتجاه (يسار→يمين ثم أعلى→أسفل) والارتكاز على السطر، وأن الخط الأفقي أطول قليلاً من العمودي؛ وبقية الأوصاف تخالف ما طُبع.',
       },
     ],
@@ -630,6 +639,7 @@ export const U2L2_STEP_CONTENT: Record<string, U2L2StepContent> = {
           { id: 'd', text: 'يا لروعة النجوم المتلألئة!' },
         ],
         correctIds: ['a'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l2-check-s10-style' },
         explanation: 'الجملة الأولى معلومة قابلة للتحقق بألفاظ دقيقة محايدة بلا رأي أو عاطفة، وهي صفات الأسلوب العلمي. أما البقية فذوق ومشاعر وتعجب تنتمي إلى التعبير الأدبي.',
       },
     ],
@@ -683,6 +693,7 @@ export const U2L2_STEP_CONTENT: Record<string, U2L2StepContent> = {
           { id: 'd', text: 'يحفظُ البياناتِ الحاسِبُ.' },
         ],
         correctIds: ['a'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l2-check-s11-grammar' },
         explanation: 'الفاعل «الحاسِبُ» يتقدّم على فعله «يحفظ» فيصير مبتدأ والجملة الفعلية بعده خبراً. بقية الخيارات تغيّر البنية أو الزمن أو تُبقي الجملة فعلية.',
       },
       {
@@ -696,6 +707,7 @@ export const U2L2_STEP_CONTENT: Record<string, U2L2StepContent> = {
           { id: 'd', text: 'بيتة (ثلاثي ساكن الوسط بمربوطة)' },
         ],
         correctIds: ['a'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l2-check-s11-spelling' },
         explanation: 'قارئات جمع مؤنث سالم تاؤه مبسوطة رسمها صحيح. و«قارئاة» خطأ في الجمع، و«مدرست» يجب أن تكون «مدرسة» مربوطة، و«بيت» ثلاثي ساكن الوسط مبسوط لا «بيتة».',
       },
       {
@@ -709,6 +721,7 @@ export const U2L2_STEP_CONTENT: Record<string, U2L2StepContent> = {
           { id: 'd', text: 'لا فائدة من وجود الحاسِب في حياتنا.' },
         ],
         correctIds: ['b'],
+        disclosure: { kind: 'approved_key', sourceRef: 'platform:u2l2-check-s11-reading' },
         explanation: 'يصرّح سامي أن الحاسِب «أذكى منتَج أبدَعَه العقل البشري» لكنه يجيب عن سؤال «أنا ذكي حقاً؟» بقوله «نعم، لكنَّني الأذكى». فالآلة ثمرة العقل لا منافسة له، وهذا ما ينفي بقية الخيارات.',
       },
     ],

@@ -1,3 +1,4 @@
+import { AnswerDisclosure } from '../../types/curriculum';
 import { u2l3Src, U2L3_LISTENING_AUDIO_GAP, U2L3_LOCKED_SOURCE_NOTES } from './sourceMeta';
 
 /**
@@ -38,6 +39,12 @@ export interface U2L3Activity {
   source: ReturnType<typeof u2l3Src>;
   /** Declared source limit shown to the learner instead of a guessed replacement. */
   gapNote?: string;
+  /**
+   * Explicit, mandatory disclosure decision. Derived from the audited behaviour
+   * of this lesson's renderer (approved id audit + availability); no answer text
+   * was added, changed or re-derived.
+   */
+  disclosure: AnswerDisclosure;
 }
 
 export const U2L3_ACTIVITIES: U2L3Activity[] = [
@@ -47,18 +54,21 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
     instruction: 'أَصِفُ ما أُشاهِدُهُ في الصُّورَتَيْنِ.', subparts: [],
     interaction: { kind: 'write', label: 'وصف الصورتين', rows: 3 },
     source: u2l3Src(61, 'textbook_exercise', 'أتأمل الصورتين الآتيتين', 1),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-61-01' },
   },
   {
     id: 'u2l3-a-02', sourceActivityId: 'U2L3-61-02', printedNumber: '٢', section: 'أتأمّل الصورتين', page: 61,
     instruction: 'ما المُشْتَرَكُ بَيْنَ الصُّورَتَيْنِ؟', subparts: [],
     interaction: { kind: 'write', label: 'المشترك بين الصورتين', rows: 2 },
     source: u2l3Src(61, 'textbook_exercise', 'أتأمل الصورتين الآتيتين', 2),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-61-02' },
   },
   {
     id: 'u2l3-a-03', sourceActivityId: 'U2L3-61-03', printedNumber: '٣', section: 'أتأمّل الصورتين', page: 61,
     instruction: 'أُضيفُ إلى الصُّورَةِ الأولى أَشْياءَ مِنْ خَيالي مُرْتَبِطَةً بِها.', subparts: [],
     interaction: { kind: 'write', label: 'ما أضيفه من خيالي', rows: 3 },
     source: u2l3Src(61, 'textbook_exercise', 'أتأمل الصورتين الآتيتين', 3),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-61-03' },
   },
   {
     id: 'u2l3-a-04', sourceActivityId: 'U2L3-61-04', printedNumber: '١', section: 'أستمع إلى النص', page: 61,
@@ -91,6 +101,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
       ],
     },
     source: u2l3Src(61, 'textbook_exercise', 'أستمع إلى النص', 1, U2L3_LISTENING_AUDIO_GAP),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-61-04' },
     gapNote: U2L3_LISTENING_AUDIO_GAP,
   },
   {
@@ -98,6 +109,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
     instruction: 'أُعَبِّرُ عَمّا سَمِعْتُهُ بِجُمْلَةٍ مُفيدَةٍ.', subparts: [],
     interaction: { kind: 'write', label: 'جملتي عمّا سمعته', rows: 2 },
     source: u2l3Src(61, 'textbook_exercise', 'أستمع إلى النص', 2, U2L3_LISTENING_AUDIO_GAP),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-61-05' },
     gapNote: U2L3_LISTENING_AUDIO_GAP,
   },
 
@@ -107,18 +119,21 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
     instruction: 'أَقْرَأُ المَقْطَعَيْنِ الأَوَّلَ والثّانِيَ مُراعِياً أُسْلوبَ النِّداءِ.', subparts: [],
     interaction: { kind: 'speak' },
     source: u2l3Src(62, 'textbook_poetry', 'أقرأ', 1),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-62-01' },
   },
   {
     id: 'u2l3-a-07', sourceActivityId: 'U2L3-62-02', printedNumber: '٢', section: 'أقرأ', page: 62,
     instruction: 'أَقْرَأُ المَقْطَعَ الثّالِثَ مُراعِياً الأَداءَ الشِّعْرِيَّ المُناسِبَ.', subparts: [],
     interaction: { kind: 'speak' },
     source: u2l3Src(62, 'textbook_poetry', 'أقرأ', 2),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-62-02' },
   },
   {
     id: 'u2l3-a-08', sourceActivityId: 'U2L3-62-03', printedNumber: '٣', section: 'أقرأ', page: 62,
     instruction: 'أَقْرَأُ النَّصَّ قِراءَةً جَهْرِيَّةً سَليمَةً مُراعِياً التَّلْوينَ الصَّوْتِيَّ المُناسِبَ لِلْمَعْنى.', subparts: [],
     interaction: { kind: 'speak' },
     source: u2l3Src(62, 'textbook_poetry', 'أقرأ', 3),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-62-03' },
   },
 
   /* ============ ص٦٣: الفهم القرائي ١–٥ ============ */
@@ -141,6 +156,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
       ],
     },
     source: u2l3Src(63, 'textbook_exercise', 'الفهم القرائي', 1),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-63-01' },
   },
   {
     id: 'u2l3-a-10', sourceActivityId: 'U2L3-63-02', printedNumber: '٢', section: 'الفهم القرائي', page: 63,
@@ -160,6 +176,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
       ],
     },
     source: u2l3Src(63, 'textbook_exercise', 'الفهم القرائي', 2),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-63-02' },
   },
   {
     id: 'u2l3-a-11', sourceActivityId: 'U2L3-63-03', printedNumber: '٣', section: 'الفهم القرائي', page: 63,
@@ -174,6 +191,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
       ],
     },
     source: u2l3Src(63, 'textbook_exercise', 'الفهم القرائي', 3),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-63-03' },
   },
   {
     id: 'u2l3-a-12', sourceActivityId: 'U2L3-63-04', printedNumber: '٤', section: 'الفهم القرائي', page: 63,
@@ -190,6 +208,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
       ],
     },
     source: u2l3Src(63, 'textbook_exercise', 'الفهم القرائي', 4),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-63-04' },
   },
   {
     id: 'u2l3-a-13', sourceActivityId: 'U2L3-63-05', printedNumber: '٥', section: 'الفهم القرائي', page: 63,
@@ -197,6 +216,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
     subparts: ['وَخَيْرُ جَليسٍ في الأَنامِ كِتابُ،'],
     interaction: { kind: 'write', label: 'البيت الذي يتضمّن معنى المقولة', rows: 2 },
     source: u2l3Src(63, 'textbook_exercise', 'الفهم القرائي', 5),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-63-05' },
   },
 
   /* ============ ص٦٣: الفهم القرائي ٦–١٠ ============ */
@@ -205,6 +225,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
     instruction: 'أَخْتارُ مِنَ النَّصِّ بَيْتاً أَعْجَبَني، ثُمَّ أُبَيِّنُ سَبَبَ إِعْجابي بِهِ.', subparts: [],
     interaction: { kind: 'write', label: 'البيت وسبب إعجابي به', rows: 3 },
     source: u2l3Src(63, 'textbook_exercise', 'الفهم القرائي', 6),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-63-06' },
   },
   {
     id: 'u2l3-a-15', sourceActivityId: 'U2L3-63-07', printedNumber: '٧', section: 'الفهم القرائي', page: 63,
@@ -226,6 +247,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
       }],
     },
     source: u2l3Src(63, 'textbook_exercise', 'الفهم القرائي', 7),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-63-07' },
   },
   {
     id: 'u2l3-a-16', sourceActivityId: 'U2L3-63-08', printedNumber: '٨', section: 'الفهم القرائي', page: 63,
@@ -233,18 +255,21 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
     subparts: [],
     interaction: { kind: 'write', label: 'العبارات الثلاث الأكثر جاذبية', rows: 5 },
     source: u2l3Src(63, 'textbook_exercise', 'الفهم القرائي', 8),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-63-08' },
   },
   {
     id: 'u2l3-a-17', sourceActivityId: 'U2L3-63-09', printedNumber: '٩', section: 'الفهم القرائي', page: 63,
     instruction: 'هاتِ مِنَ النَّصِّ تَرْكيباً يَدُلُّ على مَكانَةِ اللُّغَةِ العَرَبِيَّةِ', subparts: [],
     interaction: { kind: 'write', label: 'التركيب من النص', rows: 2 },
     source: u2l3Src(63, 'textbook_exercise', 'الفهم القرائي', 9),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-63-09' },
   },
   {
     id: 'u2l3-a-18', sourceActivityId: 'U2L3-63-10', printedNumber: '١٠', section: 'الفهم القرائي', page: 63,
     instruction: 'أَحْفَظُ الأَبْياتَ وَأُلْقيها أَمامَ زُمَلائي مُمَثِّلاً مَشاعِرَ النُّصْحِ وَالإِرْشادِ.', subparts: [],
     interaction: { kind: 'speak' },
     source: u2l3Src(63, 'textbook_exercise', 'الفهم القرائي', 10),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-63-10' },
   },
 
   /* ============ ص٦٤: التواصل الشفهي وقواعد اللغة ============ */
@@ -253,30 +278,35 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
     instruction: 'أَتَذَكَّرُ قِصَّةً قَرَأْتُها وَرَسَمْتُها في خَيالي، وَأُحَدِّثُ زُمَلائي عَنْها مُراعِياً الأَداءَ المُناسِبَ.', subparts: [],
     interaction: { kind: 'speak' },
     source: u2l3Src(64, 'textbook_expression', 'أتواصل شفوياً: سرد الحكاية'),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-64-01' },
   },
   {
     id: 'u2l3-a-20', sourceActivityId: 'U2L3-64-02', printedNumber: '١', section: 'قواعد اللغة: أقرأ الأمثلة', page: 64,
     instruction: 'أُلاحِظُ أَنَّ الفِعْلَ (عَدَّ) في المِثالِ الأَوَّلِ فِعْلٌ ماضٍ لَمْ يَتَّصِلْ بِآخِرِهِ شَيْءٌ، أُبَيِّنُ حَرَكَةَ آخِرِهِ.', subparts: [],
     interaction: { kind: 'write', label: 'ملاحظتي', rows: 2 },
     source: u2l3Src(64, 'textbook_grammar', 'قواعد اللغة', 1),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-64-02' },
   },
   {
     id: 'u2l3-a-21', sourceActivityId: 'U2L3-64-03', printedNumber: '٢', section: 'قواعد اللغة: أقرأ الأمثلة', page: 64,
     instruction: 'أَدُلُّ على الحَرْفِ الأَصْلِيِّ الأَخيرِ في كُلٍّ مِنَ الفِعْلَيْنِ (عَمِلا – نالَتْ)، وَأَذْكُرُ حَرَكَةَ كُلٍّ مِنْهُما.', subparts: [],
     interaction: { kind: 'write', label: 'ملاحظتي', rows: 3 },
     source: u2l3Src(64, 'textbook_grammar', 'قواعد اللغة', 2),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-64-03' },
   },
   {
     id: 'u2l3-a-22', sourceActivityId: 'U2L3-64-04', printedNumber: '٣', section: 'قواعد اللغة: أقرأ الأمثلة', page: 64,
     instruction: 'أُلاحِظُ أَنَّ الفِعْلَ (عَمِلا) لَمْ تَتَغَيَّرْ حَرَكَةُ آخِرِهِ عِنْدَ اتِّصالِهِ بِأَلِفِ الاثْنَيْنِ، فَهَلْ تَغَيَّرَتْ حَرَكَةُ آخِرِ الفِعْلِ (نالَ) عِنْدَ اتِّصالِهِ بِتاءِ التَّأْنيثِ السّاكِنَةِ؟', subparts: [],
     interaction: { kind: 'write', label: 'ملاحظتي', rows: 3 },
     source: u2l3Src(64, 'textbook_grammar', 'قواعد اللغة', 3),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-64-04' },
   },
   {
     id: 'u2l3-a-23', sourceActivityId: 'U2L3-64-05', printedNumber: '٤', section: 'قواعد اللغة: أقرأ الأمثلة', page: 64,
     instruction: 'أُلاحِظُ أَنَّ كُلّاً مِنَ الأَفْعالِ (عَدَّ – عَمِلا – نالَ) بُنِيَ آخِرُها على حَرَكَةٍ واحِدَةٍ. أَذْكُرُها؟', subparts: [],
     interaction: { kind: 'write', label: 'ملاحظتي', rows: 2 },
     source: u2l3Src(64, 'textbook_grammar', 'قواعد اللغة', 4),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-64-05' },
   },
 
   /* ============ ص٦٥: أطبّق والتقويم النهائي (١) ============ */
@@ -290,6 +320,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
       rows: 4,
     },
     source: u2l3Src(65, 'textbook_grammar', 'أطبق'),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-65-01' },
   },
   {
     id: 'u2l3-a-25', sourceActivityId: 'U2L3-65-02', printedNumber: '١', section: 'التقويم النهائي', page: 65,
@@ -301,6 +332,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
     ],
     interaction: { kind: 'write', label: 'عملي وفق المثال', rows: 5 },
     source: u2l3Src(65, 'textbook_grammar', 'التقويم النهائي', 1, U2L3_LOCKED_SOURCE_NOTES.finalEvaluationDiagram),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-65-02' },
     gapNote: U2L3_LOCKED_SOURCE_NOTES.finalEvaluationDiagram,
   },
 
@@ -322,6 +354,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
       ],
     },
     source: u2l3Src(66, 'textbook_grammar', 'التقويم النهائي', 2),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-66-01' },
   },
   {
     id: 'u2l3-a-27', sourceActivityId: 'U2L3-66-02', printedNumber: '٣', section: 'التقويم النهائي', page: 66,
@@ -329,36 +362,42 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
     subparts: ['ما تَحْتَهُ خَطٌّ: «الأَوْلادُ»، «إِقامَةَ»', 'ثَلاثَةُ سُطُورٍ لِلإِعْرابِ في الكِتاب.'],
     interaction: { kind: 'write', label: 'الإعراب', rows: 3 },
     source: u2l3Src(66, 'textbook_grammar', 'التقويم النهائي', 3),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-66-02' },
   },
   {
     id: 'u2l3-a-28', sourceActivityId: 'U2L3-66-03', printedNumber: '٤', section: 'التقويم النهائي', page: 66,
     instruction: 'أُحَدِّثُ زُمَلائي عَنْ أَهَمِّيَّةِ اللُّغَةِ في التَّعَلُّمِ لِمُدَّةِ دَقيقَةٍ مُسْتَعْمِلاً الفِعْلَ الماضِيَ المَبْنِيَّ على الفَتْحِ.', subparts: [],
     interaction: { kind: 'speak' },
     source: u2l3Src(66, 'textbook_grammar', 'التقويم النهائي', 4),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-66-03' },
   },
   {
     id: 'u2l3-a-29', sourceActivityId: 'U2L3-66-04', printedNumber: '٥', section: 'التقويم النهائي', page: 66,
     instruction: 'أَكْتُبُ فِقْرَةً مِنْ خَمْسَ عَشْرَةَ كَلِمَةً عَنْ فِكْرَةِ قِصَّةٍ أَعْجَبَتْني مُسْتَعْمِلاً الفِعْلَ الماضِيَ المَبْنِيَّ على الفَتْحِ.', subparts: [],
     interaction: { kind: 'write', label: 'الفقرة', rows: 5 },
     source: u2l3Src(66, 'textbook_grammar', 'التقويم النهائي', 5),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-66-04' },
   },
   {
     id: 'u2l3-a-30', sourceActivityId: 'U2L3-66-05', printedNumber: '١', section: 'إملاء: التاء المربوطة والمبسوطة', page: 66,
     instruction: 'أَقْرَأُ النَّصَّ السّابِقَ، ثُمَّ أَسْتَخْرِجُ الكَلِماتِ الَّتي تَحْوي تاءً مَرْبوطَةً أَوْ تاءً مَبْسوطَةً، وَأُعَلِّلُ كِتابَتَها.', subparts: [],
     interaction: { kind: 'write', label: 'الكلمات وتعليل كتابتها', rows: 4 },
     source: u2l3Src(66, 'textbook_spelling', 'إملاء', 1),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-66-05' },
   },
   {
     id: 'u2l3-a-31', sourceActivityId: 'U2L3-66-06', printedNumber: '٢', section: 'إملاء: التاء المربوطة والمبسوطة', page: 66,
     instruction: 'أَتَدَرَّبُ على كِتابَةِ الكَلِماتِ الَّتي تَحْوي تاءً مَبْسوطَةً أَوْ مَرْبوطَةً.', subparts: [],
     interaction: { kind: 'write', label: 'التدريب على الكتابة', rows: 5 },
     source: u2l3Src(66, 'textbook_spelling', 'إملاء', 2),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-66-06' },
   },
   {
     id: 'u2l3-a-32', sourceActivityId: 'U2L3-66-07', printedNumber: '٣', section: 'إملاء: التاء المربوطة والمبسوطة', page: 66,
     instruction: 'أَكْتُبُ ما يُمليهِ عَلَيَّ المُعَلِّمُ.', subparts: [],
     interaction: { kind: 'write', label: 'الإملاء', rows: 4 },
     source: u2l3Src(66, 'textbook_spelling', 'إملاء', 3, U2L3_LOCKED_SOURCE_NOTES.dictationAudio),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-66-07' },
     gapNote: U2L3_LOCKED_SOURCE_NOTES.dictationAudio,
   },
   {
@@ -366,6 +405,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
     instruction: 'أُلاحِظُ رَسْمَ الأَحْرُفِ (ر – ز) في الكَلِماتِ الآتِيَةِ:', subparts: [],
     interaction: { kind: 'handwriting', modelDescription: 'الكلمات المطبوعة بخط الرقعة ص٦٦ رسوم خطية ملوّنة؛ راقبها في صفحة الكتاب ثم نفّذ الرسم على ورقة مسطّرة.' },
     source: u2l3Src(66, 'textbook_exercise', 'الخط', 1, U2L3_LOCKED_SOURCE_NOTES.handwritingWords),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-66-08' },
     gapNote: U2L3_LOCKED_SOURCE_NOTES.handwritingWords,
   },
 
@@ -375,6 +415,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
     instruction: 'أُجَرِّدُ الأَحْرُفَ المَلونَةَ في الكَلِماتِ السّابِقَةِ مُنْتَبِهاً لِطَريقَةِ كِتابَتِها.', subparts: [],
     interaction: { kind: 'handwriting', modelDescription: 'تجريد الأحرف الملونة أداء خطي يدوي على ورقة مسطّرة.' },
     source: u2l3Src(67, 'textbook_exercise', 'الخط', 2, U2L3_LOCKED_SOURCE_NOTES.handwritingWords),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-67-01' },
     gapNote: U2L3_LOCKED_SOURCE_NOTES.handwritingWords,
   },
   {
@@ -382,6 +423,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
     instruction: 'أُلاحِظُ كِتابَةَ أَشْكالِ الحَرْفِ فيما يَأْتي:', subparts: [],
     interaction: { kind: 'handwriting', modelDescription: 'شكلان خطيان مرسومان في إطار «أتعلّم» ص٦٧؛ يُلاحَظان في صفحة الكتاب ويُنفَّذ الرسم يدوياً.' },
     source: u2l3Src(67, 'textbook_exercise', 'أتعلّم', undefined, U2L3_LOCKED_SOURCE_NOTES.handwritingWords),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-67-02' },
     gapNote: U2L3_LOCKED_SOURCE_NOTES.handwritingWords,
   },
   {
@@ -389,6 +431,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
     instruction: 'أَكْتُبُ أَشْكالَ حَرْفِ الزّايِ (ز) بِخَطِّ الرُّقْعَةِ', subparts: [],
     interaction: { kind: 'handwriting', modelDescription: 'أشكال حرف الزاي بخط الرقعة تُنفَّذ يدوياً على ورقة مسطّرة.' },
     source: u2l3Src(67, 'textbook_exercise', 'أتعلّم', undefined, U2L3_LOCKED_SOURCE_NOTES.handwritingWords),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-67-03' },
     gapNote: U2L3_LOCKED_SOURCE_NOTES.handwritingWords,
   },
   {
@@ -397,6 +440,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
     subparts: ['أَيُّهَا الطّالِبُ مَهْلًا    فُزْتَ لا تَطْوِ الكِتابا'],
     interaction: { kind: 'handwriting', modelText: 'أَيُّهَا الطّالِبُ مَهْلًا    فُزْتَ لا تَطْوِ الكِتابا', modelDescription: 'نموذج البيت بخط الرقعة ص٦٧؛ تُحاكى كتابته يدوياً على ورقة مسطّرة.' },
     source: u2l3Src(67, 'textbook_exercise', 'أتدرّب', undefined, U2L3_LOCKED_SOURCE_NOTES.handwritingWords),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-67-04' },
     gapNote: U2L3_LOCKED_SOURCE_NOTES.handwritingWords,
   },
   {
@@ -405,6 +449,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
     subparts: ['خَطُّ النَّسْخِ', 'خَطُّ الرُّقْعَةِ'],
     interaction: { kind: 'handwriting', modelDescription: 'الجدول ص٦٧ رسوم خطية مرقمة لرَوزَي (ر – ز) في الخطّين؛ يُقارَن يدوياً ولا تُستبدل الأشكال بحروف مطبعية.' },
     source: u2l3Src(67, 'textbook_exercise', 'أطبّق', undefined, U2L3_LOCKED_SOURCE_NOTES.handwritingWords),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-67-05' },
     gapNote: U2L3_LOCKED_SOURCE_NOTES.handwritingWords,
   },
   {
@@ -412,12 +457,14 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
     instruction: 'أُعاوِنُ زُمَلائي على كِتابَةِ بَعْضِ الحَقائِقِ العِلْميَّةِ الَّتي أَعْرِفُها.', subparts: [],
     interaction: { kind: 'write', label: 'الحقائق العلمية', rows: 4 },
     source: u2l3Src(67, 'textbook_expression', 'أعزّز كتابياً: حقيقة علمية', 1),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-67-06' },
   },
   {
     id: 'u2l3-a-40', sourceActivityId: 'U2L3-67-07', printedNumber: '٢', section: 'أعزّز كتابياً: حقيقة علمية', page: 67,
     instruction: 'أَعودُ إلى كِتابِ العُلومِ، وَأَجْمَعُ بَعْضاً مِنَ الحَقائِقِ العِلْميَّةِ مُلْتَرِماً خَصائِصَ كِتابَتِها.', subparts: [],
     interaction: { kind: 'write', label: 'ما جمعته من كتاب العلوم', rows: 4 },
     source: u2l3Src(67, 'textbook_expression', 'أعزّز كتابياً: حقيقة علمية', 2),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-67-07' },
   },
 
   /* ============ ص٦٨: ألعب وأتعلّم، أنا وأسرتي ============ */
@@ -427,6 +474,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
     subparts: [],
     interaction: { kind: 'cards', initialCards: 4 },
     source: u2l3Src(68, 'activity_book', 'ألعب وأتعلّم', 1),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-68-01' },
   },
   {
     id: 'u2l3-a-42', sourceActivityId: 'U2L3-68-02', printedNumber: '٢', section: 'ألعب وأتعلّم', page: 68,
@@ -434,6 +482,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
     subparts: ['مُدَّةُ التَّنْفيذِ: خَمْسُ دَقائِقَ'],
     interaction: { kind: 'write', label: 'نتيجة المقارنة', rows: 2 },
     source: u2l3Src(68, 'activity_book', 'ألعب وأتعلّم', 2),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-68-02' },
   },
   {
     id: 'u2l3-a-43', sourceActivityId: 'U2L3-68-03', printedNumber: '—', section: 'أنا وأسرتي', page: 68,
@@ -441,6 +490,7 @@ export const U2L3_ACTIVITIES: U2L3Activity[] = [
     subparts: [],
     interaction: { kind: 'speak' },
     source: u2l3Src(68, 'activity_book', 'أنا وأسرتي'),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L3-68-03' },
   },
 ];
 

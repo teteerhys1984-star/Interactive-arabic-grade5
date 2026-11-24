@@ -1,4 +1,4 @@
-import { SourceReference } from '../../types/curriculum';
+import { AnswerDisclosure, SourceReference } from '../../types/curriculum';
 import { lesson2Src, LISTENING_SOURCE_GAP, LOCKED_SOURCE_GAPS } from './sourceMeta';
 
 /**
@@ -95,6 +95,12 @@ export interface Lesson2Activity {
     explanation: string;
     commonMistakes?: string[];
   };
+  /**
+   * Explicit, mandatory disclosure decision. Derived from the audited behaviour
+   * of this lesson's renderer (approved id audit + availability); no answer text
+   * was added, changed or re-derived.
+   */
+  disclosure: AnswerDisclosure;
 }
 
 const sourceGapTeacher = (reason: string) => ({
@@ -121,6 +127,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['مثيرات المصدر البصرية: الوطن/العلم، الحوار، وتعاون الأطفال.'],
     interaction: { kind: 'speak', preparationLabel: 'دوّن نقاط الوصف التي ستشاركها شفهياً:' },
     availability: 'available', source: lesson2Src(12, 'textbook_exercise', 'أتأمل الصور', 1),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-12-01' },
     teacher: {
       answerOrGuidance: 'إجابة شفوية مفتوحة؛ يقبل الوصف الذي يلتزم بالمثيرات البصرية الموثقة ولا يضيف تفاصيل غير مرئية.',
       explanation: 'يقوّم المعلم وضوح الوصف وربطه بما هو ظاهر: الوطن/العلم أو الحوار أو تعاون الأطفال، لا صحة لغوية وحيدة.',
@@ -133,6 +140,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['وصف شفهي مفتوح للعلم.'],
     interaction: { kind: 'speak', preparationLabel: 'حضّر كلماتك لوصف العلم:' },
     availability: 'available', source: lesson2Src(12, 'textbook_exercise', 'أتأمل الصور', 2),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-12-02' },
     teacher: {
       answerOrGuidance: 'إجابة وصفية شفهية مفتوحة، لا نموذج نصي وحيد في المصدر.',
       explanation: 'يتحقق المعلم من أن المتعلم يصف العلم الذي يعرفه بعبارات واضحة؛ لا تُفرض تفاصيل غير مثبتة في القفل.',
@@ -145,6 +153,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['تسمية نشيد مرتبط بالصور/الوطن.'],
     interaction: { kind: 'text_fields', fields: [{ id: 'anthem', label: 'اسم النشيد الذي اخترته', placeholder: 'اكتب الاسم كما تعرفه' }] },
     availability: 'available', source: lesson2Src(12, 'textbook_exercise', 'أتأمل الصور', 3),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-12-03' },
     teacher: {
       answerOrGuidance: 'إجابة مفتوحة؛ يسجل المتعلم اسماً يربطه بالصور.',
       explanation: 'لا يسمي المصدر نشيداً بعينه، ولذلك يقبل المعلم الربط الشخصي المناسب ولا يفرض عنواناً غير وارد.',
@@ -157,6 +166,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['فراغ: من يخاطب الشاعر.', 'فراغ: العبارة المكررة.'],
     interaction: { kind: 'source_gap', reason: LISTENING_SOURCE_GAP, preservedPrompt: 'يخاطب الشاعر في النص … / العبارة التي كررها الشاعر …' },
     availability: 'gap', source: lesson2Src(12, 'textbook_reading', 'أستمع إلى النص', 1, LISTENING_SOURCE_GAP),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'L2-12-04' },
     teacher: sourceGapTeacher(LISTENING_SOURCE_GAP),
   },
   {
@@ -174,6 +184,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       disabledReason: LISTENING_SOURCE_GAP,
     },
     availability: 'gap', source: lesson2Src(12, 'textbook_reading', 'أستمع إلى النص', 2, LISTENING_SOURCE_GAP),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'L2-12-05' },
     teacher: sourceGapTeacher(LISTENING_SOURCE_GAP),
   },
   {
@@ -183,6 +194,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['مشاركة شفهية بقيمة متعلمة.'],
     interaction: { kind: 'source_gap', reason: LISTENING_SOURCE_GAP, preservedPrompt: 'أخبر زملائي بقيمة تعلمتها من النص.' },
     availability: 'gap', source: lesson2Src(12, 'textbook_reading', 'أستمع إلى النص', 3, LISTENING_SOURCE_GAP),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'L2-12-06' },
     teacher: sourceGapTeacher(LISTENING_SOURCE_GAP),
   },
 
@@ -194,6 +206,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['المقطع الأول من القصيدة.', 'إشارات وإيماءات مناسبة لمشاعر الاعتزاز.'],
     interaction: { kind: 'source_gap', reason: LOCKED_SOURCE_GAPS.poemFullText, preservedPrompt: 'قراءة المقطع الأول مع الإشارات والإيماءات المناسبة لمشاعر الاعتزاز.' },
     availability: 'gap', source: lesson2Src(13, 'textbook_poetry', 'أقرأ', 1, LOCKED_SOURCE_GAPS.poemFullText),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'L2-13-01' },
     teacher: sourceGapTeacher(LOCKED_SOURCE_GAPS.poemFullText),
   },
   {
@@ -203,6 +216,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['المقطع الثاني من القصيدة.', 'التلوين الصوتي المناسب.'],
     interaction: { kind: 'source_gap', reason: LOCKED_SOURCE_GAPS.poemFullText, preservedPrompt: 'قراءة المقطع الثاني مع التلوين الصوتي المناسب.' },
     availability: 'gap', source: lesson2Src(13, 'textbook_poetry', 'أقرأ', 2, LOCKED_SOURCE_GAPS.poemFullText),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'L2-13-02' },
     teacher: sourceGapTeacher(LOCKED_SOURCE_GAPS.poemFullText),
   },
   {
@@ -212,6 +226,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['قراءة جهرية سليمة.', 'تلوين صوتي مناسب للمعنى.'],
     interaction: { kind: 'source_gap', reason: LOCKED_SOURCE_GAPS.poemFullText, preservedPrompt: 'قراءة النص قراءة جهرية سليمة مع التلوين الصوتي المناسب للمعنى.' },
     availability: 'gap', source: lesson2Src(13, 'textbook_poetry', 'أقرأ', 3, LOCKED_SOURCE_GAPS.poemFullText),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'L2-13-03' },
     teacher: sourceGapTeacher(LOCKED_SOURCE_GAPS.poemFullText),
   },
 
@@ -232,6 +247,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'opposite-extra-2', label: 'خانة ضد مكملة ٢' },
     ]},
     availability: 'available', source: lesson2Src(14, 'textbook_exercise', 'الفهم القرائي', 1),
+    disclosure: { kind: 'teacher_only', sourceRef: 'L2-14-01' },
     teacher: {
       answerOrGuidance: 'يتحقق المعلم من إجابة «تاج» و«الرأي» ومن استكمال المخطط من النص؛ لا تعتمد خانات إضافية بعينها لأن القصيدة كاملة غير منسوخة في وثيقة القفل.',
       explanation: 'يظهر المصدر عناصر بداية المخطط والخانات المكملة، لكنه لا يحفظ نص القصيدة الكامل الذي يثبت بقية الألفاظ. لا تُخترع قائمة خانات بديلة.',
@@ -248,6 +264,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'fig', label: 'معنى «تنضج» في جملة ثمرة التين', multiline: true },
     ]},
     availability: 'available', source: lesson2Src(14, 'textbook_exercise', 'الفهم القرائي', 2),
+    disclosure: { kind: 'approved_key', sourceRef: 'L2-14-02' },
     teacher: {
       answerOrGuidance: 'في الحكمة: تنمو أو تكتمل فكرياً. وفي ثمرة التين: تبلغ طور النضج المناسب للأكل.',
       explanation: 'تتغير دلالة الكلمة بالسياق: الأولى معنوية والثانية حسية.',
@@ -264,6 +281,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'quarrel', text: 'أخاصم' },
     ]},
     availability: 'available', source: lesson2Src(14, 'textbook_exercise', 'الفهم القرائي', 3),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-14-03' },
     teacher: {
       answerOrGuidance: 'أعبر عن رأيي.',
       explanation: 'التركيب في سياق الرأي والحوار، لا في سياق الصراخ أو الخصام.',
@@ -280,6 +298,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'future', text: 'بالحوار الإيجابي نصنع مستقبلاً لوطننا.' },
     ], disabledReason: LOCKED_SOURCE_GAPS.poemDependentDetails },
     availability: 'gap', source: lesson2Src(14, 'textbook_exercise', 'الفهم القرائي', 4, LOCKED_SOURCE_GAPS.poemDependentDetails),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'L2-14-04' },
     teacher: sourceGapTeacher(LOCKED_SOURCE_GAPS.poemDependentDetails),
   },
   {
@@ -289,6 +308,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['الاختلاف لا يصل إلى الخصام.', 'واجب السعي إلى مستقبل أجمل.'],
     interaction: { kind: 'source_gap', reason: LOCKED_SOURCE_GAPS.poemDependentDetails, preservedPrompt: 'أكتب رقم البيت الدال على كل من المعنيين.' },
     availability: 'gap', source: lesson2Src(14, 'textbook_exercise', 'الفهم القرائي', 5, LOCKED_SOURCE_GAPS.poemDependentDetails),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'L2-14-05' },
     teacher: sourceGapTeacher(LOCKED_SOURCE_GAPS.poemDependentDetails),
   },
   {
@@ -307,6 +327,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       ],
     },
     availability: 'available', source: lesson2Src(14, 'textbook_exercise', 'الفهم القرائي', 6),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-14-06' },
     teacher: {
       answerOrGuidance: 'يقبل ربط معلل واحد على الأقل لكل نتيجة؛ لا يورد القفل مفتاح المطابقة المطبوع.',
       explanation: 'يتحقق المعلم من أن الطالب يبرر العلاقة التي وصلها باللغة والسياق، ولا يعرض ربطاً مصطنعاً كمفتاح كتابي رسمي.',
@@ -321,6 +342,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['تعليل شخصي مرتبط بالعبارة المكررة.'],
     interaction: { kind: 'write', label: 'اكتب تعليلك:', rows: 3 },
     availability: 'available', source: lesson2Src(15, 'textbook_exercise', 'الفهم القرائي', 7),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-15-01' },
     teacher: {
       answerOrGuidance: 'إجابة معللة مفتوحة؛ تقبل إذا ربطت التكرار بتأكيد قيمة الرأي والرأي الآخر والحوار.',
       explanation: 'لا يقدم المصدر جواباً نموذجياً وحيداً؛ يقوّم المعلم وجود تعليل متصل بالفكرة المعلنة.',
@@ -333,6 +355,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['تشبيه شخصي مكتمل.'],
     interaction: { kind: 'text_fields', fields: [{ id: 'simile', label: 'أكمل التشبيه' }] },
     availability: 'available', source: lesson2Src(15, 'textbook_exercise', 'الفهم القرائي', 8),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-15-02' },
     teacher: {
       answerOrGuidance: 'إجابة تشبيهية مفتوحة.',
       explanation: 'يتحقق المعلم من اكتمال صيغة التشبيه وصلتها بمقصود المتعلم، ولا يثبت المصدر مشبهاً واحداً إلزامياً.',
@@ -345,6 +368,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['حقوق: التعليم، الصحة، وخانتان ناقصتان.', 'واجبات: التزام القوانين وخانتان ناقصتان.', 'تعديل رسم الميزان بعد الإكمال.'],
     interaction: { kind: 'balance', rights: ['التعليم', 'الصحة'], duties: ['التزام القوانين'], prompt: 'أضف الحقوق والواجبات التي تقترحها ثم اشرح كيف يصبح الميزان متوازناً.' },
     availability: 'available', source: lesson2Src(15, 'textbook_exercise', 'الفهم القرائي', 9),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-15-03' },
     teacher: {
       answerOrGuidance: 'يقوم المتعلم بإكمال الخانات الناقصة ثم يوازن الرسم؛ لا يفرض القفل نص بطاقات الخانات الأربع الناقصة.',
       explanation: 'يتحقق المعلم من التمييز بين الحقوق والواجبات ومن محاولة تعديل الميزان، من دون اختراع بطاقات مصدرية ثابتة.',
@@ -360,6 +384,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'no', label: 'عبارات «كلا»', multiline: true },
     ]},
     availability: 'available', source: lesson2Src(15, 'textbook_exercise', 'الفهم القرائي', 10),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-15-04' },
     teacher: {
       answerOrGuidance: 'حوار مفتوح بين الشخصيتين «نعم» و«كلا».',
       explanation: 'يقيّم المعلم الترابط والاحترام في الحوار؛ لا يوجد نص حواري نموذجي ثابت في المصدر.',
@@ -372,6 +397,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['قول/نصيحة منسوبة لشخصية الحكمة.'],
     interaction: { kind: 'write', label: 'ماذا يمكن أن تقول الحكمة؟', rows: 3 },
     availability: 'available', source: lesson2Src(15, 'textbook_exercise', 'الفهم القرائي', 11),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-15-05' },
     teacher: {
       answerOrGuidance: 'استجابة مفتوحة تقدم رأياً أو نصيحة مرتبطة بالحوار واحترام الرأي الآخر.',
       explanation: 'يقبل المعلم جواباً متسقاً مع قيمة الحوار؛ لا ينسب إلى الكتاب عبارة غير منسوخة.',
@@ -384,6 +410,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['اختيار أربعة أبيات على الأقل.', 'حفظها.', 'إلقاؤها أمام الزملاء.'],
     interaction: { kind: 'source_gap', reason: LOCKED_SOURCE_GAPS.poemFullText, preservedPrompt: 'احفظ أربعة أبيات على الأقل ثم ألقها أمام زملائك.' },
     availability: 'gap', source: lesson2Src(15, 'textbook_poetry', 'الفهم القرائي', 12, LOCKED_SOURCE_GAPS.poemFullText),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'L2-15-06' },
     teacher: sourceGapTeacher(LOCKED_SOURCE_GAPS.poemFullText),
   },
 
@@ -395,6 +422,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['موضوع المقابلة: مهنة رجل الإطفاء اليومية وبطولاته.', 'تطبيق متطلبات المقابلة الستة في ص١٦.'],
     interaction: { kind: 'interview_plan', criteria: interviewCriteria },
     availability: 'available', source: lesson2Src(17, 'textbook_expression', 'أتدرب بإشراف معلمي'),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-17-01' },
     teacher: {
       answerOrGuidance: 'حل النشاط هو خطة مقابلة جماعية تفي بالمعايير الستة؛ لا يوجد في المصدر نص أسئلة أو أجوبة لرجل الإطفاء.',
       explanation: 'يتحقق المعلم من اختيار الموضوع والشخص، وضبط الزمان والمكان، ووجود افتتاح وأسئلة مختصرة وخاتمة ومساحة للرأي.',
@@ -410,6 +438,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'amal', label: 'فعل «عملاً»' }, { id: 'itqan', label: 'فعل «إتقان»' }, { id: 'taqdim', label: 'فعل «تقديم»' },
     ]},
     availability: 'available', source: lesson2Src(17, 'textbook_grammar', 'قواعد اللغة: المصادر', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'L2-17-02' },
     teacher: {
       answerOrGuidance: 'عملاً ← عمل، إتقان ← أتقن، تقديم ← قدّم.',
       explanation: 'المطلوب استرجاع الفعل الذي ينتمي إليه كل اسم، تمهيداً لاستنتاج المصدر.',
@@ -424,6 +453,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'time', text: 'مرتبط بزمن' }, { id: 'timeless', text: 'مجرد من الزمن' },
     ]},
     availability: 'available', source: lesson2Src(17, 'textbook_grammar', 'قواعد اللغة: المصادر', 2),
+    disclosure: { kind: 'approved_key', sourceRef: 'L2-17-03' },
     teacher: {
       answerOrGuidance: '«عملاً» مجرد من الزمن.',
       explanation: 'الفعل «عمل» يدل على حدث في زمن ماضٍ، أما المصدر فيدل على الحدث نفسه من غير زمن.',
@@ -439,6 +469,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'taqdim-diff', label: 'الفرق بين «تقديم» و«قدّم»', multiline: true },
     ]},
     availability: 'available', source: lesson2Src(17, 'textbook_grammar', 'قواعد اللغة: المصادر', 3),
+    disclosure: { kind: 'approved_key', sourceRef: 'L2-17-04' },
     teacher: {
       answerOrGuidance: '«إتقان» و«تقديم» مصدران مجردان من الزمن؛ «أتقن» و«قدّم» فعلان يدلان على حدث مرتبط بزمن.',
       explanation: 'يركز الحل على الفرق الدلالي الزمني لا على تغيير شكل الكلمة فقط.',
@@ -451,6 +482,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['استنتاج اسم المصطلح النحوي.'],
     interaction: { kind: 'text_fields', fields: [{ id: 'term', label: 'اسمها' }] },
     availability: 'available', source: lesson2Src(17, 'textbook_grammar', 'قواعد اللغة: المصادر', 4),
+    disclosure: { kind: 'approved_key', sourceRef: 'L2-17-05' },
     teacher: {
       answerOrGuidance: 'المصادر.',
       explanation: 'القاعدة المعروضة في المصدر: المصدر اسم من جنس الفعل يدل على حدث مجرد من الزمن.',
@@ -471,6 +503,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'intishar', text: 'انتشار' }, { id: 'dhahab', text: 'ذهاب' },
     ]},
     availability: 'available', source: lesson2Src(18, 'textbook_grammar', 'أطبق'),
+    disclosure: { kind: 'approved_key', sourceRef: 'L2-18-01' },
     teacher: {
       answerOrGuidance: 'صدّق ← صدق؛ رأى ← رؤية؛ اشترك ← اشتراك؛ انتشر ← انتشار؛ ذهب ← ذهاب.',
       explanation: 'يطابق كل فعل بالمصدر الذي يدل على الحدث المجرد من الزمن.',
@@ -486,6 +519,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'itimad', label: 'فعل «اعتماد»' }, { id: 'ilam', label: 'فعل «إعلام»' },
     ]},
     availability: 'available', source: lesson2Src(18, 'textbook_grammar', 'التقويم النهائي', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'L2-18-02' },
     teacher: {
       answerOrGuidance: 'نوم ← نام؛ قراءة ← قرأ؛ اعتماد ← اعتمد؛ إعلام ← أعلم.',
       explanation: 'ننتقل من المصدر إلى الفعل الموافق له في المعنى.',
@@ -501,6 +535,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'zaraa', label: 'مصدر «زرع»' }, { id: 'hasada', label: 'مصدر «حصد»' },
     ]},
     availability: 'available', source: lesson2Src(18, 'textbook_grammar', 'التقويم النهائي', 2),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-18-03' },
     teacher: {
       answerOrGuidance: 'أخبر ← إخبار؛ زرع ← زراعة؛ حصد ← حصاد. أما «أسم» فمكتوبة بهذه الصورة في وثيقة القفل ولا تثبت الوثيقة مصدرها؛ لا يعتمد جواب مخمّن لها.',
       explanation: 'تحل العناصر الثلاثة ذات العلاقة المثبتة. تظل خانة «أسم» معلنة كفجوة لأن مصدر القفل لا يبين المقصود الصرفي منها.',
@@ -517,6 +552,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'partner-sources', label: 'المصادر التي يجيب بها زميلي', multiline: true },
     ]},
     availability: 'available', source: lesson2Src(18, 'textbook_grammar', 'التقويم النهائي', 3),
+    disclosure: { kind: 'teacher_only', sourceRef: 'L2-18-04' },
     teacher: {
       answerOrGuidance: 'أداء ثنائي مفتوح؛ يتحقق المعلم من وجود ثلاثة تبادلات على الأقل لكل متعلم وصحة علاقة الفعل بالمصدر.',
       explanation: 'لا يحدد المصدر ثلاثة ألفاظ بعينها، لذلك يقوّم عدد التبادلات وصحة العلاقة لا قائمة محفوظة.',
@@ -529,6 +565,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['حديث شفهي عن مهنة قريب.', 'المدة: دقيقتان.', 'استعمال المصادر.'],
     interaction: { kind: 'speak', preparationLabel: 'اكتب مخطط حديثك مع مصادر ستستعملها:', criteria: ['مدة الأداء: دقيقتان.', 'يتناول مهنة أحد الأقارب.', 'يستعمل مصادر مناسبة.'] },
     availability: 'available', source: lesson2Src(18, 'textbook_grammar', 'التقويم النهائي', 4),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-18-05' },
     teacher: {
       answerOrGuidance: 'أداء شفهي مفتوح لمدة دقيقتين يستعمل فيه المتعلم مصادر مناسبة.',
       explanation: 'يقيّم المعلم التزام المدة والموضوع واستعمال المصادر، ولا يفرض مهنة أو نصاً بعينه.',
@@ -541,6 +578,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['فقرة من خمس عشرة كلمة.', 'وصف مهنة مفضلة.', 'استعمال المصادر.'],
     interaction: { kind: 'write', label: 'اكتب فقرتك (١٥ كلمة):', rows: 5 },
     availability: 'available', source: lesson2Src(18, 'textbook_grammar', 'التقويم النهائي', 5),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-18-06' },
     teacher: {
       answerOrGuidance: 'فقرة مفتوحة من خمس عشرة كلمة تصف مهنة مفضلة وتستعمل مصادر.',
       explanation: 'يتحقق المعلم من عدد الكلمات، مناسبة الوصف، ووجود مصدر أو أكثر؛ لا يفرض المصدر فقرة نموذجية.',
@@ -559,6 +597,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'aqbala', text: 'أقبل' }, { id: 'iqbalan', text: 'إقبالاً' }, { id: 'akhadha', text: 'أخذ' }, { id: 'amalan', text: 'أملاً' },
     ]},
     availability: 'available', source: lesson2Src(19, 'textbook_spelling', 'أقرأ الأمثلة', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'L2-19-01' },
     teacher: {
       answerOrGuidance: 'أقبل، إقبالاً، أخذ، أملاً: همزات قطع.',
       explanation: 'كلها تبدأ بهمزة مرسومة فوق الألف أو تحته، وتندرج ضمن أمثلة همزة القطع في المصدر.',
@@ -575,6 +614,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'akhadha', label: '«أخذ»: عدد الأحرف ودلالته الزمنية' },
     ]},
     availability: 'available', source: lesson2Src(19, 'textbook_spelling', 'أقرأ الأمثلة', 2),
+    disclosure: { kind: 'approved_key', sourceRef: 'L2-19-02' },
     teacher: {
       answerOrGuidance: 'أقبل: فعل ماضٍ رباعي؛ إقبال: مصدر رباعي مجرد من الزمن؛ أخذ: فعل ماضٍ ثلاثي.',
       explanation: 'يربط الحل عدد الأحرف بنوع الكلمة ودلالتها الزمنية كما يطلب السؤال.',
@@ -589,6 +629,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'iqbal', label: 'فعل «إقبالاً» وعدد أحرفه' }, { id: 'amal', label: 'فعل «أملاً» وعدد أحرفه' },
     ]},
     availability: 'available', source: lesson2Src(19, 'textbook_spelling', 'أقرأ الأمثلة', 3),
+    disclosure: { kind: 'approved_key', sourceRef: 'L2-19-03' },
     teacher: {
       answerOrGuidance: 'إقبالاً ← أقبل، أربعة أحرف. أملاً ← أمل، ثلاثة أحرف.',
       explanation: 'المطلوب وصل المصدر بالفعل وبيان عدد حروف الفعل، لا عد حروف المصدر فقط.',
@@ -601,6 +642,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['الفعل الثلاثي المبدوء بهمزة ومصدره.', 'الفعل الرباعي وأمره ومصدره.'],
     interaction: { kind: 'write', label: 'اكتب بيانك:', rows: 4 },
     availability: 'available', source: lesson2Src(19, 'textbook_spelling', 'أقرأ الأمثلة', 4),
+    disclosure: { kind: 'approved_key', sourceRef: 'L2-19-04' },
     teacher: {
       answerOrGuidance: 'همزة قطع في الماضي الثلاثي المبدوء بهمزة ومصدره، وفي الماضي الرباعي وأمره ومصدره.',
       explanation: 'هذا تطبيق مباشر لمواضع همزة القطع التي تسجلها قاعدة ص١٩.',
@@ -617,6 +659,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'asas', text: 'أساس' }, { id: 'an', text: 'أن' }, { id: 'ila', text: 'إلى' },
     ]},
     availability: 'available', source: lesson2Src(19, 'textbook_spelling', 'أقرأ الأمثلة', 5),
+    disclosure: { kind: 'approved_key', sourceRef: 'L2-19-05' },
     teacher: {
       answerOrGuidance: 'أساس، أن، إلى: همزات قطع.',
       explanation: 'تأتي همزة القطع في أول الأسماء والحروف، وهذه الألفاظ من أمثلة المصدر.',
@@ -633,6 +676,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'strong', label: 'كن صاحب … قوية لتحقق أهدافك.' },
     ]},
     availability: 'available', source: lesson2Src(19, 'textbook_spelling', 'أطبق'),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-19-06' },
     teacher: {
       answerOrGuidance: 'تقبل الكلمات المناسبة التي تبدأ بهمزة قطع وتستقيم بها الجملة؛ لا تسجل وثيقة القفل كلمات إجابة وحيدة.',
       explanation: 'يفحص المعلم شرطين: سلامة المعنى وبدء الكلمة بهمزة قطع.',
@@ -648,6 +692,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'verb', label: 'الفعل المبدوء بهمزة قطع' }, { id: 'verb-details', label: 'زمنه وعدد أحرفه وحركة همزته', multiline: true },
     ]},
     availability: 'available', source: lesson2Src(19, 'textbook_spelling', 'التقويم النهائي', 1, undefined, 20),
+    disclosure: { kind: 'teacher_only', sourceRef: 'L2-19-07' },
     teacher: {
       answerOrGuidance: 'يحلل المعلم الكلمات ذات همزة القطع الواردة في الفقرة وفق حقول الجدول. لا يضيف ألفاظاً خارج الفقرة أو خارج الحقول الموثقة.',
       explanation: 'وثيقة القفل تحفظ بنية الجدول وحقوله، ولا تنسخ الفقرة أو صف المثال كاملاً؛ لذلك يقدم المعلم التصحيح على الورقة/المصدر المعتمد عند توفره ولا ينشئ جدول إجابات بديلاً.',
@@ -663,6 +708,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'one', label: 'الجملة الأولى' }, { id: 'two', label: 'الجملة الثانية' }, { id: 'three', label: 'الجملة الثالثة' },
     ]},
     availability: 'available', source: lesson2Src(20, 'textbook_spelling', 'التقويم النهائي', 2),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-20-01' },
     teacher: {
       answerOrGuidance: 'ثلاث جمل من إنشاء المتعلم، تحتوي كل واحدة منها كلمة تبدأ بهمزة قطع.',
       explanation: 'يقيّم المعلم ثلاثة متطلبات منفصلة: عدد الجمل، سلامتها، ووجود همزة قطع في كل جملة.',
@@ -675,6 +721,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['حديث عن أداء الواجب تجاه المجتمع.', 'المدة: دقيقتان.', 'استعمال همزة القطع.', 'إشارة صغيرة عند الكلمة الحاوية همزة قطع.'],
     interaction: { kind: 'speak', preparationLabel: 'حضّر مخطط حديثك والكلمات التي ستشير إليها:', criteria: ['مدة الأداء: دقيقتان.', 'موضوع الحديث: أداء الواجب تجاه المجتمع.', 'استعمال همزة قطع وإشارة مصاحبة.'] },
     availability: 'available', source: lesson2Src(20, 'textbook_spelling', 'التقويم النهائي', 3),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-20-02' },
     teacher: {
       answerOrGuidance: 'أداء شفهي مفتوح لمدة دقيقتين، مع استعمال همزة القطع وإشارة عند مواضعها.',
       explanation: 'يقيّم المعلم شروط الأداء جميعاً ولا يستبدلها بنص محفوظ.',
@@ -687,6 +734,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['فقرة من سطرين.', 'التعبير عن الانتماء إلى الأرض.', 'استعمال همزة القطع.'],
     interaction: { kind: 'write', label: 'اكتب فقرتك من سطرين:', rows: 4 },
     availability: 'available', source: lesson2Src(20, 'textbook_spelling', 'التقويم النهائي', 4),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-20-03' },
     teacher: {
       answerOrGuidance: 'فقرة مفتوحة من سطرين عن الانتماء إلى الأرض تستخدم همزة القطع.',
       explanation: 'يتحقق المعلم من طول الفقرة وموضوعها واستخدام همزة القطع؛ لا توجد صياغة واحدة مفروضة.',
@@ -701,6 +749,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['ملاحظة ستة أمثلة كتابية ظاهرة في المصدر.'],
     interaction: { kind: 'source_gap', reason: LOCKED_SOURCE_GAPS.handwritingModels, preservedPrompt: 'ألاحظ رسم الهمزة والمد والألف في الكلمات الآتية.' },
     availability: 'gap', source: lesson2Src(21, 'textbook_exercise', 'الخط: كتابة الهمزة والمد والألف', 1, LOCKED_SOURCE_GAPS.handwritingModels),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'L2-21-01' },
     teacher: sourceGapTeacher(LOCKED_SOURCE_GAPS.handwritingModels),
   },
   {
@@ -710,6 +759,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['تجريد الهمزة.', 'تجريد المد.', 'تجريد الألف.', 'اتباع طريقة الكتابة في النماذج السابقة.'],
     interaction: { kind: 'source_gap', reason: LOCKED_SOURCE_GAPS.handwritingModels, preservedPrompt: 'أجرد الهمزة والمد والألف في الكلمات السابقة متتبعاً طريقة كتابتها.' },
     availability: 'gap', source: lesson2Src(21, 'textbook_exercise', 'الخط: كتابة الهمزة والمد والألف', 2, LOCKED_SOURCE_GAPS.handwritingModels),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'L2-21-02' },
     teacher: sourceGapTeacher(LOCKED_SOURCE_GAPS.handwritingModels),
   },
   {
@@ -719,6 +769,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['العبارة: «أحافظ على آثار بلادي».', 'المحاكاة بخط الرقعة.', 'تمييز الهمزة والمد والألف.'],
     interaction: { kind: 'handwriting', modelText: 'أحافظ على آثار بلادي', modelDescription: 'عبارة المصدر المكتوبة للتدريب بخط الرقعة.' },
     availability: 'available', source: lesson2Src(21, 'textbook_exercise', 'أتدرب'),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-21-03' },
     teacher: {
       answerOrGuidance: 'ينسخ المتعلم العبارة نفسها بخط الرقعة مع تمييز الهمزة والمد والألف.',
       explanation: 'يصحح المعلم المحاكاة الخطية على الورقة/الإنتاج المرئي؛ لا يحول النشاط إلى سؤال لغوي مختلف.',
@@ -731,6 +782,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['الهمزة في موضعها المناسب.', 'الألف في موضعها المناسب.', 'خط الرقعة.', 'مقارنة بخط النسخ.'],
     interaction: { kind: 'source_gap', reason: LOCKED_SOURCE_GAPS.handwritingModels, preservedPrompt: 'أكتب الهمزة والألف في مكانهما المناسب بخط الرقعة.' },
     availability: 'gap', source: lesson2Src(22, 'textbook_exercise', 'أطبق', undefined, LOCKED_SOURCE_GAPS.handwritingModels),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'L2-22-01' },
     teacher: sourceGapTeacher(LOCKED_SOURCE_GAPS.handwritingModels),
   },
 
@@ -742,6 +794,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['جواب شخصية العشب للظل.'],
     interaction: { kind: 'write', label: 'اكتب جواب العشب:', rows: 3 },
     availability: 'available', source: lesson2Src(23, 'textbook_expression', 'أضيف', 1),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-23-01' },
     teacher: {
       answerOrGuidance: 'إجابة حوارية مفتوحة بصوت شخصية العشب.',
       explanation: 'يقبل المعلم جواباً متسقاً مع وصف المصدر للحوار، من دون ادعاء أنه نص الكتاب الحرفي.',
@@ -754,6 +807,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['رأي مكتوب من موقع العصفور المستمع.'],
     interaction: { kind: 'write', label: 'اكتب رأي العصفور:', rows: 3 },
     availability: 'available', source: lesson2Src(23, 'textbook_expression', 'أضيف', 2),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-23-02' },
     teacher: {
       answerOrGuidance: 'رأي مفتوح من منظور العصفور.',
       explanation: 'يقيّم المعلم صلة الرأي بالموقف الموثق في المصدر، لا تطابقه مع جملة نموذجية مصطنعة.',
@@ -769,6 +823,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'dialogue', label: 'الحوار بعد الإضافة وإعادة الكتابة', multiline: true },
     ]},
     availability: 'available', source: lesson2Src(23, 'textbook_expression', 'أضيف', 3),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-23-03' },
     teacher: {
       answerOrGuidance: 'إنتاج كتابي مفتوح يتضمن شخصية مقترحة وحوارها وإعادة كتابة الحوار.',
       explanation: 'يتحقق المعلم من إنجاز الأجزاء الثلاثة، ولا يحدد المصدر شخصية أو حواراً واحداً مقبولاً.',
@@ -783,6 +838,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'brother', label: 'قول الأخ', multiline: true }, { id: 'sister', label: 'قول الأخت الصغيرة', multiline: true },
     ]},
     availability: 'available', source: lesson2Src(23, 'textbook_expression', 'أضيف', 4),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-23-04' },
     teacher: {
       answerOrGuidance: 'حوار مفتوح بين الأخ والأخت الصغيرة حول دعوة الأصدقاء إلى الحديقة.',
       explanation: 'يتحقق المعلم من حضور الشخصيتين والموضوع والحوار المكتوب؛ لا يوجد نص إلزامي في المصدر.',
@@ -800,6 +856,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'jalasa', label: 'جلس ←' }, { id: 'sabaha', label: 'سبح ←' },
     ]},
     availability: 'available', source: lesson2Src(24, 'activity_book', 'ألعب وأتعلم', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'L2-24-01' },
     teacher: {
       answerOrGuidance: 'كتب ← كتابة؛ ذهب ← ذهاب؛ صعد ← صعود؛ جلس ← جلوس؛ سبح ← سباحة.',
       explanation: 'تضاف الأحرف المبينة في المصدر لتتحول الألفاظ إلى مصادر.',
@@ -815,6 +872,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'zakharafa', label: 'زخرفة ←' }, { id: 'ilman', label: 'علماً ←' },
     ]},
     availability: 'available', source: lesson2Src(24, 'activity_book', 'ألعب وأتعلم', 2),
+    disclosure: { kind: 'approved_key', sourceRef: 'L2-24-02' },
     teacher: {
       answerOrGuidance: 'وجود ← وجد؛ لعباً ← لعب؛ زخرفة ← زخرف؛ علماً ← علم.',
       explanation: 'يحذف المتعلم حرفاً من كل بطاقة ليصل إلى الفعل المقابل.',
@@ -827,6 +885,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
     subparts: ['الكتابة بمساعدة الأسرة.', 'جمل لقواعد السلامة والأمان.', 'زيارة أماكن مختارة.', 'الأمثلة المذكورة: مسبح أو مناطق مرتفعة.'],
     interaction: { kind: 'write', label: 'اكتب جملك الأسرية لقواعد السلامة والأمان:', rows: 5 },
     availability: 'available', source: lesson2Src(24, 'activity_book', 'أنا وأسرتي'),
+    disclosure: { kind: 'guidance_only', sourceRef: 'L2-24-03' },
     teacher: {
       answerOrGuidance: 'إنتاج كتابي أسري مفتوح يتضمن قواعد سلامة وأمان مرتبطة بمكان مختار.',
       explanation: 'يقيّم المعلم ارتباط الجمل بسلامة الزيارة ومشاركة الأسرة؛ المسبح والمناطق المرتفعة أمثلة مصدرية وليست قائمة حصرية.',

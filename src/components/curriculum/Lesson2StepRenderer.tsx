@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { LessonStep, SourceReference } from '../../types/curriculum';
 import { ArabicNumber } from '../common/BiDi';
 import { SourceBadge } from '../common/SourceBadge';
-import { AnswerReveal, AnswerRevealProps } from '../common/AnswerReveal';
+import { AnswerReveal } from '../common/AnswerReveal';
+import { fromKeyedLesson, resolveAnswerReveal } from '../common/answerDisclosure';
 import { getLesson2Activity, Lesson2Activity, Lesson2Interaction } from '../../data/lesson2/activities';
 import { LESSON2_STEP_CONTENT, Lesson2Block } from '../../data/lesson2/content';
 import { clearDraft, readDraft, writeDraft } from '../../utils/draftStorage';
@@ -10,41 +11,18 @@ import { Lesson2Explanations } from './Lesson2Explanations';
 
 const LESSON2_DRAFT_SCOPE = 'lesson2';
 
-/* ---- Student/teacher content separation (owner directive) -----------------
- * Every available Lesson-2 `teacher.answerOrGuidance` was audited item by item
- * against the locked source record:
- *  - L2_MODEL_ANSWER_IDS: concrete approved answers, safe to present to the
- *    learner as the model answer («الحل النموذجي المعتمد»).
- *  - L2_TEACHER_ONLY_IDS: pure internal grading procedure with no student-usable
- *    approved content → the button is hidden entirely.
- *      • L2-14-01: a teacher verification note; the approved partial answers
- *        «تاج»/«الرأي» sit inside teacher-facing wording that must not be
- *        rewritten into a student key.
- *      • L2-19-07: a teacher analysis procedure; the source lock keeps no
- *        student-facing answer table for the paragraph.
- *  - every other available activity carries honest open-task guidance (no single
- *    printed answer) — shown verbatim under «إرشادات للإجابة», the treatment the
- *    owner specified for L2-14-06.
- * `teacher.explanation` is a teacher note by definition (grading mechanics, lock
- * administration) and is never rendered in the student panel. No answer text is
- * invented, rewritten, or paraphrased here. */
-const L2_MODEL_ANSWER_IDS = new Set([
-  'L2-14-02', 'L2-17-02', 'L2-17-03', 'L2-17-04', 'L2-17-05',
-  'L2-18-01', 'L2-18-02', 'L2-19-01', 'L2-19-02', 'L2-19-03',
-  'L2-19-04', 'L2-19-05', 'L2-24-01', 'L2-24-02',
-]);
-const L2_TEACHER_ONLY_IDS = new Set(['L2-14-01', 'L2-19-07']);
-
-const buildLesson2Reveal = (activity: Lesson2Activity): AnswerRevealProps | null => {
-  if (activity.availability !== 'available') return null;
-  if (L2_TEACHER_ONLY_IDS.has(activity.sourceActivityId)) return null;
-  return {
-    modelAnswer: activity.teacher.answerOrGuidance,
-    heading: L2_MODEL_ANSWER_IDS.has(activity.sourceActivityId)
-      ? 'الحل النموذجي المعتمد'
-      : 'إرشادات للإجابة',
-  };
-};
+/* ---- Student/teacher content separation -----------------------------------
+ * The decision now lives in the DATA: every record carries an explicit
+ * `disclosure` (approved_key / guidance_only / teacher_only /
+ * no_approved_content) plus its source reference, and one shared resolver
+ * (`resolveAnswerReveal`) turns it into a payload. Nothing is inferred from the
+ * mere presence of `teacher.answerOrGuidance`, and `teacher.explanation` — a
+ * teacher note by definition — never reaches the student surface.
+ * The two protected records keep their previous student-hidden behaviour:
+ *  • L2-14-01: a teacher verification note whose approved partial answers sit
+ *    inside teacher-facing wording.
+ *  • L2-19-07: a teacher analysis procedure with no student-facing answer table.
+ */
 
 /**
  * Lesson 2 renderer.
@@ -221,8 +199,8 @@ const Lesson2ActivityWidget: React.FC<{ activity: Lesson2Activity }> = ({ activi
     setCleared(true);
   };
 
-  /* Owner directive: student-facing reveal payload, or null ⇒ no button. */
-  const revealProps = buildLesson2Reveal(activity);
+  /* Shared resolver: null ⇒ no button at all (gap / teacher-only / pending). */
+  const revealProps = resolveAnswerReveal(fromKeyedLesson(activity), 'student');
 
   return (
     <section

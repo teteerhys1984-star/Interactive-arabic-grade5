@@ -1,5 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { CurriculumRegistry, Lesson, TeacherLessonGuide, Unit } from '../../types/curriculum';
+import {
+  ApprovedLessonSolutions,
+  CurriculumRegistry,
+  DeclaredAbsenceLessonSolutions,
+  Lesson,
+  TeacherSolutionsModel,
+  Unit,
+} from '../../types/curriculum';
 import { ArabicNumber } from '../common/BiDi';
 import { toArabicDigits } from '../../utils/arabicDigits';
 import { Breadcrumbs } from '../ui/PageChrome';
@@ -40,7 +47,7 @@ export interface UnitReviewSolutionsEntry {
 
 export interface TeacherSolutionsBrowserProps {
   curriculum: CurriculumRegistry;
-  teacherGuides: TeacherLessonGuide[];
+  teacherGuides: TeacherSolutionsModel[];
   unitReviewSolutions?: UnitReviewSolutionsEntry[];
 }
 
@@ -74,9 +81,100 @@ const DEFAULT_REVIEW_ABSENCE_NOTE =
   'لا توجد حلول معلم معتمدة حاليًا لتقويم هذه الوحدة، ولن تُعرض حلول تقريبية أو تخمينية.';
 
 /* ------------------------------------------------------------------ */
+/* Three honest states of a lesson in the teacher portal                */
+/*  1. approved guide      → full solutions view (open button)          */
+/*  2. declared absence    → documented gap, NO solutions, NO button    */
+/*  3. not registered      → legacy missing note, NO button             */
+/* ------------------------------------------------------------------ */
+
+const LESSON_DECLARED_ABSENCE_NOTE =
+  'لا توجد حلول معتمدة لهذا الدرس في المصدر المتاح، والغياب معلن وموثق أدناه: لن تُعرض حلول تقريبية أو تخمينية.';
+
+const isApproved = (record: TeacherSolutionsModel): record is ApprovedLessonSolutions =>
+  record.kind === 'approved';
+
+const isDeclaredAbsence = (
+  record: TeacherSolutionsModel,
+): record is DeclaredAbsenceLessonSolutions => record.kind === 'declared_absence';
+
+const ApprovedGuideBody: React.FC<{ guide: ApprovedLessonSolutions }> = ({ guide }) => (
+  <GuideBody guide={guide} />
+);
+
+/**
+ * DeclaredAbsenceBody — the documented-gap view.
+ *
+ * It renders the declaration (reason / source / date / deferred task) and the
+ * audited source ledger, so the teacher can verify that the absence is real and
+ * sourced. It NEVER renders an answer, a model solution or an empty solution
+ * card: there is nothing approved to show, and no guess is offered instead.
+ */
+const DeclaredAbsenceBody: React.FC<{ record: DeclaredAbsenceLessonSolutions }> = ({ record }) => {
+  const { declaration, sourceRecords } = record;
+  return (
+    <div className="teacher-guide teacher-declared-absence">
+      <div className="guide-objectives teacher-absence-reason">
+        <h4>إعلان غياب موثَّق</h4>
+        <p>{declaration.reason}</p>
+        <ul>
+          <li>مستند الإثبات: <code>{declaration.sourceRef}</code></li>
+          <li>تاريخ الإعلان: <ArabicNumber value={toArabicDigits(declaration.declaredOn)} /></li>
+          <li>المهمة اللاحقة: {declaration.deferredContentTask}</li>
+        </ul>
+      </div>
+      <div className="guide-objectives teacher-absence-source-limits">
+        <h4>ما لا يمكن عرضه هنا</h4>
+        <ul>
+          <li>لا حلول تدريبات، ولا مفاتيح إجابة، ولا تصحيح آلي لهذا الدرس.</li>
+          <li>لا أهداف تربوية، لأن استنتاجها من نصّ الدرس ممنوع بقرار المالك.</li>
+          <li>لا تُملأ هذه الفجوة بالتخمين؛ تُملأ بمهمة محتوى لاحقة بمصدر معتمد.</li>
+        </ul>
+      </div>
+      <details className="teacher-coverage-ledger teacher-absence-ledger">
+        <summary>
+          سجل المصادر المدقق: <ArabicNumber value={toArabicDigits(sourceRecords.length)} /> نشاطاً مطبوعاً
+        </summary>
+        <p>يثبت هذا السجل وجود الأنشطة المطبوعة وموضع كل واحد منها، ولا يمثل حلولاً.</p>
+        <div className="teacher-coverage-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">نشاط المصدر</th>
+                <th scope="col">الصفحة</th>
+                <th scope="col">خطوة الدرس</th>
+                <th scope="col">الحالة</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sourceRecords.map((record_) => (
+                <tr key={record_.sourceActivityId}>
+                  <td>{record_.sourceActivityId}</td>
+                  <td><ArabicNumber value={toArabicDigits(record_.pageNumber)} /></td>
+                  <td>{record_.lessonStepId}</td>
+                  <td>غياب معلن للحل</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+  );
+};
+
+/** One entry point for all three states — used by the lesson level view. */
+const LessonSolutionsBody: React.FC<{ record: TeacherSolutionsModel | undefined }> = ({ record }) => {
+  if (!record) return <p className="teacher-missing-note">{LESSON_MISSING_NOTE}</p>;
+  if (isDeclaredAbsence(record)) return <DeclaredAbsenceBody record={record} />;
+  if (isApproved(record)) return <ApprovedGuideBody guide={record} />;
+  /* Unknown kind: fail closed — never render a solutions body. */
+  return <p className="teacher-missing-note">{LESSON_MISSING_NOTE}</p>;
+};
+
+/* ------------------------------------------------------------------ */
 /* Guide body — the exact pre-existing guide markup (content untouched) */
 /* ------------------------------------------------------------------ */
-const GuideBody: React.FC<{ guide: TeacherLessonGuide }> = ({ guide }) => (
+const GuideBody: React.FC<{ guide: ApprovedLessonSolutions }> = ({ guide }) => (
   <div className="teacher-guide">
     <div className="guide-objectives">
       <h4>الأهداف التربوية</h4>
@@ -228,9 +326,9 @@ export const TeacherSolutionsBrowser: React.FC<TeacherSolutionsBrowserProps> = (
   const unitById = new Map(units.map((unit) => [unit.metadata.id, unit]));
 
   // Join guides to the REGISTRY (source of truth for unit and order).
-  const guidesByLessonId = new Map<string, TeacherLessonGuide>();
-  const unmatchedGuides: TeacherLessonGuide[] = [];
-  const unitMismatchedGuides: { guide: TeacherLessonGuide; lesson: Lesson }[] = [];
+  const guidesByLessonId = new Map<string, TeacherSolutionsModel>();
+  const unmatchedGuides: TeacherSolutionsModel[] = [];
+  const unitMismatchedGuides: { guide: TeacherSolutionsModel; lesson: Lesson }[] = [];
   for (const guide of teacherGuides) {
     const lesson = lessonById.get(guide.lessonId);
     if (!lesson) {
@@ -291,11 +389,12 @@ export const TeacherSolutionsBrowser: React.FC<TeacherSolutionsBrowserProps> = (
           const lessons = lessonsOf(unit);
           const unitGuides = lessons
             .map((lesson) => guidesByLessonId.get(lesson.metadata.id))
-            .filter((guide): guide is TeacherLessonGuide => Boolean(guide));
+            .filter((guide): guide is TeacherSolutionsModel => Boolean(guide));
           const solutionCount = unitGuides.reduce(
-            (total, guide) => total + guide.exerciseSolutions.length,
+            (total, guide) => total + (isApproved(guide) ? guide.exerciseSolutions.length : 0),
             0,
           );
+          const declaredAbsenceCount = unitGuides.filter(isDeclaredAbsence).length;
           const range = unit.metadata.sourcePagesRange;
           const reviewEntry = reviewEntryFor(unit.metadata.id);
           const unitTitle = `الوحدة ${unitOrdinal(unit.metadata.order)}`;
@@ -318,6 +417,11 @@ export const TeacherSolutionsBrowser: React.FC<TeacherSolutionsBrowserProps> = (
                 <li><ArabicNumber value={toArabicDigits(lessons.length)} /> دروس</li>
                 <li><ArabicNumber value={toArabicDigits(unitGuides.length)} />/<ArabicNumber value={toArabicDigits(lessons.length)} /> أدلة</li>
                 <li><ArabicNumber value={toArabicDigits(solutionCount)} /> حلًا</li>
+                {declaredAbsenceCount > 0 && (
+                  <li>
+                    <ArabicNumber value={toArabicDigits(declaredAbsenceCount)} /> غيابًا معلنًا وموثَّقًا
+                  </li>
+                )}
               </ul>
               {unit.reviewId && (
                 <p className="teacher-card-meta">
@@ -387,11 +491,46 @@ export const TeacherSolutionsBrowser: React.FC<TeacherSolutionsBrowserProps> = (
                 <div key={lesson.metadata.id} className="teacher-lesson-card teacher-lesson-card--missing">
                   <div className="teacher-card-top">
                     <LessonChip order={lesson.metadata.order} />
-                    <StatusPill tone="missing">غير متوفر</StatusPill>
+                    <StatusPill tone="missing">غير مسجل</StatusPill>
                   </div>
                   <h3 className="teacher-card-title">{lesson.metadata.title}</h3>
                   <PageRangeMeta range={range} />
                   <p className="teacher-missing-note">{LESSON_MISSING_NOTE}</p>
+                </div>
+              );
+            }
+            if (isDeclaredAbsence(guide)) {
+              return (
+                <div
+                  key={lesson.metadata.id}
+                  className="teacher-lesson-card teacher-lesson-card--declared-absence"
+                >
+                  <div className="teacher-card-top">
+                    <LessonChip order={lesson.metadata.order} />
+                    <StatusPill tone="muted">غياب معلن وموثَّق</StatusPill>
+                  </div>
+                  <h3 className="teacher-card-title">{lesson.metadata.title}</h3>
+                  <PageRangeMeta range={range} />
+                  <p className="teacher-missing-note teacher-declared-note">
+                    {LESSON_DECLARED_ABSENCE_NOTE}
+                  </p>
+                  {/* The gap is documented IN the card: no open button, because
+                      there is no solutions view to open and no answer to show. */}
+                  <dl className="teacher-absence-inline">
+                    <dt>سبب الغياب</dt>
+                    <dd>{guide.declaration.reason}</dd>
+                    <dt>مستند الإثبات</dt>
+                    <dd><code>{guide.declaration.sourceRef}</code></dd>
+                    <dt>تاريخ الإعلان</dt>
+                    <dd><ArabicNumber value={toArabicDigits(guide.declaration.declaredOn)} /></dd>
+                    <dt>المهمة اللاحقة</dt>
+                    <dd>{guide.declaration.deferredContentTask}</dd>
+                    <dt>سجل المصادر المدقق</dt>
+                    <dd>
+                      <ArabicNumber value={toArabicDigits(guide.sourceRecords.length)} /> نشاطاً مطبوعاً،
+                      بلا أي حل معتمد.
+                    </dd>
+                  </dl>
                 </div>
               );
             }
@@ -488,18 +627,18 @@ export const TeacherSolutionsBrowser: React.FC<TeacherSolutionsBrowserProps> = (
         <h2 ref={headingRef} tabIndex={-1} className="teacher-view-title">
           دليل الدرس {lessonOrdinal(lesson.metadata.order)}: {lesson.metadata.title}
         </h2>
-        <p className="teacher-view-subtitle">الحلول النموذجية المفصلة — لهذا الدرس وحده.</p>
+        <p className="teacher-view-subtitle">
+          {guide && isDeclaredAbsence(guide)
+            ? 'غياب الحلول معلن وموثَّق لهذا الدرس وحده — لا حلول ولا مفاتيح.'
+            : 'الحلول النموذجية المفصلة — لهذا الدرس وحده.'}
+        </p>
         <PageRangeMeta range={range} />
         <BackBar
           onBackToUnit={() => openUnit(unit.metadata.id)}
           onBackToUnits={openUnits}
           unitTitle={unit.metadata.title}
         />
-        {guide ? (
-          <GuideBody guide={guide} />
-        ) : (
-          <p className="teacher-missing-note">{LESSON_MISSING_NOTE}</p>
-        )}
+        <LessonSolutionsBody record={guide} />
       </>
     );
   };
