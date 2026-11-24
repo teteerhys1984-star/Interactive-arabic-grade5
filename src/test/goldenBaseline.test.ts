@@ -24,8 +24,8 @@ import { BASELINE_GZIP_BASE64, BASELINE_SHA256 } from './fixtures/baselineB774c3
  * fixture was produced by a one-off dump executed inside `git worktree` at
  * `b774c3d` and contains that commit's data verbatim. Only the ONE field this PR
  * adds to activity records — `disclosure` — is excluded from the comparison
- * (see `stripAdditive`). Every pre-existing field, including `interaction.kind`
- * and every other `kind` already in the data, stays inside the comparison.
+ * (see `stripAdditive`). Every pre-existing field — including every `kind`
+ * already in the data, `interaction.kind` above all — stays compared verbatim.
  *
  * WHAT IS PINNED HERE (the surfaces a reviewer must be able to trust):
  *   - the activity ledger of every registered lesson, in order, field by field:
@@ -82,38 +82,23 @@ const decodeBaseline = async (): Promise<Record<string, unknown>> => {
 let baseline: Record<string, unknown>;
 
 /**
- * The teacher-solutions model gained a mandatory `kind` discriminator in this PR
- * (`TeacherLessonGuide` → `TeacherSolutionsModel`). It is the ONLY addition that
- * is excluded, and it is recognised by shape — a lesson guide carries
- * `kind: 'approved' | 'declared_absence'` together with `lessonId`/`unitId` —
- * never by the key name alone. Trusting the name was wrong: a recursive
- * `kind` filter also deleted `interaction.kind` from BOTH sides, so a changed
- * interaction type compared equal to itself.
- */
-const TEACHER_GUIDE_KINDS = new Set(['approved', 'declared_absence']);
-
-const isTeacherGuide = (value: Record<string, unknown>) =>
-  typeof value.kind === 'string' &&
-  TEACHER_GUIDE_KINDS.has(value.kind) &&
-  'lessonId' in value &&
-  'unitId' in value;
-
-/**
- * Exclude the fields this PR ADDS, and only those, by path:
- *   - any `disclosure` key (the new per-record declaration);
- *   - `kind`, but only on a teacher-solution guide object.
- * Every other key — including every `interaction.kind`, step kind and activity
- * kind already present at `b774c3d` — is retained and compared.
+ * Exactly ONE addition of this PR is excluded from the comparison: the
+ * `disclosure` declaration that every answer record gained. Nothing else is.
+ *
+ * WHY `kind` IS *NOT* EXCLUDED: this file compares activities, steps and the
+ * lesson-1 step content — never a `TeacherSolutionsModel` record — so no added
+ * `kind` is present in the compared data. Excluding the key `kind` here could
+ * only ever hide a real field. An earlier revision did exactly that, recursively
+ * deleting `interaction.kind` from BOTH sides and making a changed interaction
+ * type compare equal to itself. Every `kind` value in the data is now compared
+ * verbatim, whatever its name or value looks like.
  */
 const stripAdditive = (value: unknown): unknown => {
   if (Array.isArray(value)) return value.map(stripAdditive);
   if (value && typeof value === 'object') {
-    const source = value as Record<string, unknown>;
-    const dropGuideKind = isTeacherGuide(source);
     const out: Record<string, unknown> = {};
-    for (const [key, child] of Object.entries(source)) {
+    for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
       if (key === 'disclosure') continue;
-      if (key === 'kind' && dropGuideKind) continue;
       out[key] = stripAdditive(child);
     }
     return out;
@@ -230,7 +215,7 @@ describe('golden baseline — the annotation pass changed no content and no orde
     expect(interactions).toBe(339);
   });
 
-  it('only `disclosure` and a teacher guide `kind` are excluded', async () => {
+  it('only `disclosure` is excluded — every `kind` is preserved', async () => {
     await ensureLoaded();
     const probe = {
       id: 'probe',
@@ -243,14 +228,19 @@ describe('golden baseline — the annotation pass changed no content and no orde
       interaction: { kind: 'text_fields' },
       stepKind: 'activity',
     });
-    /* The teacher-solutions model is the one place where `kind` is new. */
-    expect(
-      stripAdditive({ kind: 'approved', lessonId: 'lesson2', unitId: 'unit1', exerciseSolutions: [] }),
-    ).toEqual({ lessonId: 'lesson2', unitId: 'unit1', exerciseSolutions: [] });
-    /* A guide's real content is still compared. */
-    expect(
-      stripAdditive({ kind: 'declared_absence', lessonId: 'unit3-lesson1', unitId: 'unit3', declaration: { reason: 'x' } }),
-    ).toEqual({ lessonId: 'unit3-lesson1', unitId: 'unit3', declaration: { reason: 'x' } });
+
+    /* A `kind` is kept whatever its name, wherever it sits, even when its value
+       mimics the teacher-solutions discriminator this PR introduced. */
+    const mimetics = { kind: 'approved', lessonId: 'lesson2', unitId: 'unit1', exerciseSolutions: [] };
+    expect(stripAdditive(mimetics)).toEqual(mimetics);
+    const absence = { kind: 'declared_absence', lessonId: 'unit3-lesson1', unitId: 'unit3', declaration: { reason: 'x' } };
+    expect(stripAdditive(absence)).toEqual(absence);
+    /* …and a mimetic `kind` is still detected when it changes. */
+    expect(canon({ ...mimetics, kind: 'declared_absence' })).not.toBe(canon(mimetics));
+    /* Nested `kind`s are preserved too, at any depth. */
+    expect(stripAdditive({ a: { kind: 'x', b: [{ kind: 'y', disclosure: {} }] } })).toEqual({
+      a: { kind: 'x', b: [{ kind: 'y' }] },
+    });
   });
 
   it('pins the exact surfaces the reviewer asked for, per activity', async () => {

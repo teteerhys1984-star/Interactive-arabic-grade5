@@ -6,10 +6,11 @@
  * nothing was stripped from it. Keeping the REAL data is the point — an earlier
  * revision deleted the key `kind` recursively, which silently removed all 410
  * pre-existing `kind` values (339 `interaction.kind`, 39 activity kinds, …) from
- * both sides of the comparison, making a changed interaction type undetectable. The only exclusions now live in
- * `stripAdditive()` in `goldenBaseline.test.ts` and are matched by shape:
- *   1. `disclosure` objects — added by this PR to every answer record;
- *   2. `kind` on a teacher-solutions guide (`approved` / `declared_absence`).
+ * both sides of the comparison, making a changed interaction type undetectable.
+ * The single exclusion now lives in `stripAdditive()` in `goldenBaseline.test.ts`:
+ * the `disclosure` objects this PR added to answer records. No `kind` is excluded
+ * anywhere — `TeacherSolutionsModel` records are not part of this comparison at
+ * all, so no added `kind` exists in it.
  *
  * DO NOT REGENERATE this file to make a test pass. Any real content change is an
  * owner decision and belongs in its own reviewed commit. The digest below pins
