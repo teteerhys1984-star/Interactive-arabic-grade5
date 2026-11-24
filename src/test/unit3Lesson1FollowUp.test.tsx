@@ -18,15 +18,20 @@ import {
  * Owner review of PR #25 — the two points only.
  *
  * 1. The three listening items (U3L1-73-05/06/07). The recording does not exist
- *    in the source, but the poem IS printed on ص٧٤. These tests pin the exact
- *    line of the poem each answer rests on, the mandated notice, and the fact
- *    that the audio gap is still declared — nothing claims to transcribe audio.
+ *    in the source and the printed poem is NEVER assumed to be its text. The
+ *    guidance is conditional («إذا كان النص المقصود بالاستماع هو القصيدة
+ *    المطبوعة — وهذا غير مثبت —»): these tests pin the printed line each item is
+ *    tied to, the mandated notice with its explicit condition, the fact that the
+ *    guidance does NOT settle the listening questions (U3L1-73-05.أ stays open),
+ *    and that the audio gap is still declared — nothing claims to transcribe
+ *    audio and nothing claims a settled answer.
  *
- * 2. U3L1-81-03, the sender's name position. The current answer picked a letter
- *    AND told the learner to follow the printed model if it differed. That is a
- *    contradiction. These tests pin that no option is presented as the answer,
- *    that the settled part (top / bottom) is stated, and that the ambiguity is
- *    named instead of guessed.
+ * 2. U3L1-81-03, the sender's name position. The transcribed `letterModel`
+ *    proves only the ORDER of the lines (place+date first, signature last); it
+ *    does not prove any visual position (top/bottom, right/left). These tests pin
+ *    that the order alone is stated, that NO visual position is asserted, that
+ *    the missing evidence (the scanned page 81) is named, and that none of the
+ *    four printed options is presented as the answer.
  */
 
 const poemText = U3L1_POEM.stanzas

@@ -149,11 +149,12 @@ settled. Each keeps the mandated notice «إرشادات مقترحة استنا
 المطبوعة، وليست تفريغًا للتسجيل الصوتي أو إجابة مؤكدة لما ورد فيه» with the
 condition stated explicitly. The declared audio gap is unchanged.
 
-`U3L1-81-03` (sender position) is not answered at all: the transcribed
-`letterModel` proves only the ORDER of the lines (place+date first, signature
-last), not their visual position (top/bottom, right/left), so none of the four
-printed options is presented as the answer and the missing evidence — the scanned
-page 81 — is named instead.
+`U3L1-81-03` (sender position) keeps its guidance, but the guidance settles no
+letter: the transcribed `letterModel` proves only the ORDER of the lines
+(place+date first, signature last). It says nothing about the visual position
+(top/bottom, right/left), which is exactly what the four printed options ask, so
+none of them is presented as the answer; the missing evidence — the scanned page
+81 — is named instead, and the learner is told to check the printed page.
 
 The teacher portal record stays `declared_absence` (zero approved solutions) and
 gains `declaration.studentGuidanceNote`, which tells the teacher that student
