@@ -108,7 +108,7 @@ One linked fix: lesson 1's heading override is now restricted to `approved_key`,
 
 ## 5. Verification
 
-- `npm test` — 292 passed / 23 files.
+- `npm test` — 344 passed / 24 files.
 - `npm run typecheck` — clean.
 - `npm run build` — clean.
 - New: `src/test/teacherSolutionsModel.test.tsx` (contract + A1–A11 negative cases + portal three states, including a lesson with no approved solutions).
