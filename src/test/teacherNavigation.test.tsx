@@ -13,15 +13,19 @@ import { LESSON2_TEACHER_GUIDE } from '../data/lesson2/teacherGuide';
 import { LESSON3_TEACHER_GUIDE } from '../data/lesson3/teacherGuide';
 import { U2L1_TEACHER_GUIDE } from '../data/unit2Lesson1/teacherGuide';
 import { U2L2_TEACHER_GUIDE } from '../data/unit2Lesson2/teacherGuide';
+import { U2L3_SOLUTIONS_DECLARATION } from '../data/unit2Lesson3/solutions';
+import { U3L1_SOLUTIONS_DECLARATION } from '../data/unit3Lesson1/solutions';
 import { auditCurriculum } from '../utils/audit';
-import { TeacherLessonGuide } from '../types/curriculum';
+import { ApprovedLessonSolutions, TeacherSolutionsModel } from '../types/curriculum';
 
-const TEACHER_GUIDES = [
+const TEACHER_GUIDES: TeacherSolutionsModel[] = [
   LESSON1_TEACHER_GUIDE,
   LESSON2_TEACHER_GUIDE,
   LESSON3_TEACHER_GUIDE,
   U2L1_TEACHER_GUIDE,
   U2L2_TEACHER_GUIDE,
+  U2L3_SOLUTIONS_DECLARATION,
+  U3L1_SOLUTIONS_DECLARATION,
 ];
 const UNIT2_REVIEW_ABSENCE =
   'لا توجد حلول معلم معتمدة لتقويم الوحدة الثانية حاليًا، ولن تُعرض حلول تقريبية أو تخمينية.';
@@ -97,14 +101,18 @@ describe('Teacher Area — solutions drill-down (units → lessons)', () => {
       `عرض دروس وحلول ${UNIT3_UNIT_TITLE}`,
     ]);
 
-    // Derived counts: unit 1 → 3/3 guides (39+53+51=143), unit 2 → 2/3 (45+51=96), unit 3 → 0/1 (no guide).
+    // Every registered lesson now has exactly one solutions record:
+    // unit 1 → 3/3 approved (39+53+51=143), unit 2 → 3/3 (96 approved + 1 declared
+    // absence), unit 3 → 1/1 (declared absence, zero solutions).
     const stats = Array.from(container.querySelectorAll('.teacher-card-stats')).map((node) => node.textContent);
     expect(stats).toHaveLength(3);
     expect(stats[0]).toContain('٣/٣');
     expect(stats[0]).toContain('١٤٣');
-    expect(stats[1]).toContain('٢/٣');
+    expect(stats[1]).toContain('٣/٣');
     expect(stats[1]).toContain('٩٦');
-    expect(stats[2]).toContain('٠/١');
+    expect(stats[1]).toContain('غيابًا معلنًا');
+    expect(stats[2]).toContain('١/١');
+    expect(stats[2]).toContain('غيابًا معلنًا');
 
     // No solution content or unit-review content is mounted at this level.
     expect(screen.queryByText(/الحل النموذجي:/)).toBeNull();
@@ -211,15 +219,23 @@ describe('Teacher Area — solutions drill-down (units → lessons)', () => {
     openSolutionsTab();
     fireEvent.click(screen.getByRole('button', { name: UNIT2_TAB_NAME }));
 
-    // Only lessons 1 and 2 of unit 2 offer solutions.
+    // Only lessons 1 and 2 of unit 2 offer an approved solutions view.
     expect(screen.getAllByRole('button', { name: /^عرض حلول الدرس / })).toHaveLength(2);
 
-    // Lesson 3 «بِالْعِلْمِ تَرْقَى»: visible as a registered lesson, marked unavailable, NOT a button.
+    // Lesson 3 «بِالْعِلْمِ تَرْقَى»: registered with a DECLARED ABSENCE — the third
+    // state. Documented inline, and deliberately NOT an open button (no solutions
+    // view exists to open).
     const lessonThreeTitle = screen.getByText('بِالْعِلْمِ تَرْقَى');
     const lessonThreeCard = lessonThreeTitle.closest('.teacher-lesson-card') as HTMLElement;
     expect(lessonThreeCard).not.toBeNull();
     expect(within(lessonThreeCard).queryByRole('button')).toBeNull();
-    expect(lessonThreeCard.textContent).toContain('لا توجد حلول معتمدة لهذا الدرس حاليًا');
+    expect(lessonThreeCard.className).toContain('teacher-lesson-card--declared-absence');
+    expect(lessonThreeCard.textContent).toContain('غياب معلن وموثَّق');
+    expect(lessonThreeCard.textContent).toContain('لا توجد حلول معتمدة لهذا الدرس');
+    expect(lessonThreeCard.textContent).toContain('docs/source-locks/unit2-lesson-03-bil-ilmi-tarqa.md');
+    expect(lessonThreeCard.textContent).toContain('٤٣'); // 43 audited source records
+    // No solution text of any kind may appear in the declared-absence card.
+    expect(within(lessonThreeCard).queryByText(/الحل النموذجي:/)).toBeNull();
 
     // The unit-2 review: approved absence note, verbatim (D5), not interactive.
     expect(screen.getByRole('note')).toHaveTextContent(UNIT2_REVIEW_ABSENCE);
@@ -236,7 +252,8 @@ describe('Teacher Area — solutions drill-down (units → lessons)', () => {
   });
 
   it('guides that match no registered lesson surface a visible link alert and are never silently dropped', () => {
-    const ghostGuide: TeacherLessonGuide = {
+    const ghostGuide: ApprovedLessonSolutions = {
+      kind: 'approved',
       lessonId: 'ghost-lesson-99',
       unitId: 'unit1',
       pedagogicalObjectives: ['هدف اختباري'],
@@ -264,7 +281,7 @@ describe('Teacher Area — solutions drill-down (units → lessons)', () => {
   });
 
   it('a guide whose unitId disagrees with the registry lesson is shown under the registry lesson with a visible alert', () => {
-    const mismatchedGuide: TeacherLessonGuide = { ...LESSON2_TEACHER_GUIDE, unitId: 'unit2' };
+    const mismatchedGuide: ApprovedLessonSolutions = { ...LESSON2_TEACHER_GUIDE, unitId: 'unit2' };
     renderTeacherShell({ teacherGuides: [mismatchedGuide] });
     openTeacherArea();
     openSolutionsTab();

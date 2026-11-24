@@ -13,6 +13,9 @@ import { LESSON2_TEACHER_GUIDE } from './data/lesson2/teacherGuide';
 import { LESSON3_TEACHER_GUIDE } from './data/lesson3/teacherGuide';
 import { U2L1_TEACHER_GUIDE } from './data/unit2Lesson1/teacherGuide';
 import { U2L2_TEACHER_GUIDE } from './data/unit2Lesson2/teacherGuide';
+import { U2L3_SOLUTIONS_DECLARATION } from './data/unit2Lesson3/solutions';
+import { U3L1_SOLUTIONS_DECLARATION } from './data/unit3Lesson1/solutions';
+import type { TeacherSolutionsModel } from './types/curriculum';
 import { HomePage } from './components/curriculum/HomePage';
 import { UnitPage } from './components/curriculum/UnitPage';
 import { LessonFlow } from './components/curriculum/LessonFlow';
@@ -54,7 +57,21 @@ function getValidLearningLocation(): LearningLocation | null {
   return location;
 }
 
-const TEACHER_GUIDES = [LESSON1_TEACHER_GUIDE, LESSON2_TEACHER_GUIDE, LESSON3_TEACHER_GUIDE, U2L1_TEACHER_GUIDE, U2L2_TEACHER_GUIDE];
+/**
+ * Every registered lesson has exactly ONE solutions record:
+ *  - approved guide      → LESSON1…U2L2
+ *  - declared absence    → unit2-lesson3, unit3-lesson1 (no approved key in source)
+ * No lesson is left unregistered, and no absence is filled by guessing.
+ */
+const TEACHER_GUIDES: TeacherSolutionsModel[] = [
+  LESSON1_TEACHER_GUIDE,
+  LESSON2_TEACHER_GUIDE,
+  LESSON3_TEACHER_GUIDE,
+  U2L1_TEACHER_GUIDE,
+  U2L2_TEACHER_GUIDE,
+  U2L3_SOLUTIONS_DECLARATION,
+  U3L1_SOLUTIONS_DECLARATION,
+];
 
 const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
 const toArabicDigits = (value: number | string): string =>

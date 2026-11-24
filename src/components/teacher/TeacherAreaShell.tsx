@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { AssessmentTest, CurriculumRegistry, TeacherLessonGuide } from '../../types/curriculum';
+import { AssessmentTest, CurriculumRegistry, TeacherSolutionsModel } from '../../types/curriculum';
 import { auditCurriculum, AuditReport } from '../../utils/audit';
 import { ArabicNumber, LatinText } from '../common/BiDi';
 import { TeacherSolutionsBrowser, UnitReviewSolutionsEntry } from './TeacherSolutionsBrowser';
 
 export interface TeacherAreaShellProps {
   curriculum: CurriculumRegistry;
-  teacherGuides?: TeacherLessonGuide[];
+  /** Approved guides AND declared absences — one registration per lesson. */
+  teacherGuides?: TeacherSolutionsModel[];
   tests?: AssessmentTest[];
   /** Client-side access gate for the separate Teacher Area. */
   accessPassword?: string;

@@ -9,6 +9,7 @@ import { GRAMMAR_RULE_LINES, SPELLING_RULE_LINES } from './content';
  * guaranteeing a 1:1 mapping: every textbook activity has exactly one teacher solution.
  */
 export const LESSON1_TEACHER_GUIDE: TeacherLessonGuide = {
+  kind: 'approved',
   lessonId: 'lesson1',
   unitId: 'unit1',
   pedagogicalObjectives: [

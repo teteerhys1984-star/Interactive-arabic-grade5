@@ -1,7 +1,9 @@
 import {
   CurriculumRegistry,
   AssessmentTest,
-  TeacherLessonGuide,
+  ApprovedLessonSolutions,
+  DeclaredAbsenceLessonSolutions,
+  TeacherSolutionsModel,
 } from '../types/curriculum';
 
 /**
@@ -25,7 +27,9 @@ export interface AuditIssue {
     | 'solution_key'
     | 'source_traceability'
     | 'unit_completion'
-    | 'activity_coverage';
+    | 'activity_coverage'
+    | 'answer_disclosure'
+    | 'declared_absence';
   entityId: string;
   message: string;
 }
@@ -53,7 +57,7 @@ export interface AuditReport {
 export function auditCurriculum(
   curriculum: CurriculumRegistry,
   tests: AssessmentTest[] = [],
-  teacherGuides: TeacherLessonGuide[] = []
+  teacherGuides: TeacherSolutionsModel[] = []
 ): AuditReport {
   const issues: AuditIssue[] = [];
 
@@ -292,39 +296,230 @@ export function auditCurriculum(
     }
   }
 
-  // Teacher-guide ↔ test answer-key mapping
+  /* ---------------------------------------------------------------- */
+  /* 5.c SOLUTIONS MODEL — approved guide vs declared absence (A1–A11) */
+  /* ---------------------------------------------------------------- */
+
+  const registeredLessons = new Map<string, { unitId: string; title: string }>();
+  for (const unit of curriculum.units) {
+    for (const lesson of unit.lessons) {
+      registeredLessons.set(lesson.metadata.id, {
+        unitId: unit.metadata.id,
+        title: lesson.metadata.title,
+      });
+    }
+  }
+
+  /** One record may not be registered twice for the same lesson. */
+  const seenSolutionLessonIds = new Set<string>();
+
   for (const guide of teacherGuides) {
-    const refTest = tests.find((t) => t.id === guide.lessonTestAnswerKeyRef);
+    const lesson = registeredLessons.get(guide.lessonId);
+
+    /* A1 — a solutions record must belong to a registered lesson. */
+    if (!lesson) {
+      issues.push({
+        severity: 'error',
+        category: 'solution_key',
+        entityId: guide.lessonId,
+        message: `سجل حلول (${guide.lessonId}) لا يطابق أي درس مسجل في المنهج؛ لا يعرض ولا يهمل صامتًا.`,
+      });
+      continue;
+    }
+
+    /* A2 — the declared unit must be the registry unit of that lesson. */
+    if (guide.unitId !== lesson.unitId) {
+      issues.push({
+        severity: 'error',
+        category: 'solution_key',
+        entityId: guide.lessonId,
+        message: `سجل حلول (${guide.lessonId}) يعلن الوحدة ${guide.unitId} بينما الدرس المسجل في ${lesson.unitId}.`,
+      });
+    }
+
+    /* A3 — one solutions record per lesson, never two competing models. */
+    if (seenSolutionLessonIds.has(guide.lessonId)) {
+      issues.push({
+        severity: 'error',
+        category: 'solution_key',
+        entityId: guide.lessonId,
+        message: `الدرس ${guide.lessonId} له أكثر من سجل حلول؛ لا يجوز أن يجتمع دليل معتمد وإعلان غياب معًا.`,
+      });
+    }
+    seenSolutionLessonIds.add(guide.lessonId);
+
+    /* A4 — `kind` is mandatory: presence of text never implies approval. */
+    const kind = (guide as { kind?: unknown }).kind;
+    if (kind !== 'approved' && kind !== 'declared_absence') {
+      issues.push({
+        severity: 'error',
+        category: 'solution_key',
+        entityId: guide.lessonId,
+        message: `سجل حلول (${guide.lessonId}) لا يعلن نوعه (kind) صراحةً: approved أو declared_absence. لا يُستنتج الاعتماد من وجود نصّ.`,
+      });
+      continue;
+    }
+
+    if (kind === 'declared_absence') {
+      const declared = guide as unknown as DeclaredAbsenceLessonSolutions;
+      const declaration = declared.declaration;
+
+      /* A5 — the declared absence must be documented, not an empty record. */
+      if (!declaration) {
+        issues.push({
+          severity: 'error',
+          category: 'declared_absence',
+          entityId: guide.lessonId,
+          message: `إعلان الغياب (${guide.lessonId}) بلا بيان موثق (declaration).`,
+        });
+      } else {
+        const required: (keyof typeof declaration)[] = [
+          'reason',
+          'sourceRef',
+          'declaredOn',
+          'deferredContentTask',
+        ];
+        for (const field of required) {
+          const value = declaration[field];
+          if (typeof value !== 'string' || value.trim().length === 0) {
+            issues.push({
+              severity: 'error',
+              category: 'declared_absence',
+              entityId: guide.lessonId,
+              message: `إعلان الغياب (${guide.lessonId}) يفتقر إلى الحقل الإلزامي «${field}»؛ الغياب بلا مصدر وتاريخ ومهمة لاحقة ليس توثيقًا.`,
+            });
+          }
+        }
+      }
+
+      /*
+       * A6/A7 — a declared absence may not carry solutions, notes, or any answer
+       * text. Optional fields are NOT an audit loophole (owner D6): the presence
+       * of any of them is an error, not a warning.
+       */
+      const forbidden = [
+        'exerciseSolutions',
+        'sourceCoverage',
+        'grammarNotes',
+        'spellingRules',
+        'sourceAlerts',
+        'lessonTestAnswerKeyRef',
+        'pedagogicalObjectives',
+      ] as const;
+      for (const field of forbidden) {
+        const value = (declared as unknown as Record<string, unknown>)[field];
+        const present = Array.isArray(value) ? value.length > 0 : value !== undefined && value !== null;
+        if (present) {
+          issues.push({
+            severity: 'error',
+            category: 'declared_absence',
+            entityId: guide.lessonId,
+            message: `إعلان الغياب (${guide.lessonId}) يحمل المحتوى الممنوع «${field}»؛ إعلان الغياب لا يحتوي حلولًا ولا أهدافًا ولا مفاتيح.`,
+          });
+        }
+      }
+
+      /* A9 — the audited source ledger must be non-empty and unique. */
+      const records = declared.sourceRecords;
+      if (!Array.isArray(records) || records.length === 0) {
+        issues.push({
+          severity: 'error',
+          category: 'declared_absence',
+          entityId: guide.lessonId,
+          message: `إعلان الغياب (${guide.lessonId}) بلا سجل مصادر مدقق (sourceRecords).`,
+        });
+      } else {
+        const seenSourceIds = new Set<string>();
+        records.forEach((record) => {
+          if (!record.sourceActivityId || !record.lessonStepId || !record.pageNumber) {
+            issues.push({
+              severity: 'error',
+              category: 'declared_absence',
+              entityId: guide.lessonId,
+              message: `سجل مصدر ناقص في إعلان الغياب (${guide.lessonId}): يلزم معرّف النشاط وخطوة الدرس ورقم الصفحة.`,
+            });
+          }
+          if (seenSourceIds.has(record.sourceActivityId)) {
+            issues.push({
+              severity: 'error',
+              category: 'declared_absence',
+              entityId: guide.lessonId,
+              message: `سجل الغياب (${guide.lessonId}) يكرر نشاط المصدر ${record.sourceActivityId}.`,
+            });
+          }
+          seenSourceIds.add(record.sourceActivityId);
+        });
+      }
+      continue;
+    }
+
+    const approved = guide as ApprovedLessonSolutions;
+
+    /* A10 — an approved guide must actually carry approved solutions. */
+    if (!Array.isArray(approved.exerciseSolutions) || approved.exerciseSolutions.length === 0) {
+      issues.push({
+        severity: 'error',
+        category: 'solution_key',
+        entityId: approved.lessonId,
+        message: `دليل المعلم المعتمد (${approved.lessonId}) لا يحتوي على حلول تدريبات؛ إن لم توجد حلول معتمدة فيجب تسجيل غياب معلن بدل دليل فارغ.`,
+      });
+    }
+
+    if (!Array.isArray(approved.pedagogicalObjectives) || approved.pedagogicalObjectives.length === 0) {
+      issues.push({
+        severity: 'error',
+        category: 'solution_key',
+        entityId: approved.lessonId,
+        message: `دليل المعلم المعتمد (${approved.lessonId}) بلا أهداف تربوية؛ الأهداف اختيارية في إعلان الغياب فقط، وليست كذلك في الدليل المعتمد.`,
+      });
+    }
+
+    /* A11 — every approved solution must be complete and sourced. */
+    approved.exerciseSolutions?.forEach((solution, index) => {
+      if (!solution.sourceExercise?.trim() || !solution.officialSolution?.trim()) {
+        issues.push({
+          severity: 'error',
+          category: 'solution_key',
+          entityId: `${approved.lessonId}-solution-${index}`,
+          message: `حل معلم ناقص في ${approved.lessonId}: يلزم نصّ التمرين ونصّ الحل المعتمد.`,
+        });
+      }
+      if (!Number.isFinite(solution.pageNumber) || solution.pageNumber <= 0) {
+        issues.push({
+          severity: 'error',
+          category: 'source_traceability',
+          entityId: `${approved.lessonId}-solution-${index}`,
+          message: `حل معلم في ${approved.lessonId} بلا رقم صفحة صالح.`,
+        });
+      }
+    });
+
+    /* Approved guide ↔ registered assessment answer key. */
+    const refTest = tests.find((t) => t.id === approved.lessonTestAnswerKeyRef);
     if (!refTest) {
       issues.push({
         severity: 'warning',
         category: 'solution_key',
-        entityId: guide.lessonId,
-        message: `دليل المعلم (${guide.lessonId}) يشير إلى اختبار غير مسجل (${guide.lessonTestAnswerKeyRef}).`,
-      });
-    }
-    if (guide.exerciseSolutions.length === 0) {
-      issues.push({
-        severity: 'warning',
-        category: 'solution_key',
-        entityId: guide.lessonId,
-        message: `دليل المعلم (${guide.lessonId}) لا يحتوي على حلول تدريبات.`,
+        entityId: approved.lessonId,
+        message: `دليل المعلم (${approved.lessonId}) يشير إلى اختبار غير مسجل (${approved.lessonTestAnswerKeyRef}).`,
       });
     }
 
-    if (guide.sourceCoverage) {
-      const solutionIds = guide.exerciseSolutions.map((solution) => solution.id).filter((id): id is string => Boolean(id));
+    if (approved.sourceCoverage) {
+      const solutionIds = approved.exerciseSolutions
+        .map((solution) => solution.id)
+        .filter((id): id is string => Boolean(id));
       const seenSourceActivityIds = new Set<string>();
       const seenLessonActivityIds = new Set<string>();
       const seenTeacherSolutionIds = new Set<string>();
 
-      guide.sourceCoverage.forEach((entry) => {
+      approved.sourceCoverage.forEach((entry) => {
         if (seenSourceActivityIds.has(entry.sourceActivityId)) {
           issues.push({
             severity: 'error',
             category: 'activity_coverage',
-            entityId: guide.lessonId,
-            message: `سجل التغطية في ${guide.lessonId} يكرر نشاط المصدر ${entry.sourceActivityId}.`,
+            entityId: approved.lessonId,
+            message: `سجل التغطية في ${approved.lessonId} يكرر نشاط المصدر ${entry.sourceActivityId}.`,
           });
         }
         seenSourceActivityIds.add(entry.sourceActivityId);
@@ -333,8 +528,8 @@ export function auditCurriculum(
           issues.push({
             severity: 'error',
             category: 'activity_coverage',
-            entityId: guide.lessonId,
-            message: `سجل التغطية في ${guide.lessonId} يكرر نشاط الطالب ${entry.lessonActivityId}.`,
+            entityId: approved.lessonId,
+            message: `سجل التغطية في ${approved.lessonId} يكرر نشاط الطالب ${entry.lessonActivityId}.`,
           });
         }
         seenLessonActivityIds.add(entry.lessonActivityId);
@@ -343,8 +538,8 @@ export function auditCurriculum(
           issues.push({
             severity: 'error',
             category: 'activity_coverage',
-            entityId: guide.lessonId,
-            message: `سجل التغطية في ${guide.lessonId} يكرر حل المعلم ${entry.teacherSolutionId}.`,
+            entityId: approved.lessonId,
+            message: `سجل التغطية في ${approved.lessonId} يكرر حل المعلم ${entry.teacherSolutionId}.`,
           });
         }
         seenTeacherSolutionIds.add(entry.teacherSolutionId);
@@ -353,20 +548,32 @@ export function auditCurriculum(
           issues.push({
             severity: 'error',
             category: 'activity_coverage',
-            entityId: guide.lessonId,
+            entityId: approved.lessonId,
             message: `نشاط المصدر ${entry.sourceActivityId} لا يرتبط بحل معلم موجود (${entry.teacherSolutionId}).`,
           });
         }
       });
 
-      if (guide.sourceCoverage.length !== guide.exerciseSolutions.length) {
+      if (approved.sourceCoverage.length !== approved.exerciseSolutions.length) {
         issues.push({
           severity: 'error',
           category: 'activity_coverage',
-          entityId: guide.lessonId,
-          message: `عدد سجلات تغطية المصدر (${guide.sourceCoverage.length}) لا يطابق عدد حلول المعلم (${guide.exerciseSolutions.length}).`,
+          entityId: approved.lessonId,
+          message: `عدد سجلات تغطية المصدر (${approved.sourceCoverage.length}) لا يطابق عدد حلول المعلم (${approved.exerciseSolutions.length}).`,
         });
       }
+    }
+  }
+
+  /* A12 — a registered lesson with NO solutions record must be visible. */
+  for (const [lessonId] of registeredLessons) {
+    if (!seenSolutionLessonIds.has(lessonId)) {
+      issues.push({
+        severity: 'info',
+        category: 'solution_key',
+        entityId: lessonId,
+        message: `الدرس ${lessonId} غير مسجل في بوابة المعلم: لا دليل معتمد ولا إعلان غياب موثق.`,
+      });
     }
   }
 

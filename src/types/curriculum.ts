@@ -346,19 +346,15 @@ export interface SourceCoverageEntry {
   availability: 'available' | 'gap';
 }
 
-export interface TeacherLessonGuide {
-  lessonId: string;
-  unitId: string;
-  pedagogicalObjectives: string[];
-  grammarNotes?: string[];
-  spellingRules?: string[];
-  /** Optional declared source limits that must be visible to the teacher. */
-  sourceAlerts?: string[];
-  exerciseSolutions: TeacherExerciseSolution[];
-  /** Optional explicit coverage ledger for a source-locked lesson. */
-  sourceCoverage?: SourceCoverageEntry[];
-  lessonTestAnswerKeyRef: string;
-}
+/**
+ * A lesson teacher guide whose solutions ARE approved (5.c `kind: 'approved'`).
+ *
+ * Kept as the historical name so existing imports stay valid, but it is the
+ * approved member of `TeacherSolutionsModel` — there is exactly one shape, not a
+ * duplicate. `kind` is mandatory: a guide never becomes an approved guide by
+ * simply having non-empty `exerciseSolutions` (audit rule A4/A6).
+ */
+export type TeacherLessonGuide = ApprovedLessonSolutions;
 
 /* ---------------------------------------------------------------- */
 /* 5.b ANSWER DISCLOSURE — one explicit decision per answer record   */

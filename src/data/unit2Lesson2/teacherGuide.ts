@@ -20,6 +20,7 @@ export const U2L2_TEACHER_SOURCE_ALERTS = [
 ] as const;
 
 export const U2L2_TEACHER_GUIDE: TeacherLessonGuide = {
+  kind: 'approved',
   lessonId: 'unit2-lesson2',
   unitId: 'unit2',
   pedagogicalObjectives: [
