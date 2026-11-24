@@ -1,6 +1,8 @@
 import React from 'react';
 import { LessonStep } from '../../types/curriculum';
 import { SourceBadge } from '../common/SourceBadge';
+import { AnswerReveal } from '../common/AnswerReveal';
+import { resolveAnswerReveal } from '../common/answerDisclosure';
 import { ArabicNumber } from '../common/BiDi';
 import {
   U3L1_ACTIVITY_BY_ID,
@@ -189,6 +191,15 @@ const U3L1ActivityWidget: React.FC<{ activity: U3L1Activity }> = ({ activity }) 
     setCleared(false);
   };
 
+  /**
+   * Shared «أظهر الجواب» path. This lesson's source carries NO approved answer
+   * key, so every record declares `no_approved_content` and the resolver returns
+   * null: no button, no wording, in the student surface. The call is kept (not
+   * omitted) so the behaviour is enforced centrally and any future approved key
+   * would surface through the same mechanism.
+   */
+  const revealProps = resolveAnswerReveal(activity, 'student');
+
   const handleReset = () => {
     clearDraft(U3L1_DRAFT_SCOPE, activity.sourceActivityId);
     setValues({});
@@ -226,6 +237,7 @@ const U3L1ActivityWidget: React.FC<{ activity: U3L1Activity }> = ({ activity }) 
         update={update}
         activityId={activity.id}
       />
+      {revealProps && <AnswerReveal {...revealProps} />}
       <footer className="l2-activity-footer">
         <button type="button" className="btn btn-secondary btn-small" onClick={handleSave}>
           حفظ مسودة إجابتي

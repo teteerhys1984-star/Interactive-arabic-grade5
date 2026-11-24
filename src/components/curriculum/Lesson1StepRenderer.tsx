@@ -6,7 +6,8 @@ import { TEXTBOOK_ACTIVITIES, TextbookActivity, ActivityInteraction } from '../.
 import { getSourceRecord } from '../../data/lesson1/readingSource';
 import { LESSON1_IRAB_PAGE, IRAB_ISSUE_REGISTER } from '../../data/lesson1/irabPage';
 import { SourceBadge } from '../common/SourceBadge';
-import { AnswerReveal, AnswerRevealEntry, AnswerRevealProps } from '../common/AnswerReveal';
+import { AnswerReveal } from '../common/AnswerReveal';
+import { fromLesson1, resolveAnswerReveal } from '../common/answerDisclosure';
 import { ArabicNumber } from '../common/BiDi';
 import { readDraft, writeDraft } from '../../utils/draftStorage';
 import {
@@ -199,92 +200,6 @@ const isChoiceLike = (kind: ActivityInteraction['kind']): boolean =>
   kind === 'choose' || kind === 'multi' || kind === 'classify';
 
 /* ------------------------------------------------------------------ */
-/* «أظهر الجواب» adapter — Lesson 1 (owner-mandated reveal feature)   */
-/*                                                                    */
-/* Built ONLY from approved project data: the activity's own solution */
-/* and the per-field keys already used by the checker (acceptedAnswers*/
-/* / correctId / correctCategoryId). Pending items are never revealed:*/
-/* a 'pending' activity gets NO button at all, and a 'partial_pending'*/
-/* activity shows only the settled fields plus an honest note. No     */
-/* invented answers and no internal ids are ever displayed.           */
-/* ------------------------------------------------------------------ */
-
-const buildLesson1Reveal = (activity: TextbookActivity): AnswerRevealProps | null => {
-  if (activity.status === 'pending') return null;
-
-  const interaction = activity.interaction;
-  const entries: AnswerRevealEntry[] = [];
-
-  switch (interaction.kind) {
-    case 'choose': {
-      const correct = interaction.choices.find((choice) => choice.id === interaction.correctId);
-      if (correct) entries.push({ label: 'الاختيار الصحيح', value: correct.text });
-      break;
-    }
-    case 'multi': {
-      const texts = interaction.choices
-        .filter((choice) => interaction.correctIds.includes(choice.id))
-        .map((choice) => choice.text);
-      if (texts.length > 0) entries.push({ label: 'الاختيارات الصحيحة', value: texts.join(' + ') });
-      break;
-    }
-    case 'classify':
-      interaction.items.forEach((item) => {
-        const category = interaction.categories.find((entry) => entry.id === item.correctCategoryId);
-        if (category) entries.push({ label: item.text, value: category.label });
-      });
-      break;
-    case 'text_inputs':
-      interaction.fields.forEach((field) => {
-        if (!field.pending && field.acceptedAnswers && field.acceptedAnswers.length > 0) {
-          entries.push({ label: field.label, value: field.acceptedAnswers.join(' / ') });
-        }
-      });
-      break;
-    case 'table_fill':
-      interaction.rows.forEach((row, rowIndex) => {
-        row.cells.forEach((cell, cellIndex) => {
-          const column = interaction.columns[cellIndex];
-          if (!column) return; // never fall back to a raw internal field id
-          if ('fieldId' in cell && !cell.pending && cell.acceptedAnswers && cell.acceptedAnswers.length > 0) {
-            entries.push({
-              label: `${column} — صف ${toArabicDigits(rowIndex + 1)}`,
-              value: cell.acceptedAnswers.join(' / '),
-            });
-          }
-        });
-      });
-      break;
-    case 'diagram_fill': {
-      let blankNumber = 0;
-      interaction.boxes.forEach((box) => {
-        if (!box.fieldId) return;
-        blankNumber += 1;
-        if (!box.pending && box.acceptedAnswers && box.acceptedAnswers.length > 0) {
-          entries.push({
-            label: `فارغ ${toArabicDigits(blankNumber)}`,
-            value: box.acceptedAnswers.join(' / '),
-          });
-        }
-      });
-      break;
-    }
-    default:
-      break; /* write / speak / decode: the model answer below is the approved key */
-  }
-
-  return {
-    entries,
-    modelAnswer: activity.solution.answer,
-    explanation: activity.solution.explanation,
-    unavailableNote:
-      activity.status === 'partial_pending'
-        ? activity.pendingNote ?? 'بعض الإجابات معلّقة بقرار صاحب المشروع ولا تُعرض لها إجابة.'
-        : undefined,
-  };
-};
-
-/* ------------------------------------------------------------------ */
 /* The compliant activity widget                                      */
 /* ------------------------------------------------------------------ */
 
@@ -298,9 +213,11 @@ const Lesson1ActivityWidget: React.FC<{ activity: TextbookActivity }> = ({ activ
   const [checked, setChecked] = useState(false);
   /** True once the learner has checked at least once (unlocks the model answer). */
   const [attempted, setAttempted] = useState(false);
-  const [showModelAnswer, setShowModelAnswer] = useState(false);
-  /** Owner-mandated «أظهر الجواب»: approved key only; null ⇒ button hidden (pending). */
-  const revealProps = buildLesson1Reveal(activity);
+  /**
+   * Shared «أظهر الجواب» path: the disclosure decides, the adapter only locates
+   * the approved text. `null` ⇒ no button at all (pending record).
+   */
+  const revealProps = resolveAnswerReveal(fromLesson1(activity), 'student');
 
   /**
    * Every answer edit keeps the new value and clears the previous verdict at once,
@@ -771,23 +688,11 @@ const Lesson1ActivityWidget: React.FC<{ activity: TextbookActivity }> = ({ activ
             className="btn btn-ghost btn-small"
             onClick={() => {
               setChecked(false);
-              setShowModelAnswer(false);
             }}
           >
             عدّل إجاباتي
           </button>
         )}
-
-        <button
-          type="button"
-          className="btn btn-ghost btn-small"
-          onClick={() => setShowModelAnswer((previous) => !previous)}
-          disabled={!attempted || isPendingInteraction}
-          aria-expanded={showModelAnswer}
-          title={attempted ? undefined : 'تظهر الإجابة النموذجية بعد المحاولة الأولى والتحقّق'}
-        >
-          {showModelAnswer ? 'إخفاء الإجابة النموذجية' : 'اعرض الإجابة النموذجية (بعد المحاولة)'}
-        </button>
       </div>
 
       {revealProps && <AnswerReveal {...revealProps} />}
@@ -801,18 +706,6 @@ const Lesson1ActivityWidget: React.FC<{ activity: TextbookActivity }> = ({ activ
           )}
           .
         </p>
-      )}
-
-      {showModelAnswer && attempted && (
-        <div className="l1-model-answer activity-solution">
-          <p className="solution-answer">
-            <span className="l1-model-label source-label-explain">الإجابة النموذجية (منصة):</span>
-            {activity.solution.answer}
-          </p>
-          <p className="solution-explain">
-            <span className="source-label-explain">شرح المنصة</span> {activity.solution.explanation}
-          </p>
-        </div>
       )}
     </section>
   );

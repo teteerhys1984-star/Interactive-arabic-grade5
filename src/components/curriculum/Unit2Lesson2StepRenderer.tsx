@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { LessonStep } from '../../types/curriculum';
 import { SourceBadge } from '../common/SourceBadge';
-import { AnswerReveal, AnswerRevealEntry, AnswerRevealProps } from '../common/AnswerReveal';
+import { AnswerReveal } from '../common/AnswerReveal';
+import { fromKeyedLesson, resolveAnswerReveal } from '../common/answerDisclosure';
 import { getU2L2Activity, U2L2Activity, U2L2Interaction } from '../../data/unit2Lesson2/activities';
 import { U2L2_STEP_CONTENT, U2L2Block } from '../../data/unit2Lesson2/content';
 import { clearDraft, readDraft, writeDraft } from '../../utils/draftStorage';
@@ -302,72 +303,12 @@ const CheckWidget: React.FC<{ block: Extract<U2L2Block, { kind: 'check' }> }> = 
   );
 };
 
-/* ---------------- «أظهر الجواب» adapter (owner-mandated) ----------------
- * Builds the reveal payload from approved project data only:
- *  - the student-side `answerKey` of closed activities, with every internal id
- *    translated to the Arabic label the learner actually sees. Unmappable keys
- *    are skipped — raw ids or internal values are never displayed.
- *  - the approved `teacher.answerOrGuidance`, audited item by item. Closed
- *    deterministic activities carry a concrete approved answer →
- *    «الحل النموذجي المعتمد»; open/performance activities carry honest guidance
- *    (expected description, accepted examples, criteria) → «إرشادات للإجابة».
- * `teacher.explanation` is a teacher note and is never rendered in the student
- * panel; the student-facing `checkExplanation` (already shown after «تحقق») is
- * kept when present. No record is a source gap, so every activity has a button.
+/* ---- «أظهر الجواب»: one shared path --------------------------------------
+ * The decision lives in the DATA (`disclosure` + `sourceRef` on every record)
+ * and is consumed by `resolveAnswerReveal`. Nothing is inferred from the mere
+ * presence of `teacher.answerOrGuidance`; `teacher.explanation` is a teacher
+ * note by definition and never reaches the student surface.
  */
-const U2L2_MODEL_ANSWER_IDS = new Set([
-  'U2L2-50-04', 'U2L2-50-05',
-  'U2L2-52-01', 'U2L2-52-04',
-  'U2L2-54-01', 'U2L2-54-02', 'U2L2-54-03', 'U2L2-54-04', 'U2L2-54-05', 'U2L2-54-06',
-  'U2L2-55-01', 'U2L2-55-02', 'U2L2-55-03', 'U2L2-55-04', 'U2L2-55-05', 'U2L2-55-06',
-  'U2L2-56-01', 'U2L2-56-02', 'U2L2-56-03',
-  'U2L2-57-01', 'U2L2-57-02',
-  'U2L2-59-01',
-]);
-
-const buildU2L2Reveal = (activity: U2L2Activity): AnswerRevealProps | null => {
-  if (activity.availability !== 'available') return null;
-
-  const interaction = activity.interaction;
-  const entries: AnswerRevealEntry[] = [];
-
-  if (activity.answerKey) {
-    Object.entries(activity.answerKey).forEach(([fieldId, expected]) => {
-      if (interaction.kind === 'classification' && fieldId.startsWith('classify-')) {
-        const item = interaction.items.find((entry) => `classify-${entry.id}` === fieldId);
-        const category = interaction.categories.find((entry) => entry.id === expected);
-        if (item && category) entries.push({ label: item.text, value: category.label });
-        return;
-      }
-      if (interaction.kind === 'matching' && fieldId.startsWith('match-')) {
-        const left = interaction.leftItems.find((entry) => `match-${entry.id}` === fieldId);
-        const right = interaction.rightItems.find((entry) => entry.id === expected);
-        if (left && right) entries.push({ label: left.text, value: right.text });
-        return;
-      }
-      if (interaction.kind === 'text_fields') {
-        const field = interaction.fields.find((entry) => entry.id === fieldId);
-        if (field) entries.push({ label: field.label, value: expected });
-        return;
-      }
-      if (interaction.kind === 'checklist' && fieldId.startsWith('check-')) {
-        const item = interaction.items.find((entry) => `check-${entry.id}` === fieldId);
-        if (item && expected === '1') entries.push({ label: item.label, value: 'عنصرٌ مطلوبٌ تحديده' });
-        return;
-      }
-      /* Unmappable internal key: skipped — never shown raw to the learner. */
-    });
-  }
-
-  return {
-    entries,
-    modelAnswer: activity.teacher.answerOrGuidance,
-    explanation: activity.checkExplanation,
-    heading: U2L2_MODEL_ANSWER_IDS.has(activity.sourceActivityId)
-      ? 'الحل النموذجي المعتمد'
-      : 'إرشادات للإجابة',
-  };
-};
 
 /* ---------------- Source activity widget ---------------- */
 
@@ -422,8 +363,7 @@ const U2L2ActivityWidget: React.FC<{ activity: U2L2Activity }> = ({ activity }) 
       : studentValue === expected;
   }).length;
   const allCorrect = keyEntries.length > 0 && correctCount === keyEntries.length;
-  /** Owner-mandated «أظهر الجواب»: approved key only; null ⇒ button hidden. */
-  const revealProps = buildU2L2Reveal(activity);
+  const revealProps = resolveAnswerReveal(fromKeyedLesson(activity), 'student');
 
   return (
     <section

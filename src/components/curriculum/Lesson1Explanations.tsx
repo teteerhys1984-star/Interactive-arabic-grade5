@@ -10,6 +10,8 @@ import { LESSON1_IRAB } from '../../data/lesson1/irab';
 import { ArabicNumber } from '../common/BiDi';
 import { SourceBadge } from '../common/SourceBadge';
 import { AnswerReveal } from '../common/AnswerReveal';
+import { resolveAnswerReveal } from '../common/answerDisclosure';
+import type { AnswerDisclosure } from '../../types/curriculum';
 import { readDraft, writeDraft } from '../../utils/draftStorage';
 
 const LESSON1_CHECK_DRAFT_SCOPE = 'lesson1-platform-checks';
@@ -35,7 +37,9 @@ const QuickCheck: React.FC<{
   feedbackCorrect: string;
   feedbackIncorrect: string;
   correctAnswerNote?: string;
-}> = ({ id, prompt, options, feedbackCorrect, feedbackIncorrect, correctAnswerNote }) => {
+  /** The record's own explicit disclosure — display is never inferred from text. */
+  disclosure?: AnswerDisclosure;
+}> = ({ id, prompt, options, feedbackCorrect, feedbackIncorrect, correctAnswerNote, disclosure }) => {
   const [selected, setSelected] = useState<string | null>(() => {
     const saved = readDraft(LESSON1_CHECK_DRAFT_SCOPE, id).selected;
     return options.some((option) => option.id === saved) ? saved : null;
@@ -43,6 +47,23 @@ const QuickCheck: React.FC<{
   const [checked, setChecked] = useState(false);
   const selectedOption = options.find((option) => option.id === selected);
   const correctOption = options.find((option) => option.correct);
+  /**
+   * The SAME shared decision as every activity: the record's explicit
+   * `disclosure` decides, and the approved correct option is only the text.
+   * No disclosure ⇒ no button (never an inferred key).
+   */
+  const revealProps = correctOption
+    ? resolveAnswerReveal(
+        {
+          id,
+          sourceActivityId: id,
+          disclosure,
+          entries: [{ label: 'الإجابة الصحيحة', value: correctOption.label }],
+          explanation: correctAnswerNote,
+        },
+        'student',
+      )
+    : null;
 
   const pick = (optionId: string) => {
     setSelected(optionId);
@@ -106,14 +127,9 @@ const QuickCheck: React.FC<{
           </button>
         )}
       </div>
-      {/* Owner-mandated «أظهر الجواب»: the correct option is approved platform
-          data; the panel stays out of the DOM until the learner presses it. */}
-      {correctOption && (
-        <AnswerReveal
-          entries={[{ label: 'الإجابة الصحيحة', value: correctOption.label }]}
-          explanation={correctAnswerNote}
-        />
-      )}
+      {/* «أظهر الجواب» through the shared resolver: no approved disclosure ⇒ no
+          button at all, and the panel stays out of the DOM until it is pressed. */}
+      {revealProps && <AnswerReveal {...revealProps} />}
       {checked && selectedOption && (
         <div className="quick-check-result">
           <p

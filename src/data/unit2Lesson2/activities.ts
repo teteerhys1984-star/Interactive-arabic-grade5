@@ -1,4 +1,4 @@
-import { SourceReference } from '../../types/curriculum';
+import { AnswerDisclosure, SourceReference } from '../../types/curriculum';
 import { u2l2Src, U2L2_LISTENING_AUDIO_GAP, U2L2_LOCKED_SOURCE_NOTES } from './sourceMeta';
 
 /**
@@ -72,6 +72,12 @@ export interface U2L2Activity {
     explanation: string;
     commonMistakes?: string[];
   };
+  /**
+   * Explicit, mandatory disclosure decision. Derived from the audited behaviour
+   * of this lesson's renderer (approved id audit + availability); no answer text
+   * was added, changed or re-derived.
+   */
+  disclosure: AnswerDisclosure;
 }
 
 export const U2L2_ACTIVITIES: U2L2Activity[] = [
@@ -86,6 +92,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     ],
     interaction: { kind: 'write', label: 'أسماء العناصر التي أشاهدها:', rows: 3 },
     availability: 'available', source: u2l2Src(50, 'textbook_exercise', 'أتأمل الصور الآتية', 1),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-50-01' },
     teacher: {
       answerOrGuidance: 'وصف متوقع: أشاهد شخصيتين كرتونيتين؛ الأولى دماغ بشري سعيد له ذراعان ورجلان وينتعل حذاءً، والثانية لوحة دارات إلكترونية (تمثّل الحاسوب) لها ذراعان ورجلان أيضاً، وكأنهما يتحاوران.',
       explanation: 'الهدف تسمية العنصرين المركزيين (الدماغ والحاسوب) تمهيداً لمقارنة الذكاء البشري بالذكاء الاصطناعي؛ تُقبل أي تسمية دقيقة للعنصرين مع الإشارة إلى أنهما شخصيتان مجسّمتان.',
@@ -98,6 +105,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     subparts: ['وصف هيئة كل شخصية وحركتها.', 'الانطباع الذي توحيان به (حوار/مقارنة).'],
     interaction: { kind: 'write', label: 'وصفي لما أشاهده:', rows: 4 },
     availability: 'available', source: u2l2Src(50, 'textbook_exercise', 'أتأمل الصور الآتية', 2),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-50-02' },
     teacher: {
       answerOrGuidance: 'وصف مقبول: الدماغ يمدّ ذراعه نحو لوحة الحاسوب وكأنه يشرح أو يتحاور معها، وكلتاهما بملامح بشرية مبتسمة؛ توحي الصورة بمقارنة بين عقل الإنسان والآلة أو بتعاونهما.',
       explanation: 'ينتقل المتعلم من التسمية إلى الوصف: الهيئة والحركة والعلاقة بين العنصرين، وهي مهارة تجهّزه لفكرة الدرس المحورية (الذكاء البشري والذكاء الاصطناعي).',
@@ -118,6 +126,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
       ],
     },
     availability: 'available', source: u2l2Src(50, 'textbook_exercise', 'أتأمل الصور الآتية', 3),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-50-03' },
     teacher: {
       answerOrGuidance: 'إجابة شخصية مفتوحة؛ تُقبل أسماء برامج يعرفها المتعلم مثل: معالج النصوص، تطبيقات المحادثة الفورية، الألعاب التعليمية، برامج الرسم، المتصفحات، تطبيقات الذكاء الاصطناعي للمساعدة.',
       explanation: 'ينشّط التمرين خبرات المتعلم السابقة مع الحاسوب قبل القراءة؛ يُكتفى بذكر الأسماء الصحيحة لبرامج حقيقية ولا تُرفض إجابة لخروجها عن قائمة محددة لأن السؤال مفتوح.',
@@ -140,6 +149,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     answerKey: { 'classify-sami-purpose': 'family' },
     checkExplanation: 'يذكر النص ص٥١ أن سامياً جلس أمام حاسبه في صبيحة العيد، ثم وردت رسالة من الحاسِب؛ وكان يريد محادثة أسرته وتهنئتهم بالعيد وتمني أن يكون معهم في العيد القادم. فالإجابة المعتمدة: يُحادِثَ أُسرَتَهُ.',
     availability: 'available', source: u2l2Src(50, 'textbook_reading', 'أستمع إلى النص', 1, U2L2_LISTENING_AUDIO_GAP),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-50-04' },
     teacher: {
       answerOrGuidance: 'يُحادِثَ أُسرَتَهُ.',
       explanation: `${U2L2_LISTENING_AUDIO_GAP} تُستخرج الإجابة من النص المطبوع ص٥١ عند قراءته جهراً، ولا يُدَّعى تنفيذ استماع صوتي فعلي؛ الخياران الآخران (اللعب/محادثة الأصدقاء) غير واردين في النص.`,
@@ -165,6 +175,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     },
     checkExplanation: 'يقوم حوار النص ص٥١ على مقارنة سامي (الإنسان) بالحاسِب؛ ويخلص الحاسِب نفسه إلى أن العقل البشري أذكى منتَج أبدَعَه العقل البشري، وأنه وُجِدَ لخدمة الإنسان لا ليحل محله.',
     availability: 'available', source: u2l2Src(50, 'textbook_reading', 'أستمع إلى النص', 2, U2L2_LISTENING_AUDIO_GAP),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-50-05' },
     teacher: {
       answerOrGuidance: 'قارَنَ الكاتبُ في النَّصِّ بينَ العَقلِ البَشَرِيِّ (الإنسان/سامي) وَالحاسِبِ، فَوَجَدَ أنَّ العَقلَ البَشَرِيَّ أذكى مُنتَجٍ أبدَعَهُ العقلُ البشريُّ، وأنَّ الحاسِبَ لا يَقدِمُ إلَّا ما أودَعَهُ الإنسانُ فيه من أفكارٍ وغاياتٍ.',
       explanation: 'تُستخلص الفراغات من قسم الحوار ص٥١؛ تُقبل الصياغ القريبة المعنى ما دامت تحافظ على طرفي المقارنة (الإنسان والحاسِب) ونتيجتها (تفوّق العقل البشري).',
@@ -183,6 +194,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     ],
     interaction: { kind: 'speak', preparationLabel: 'أحدّد كلمات الحروف المتقاربة قبل القراءة:', criteria: ['إخراج السين مهموسة غير مُطبَّقة', 'إخراج الصاء مطبَّقة', 'فرق واضح بين التاء والطاء', 'وقف عند علامات الترقيم'] },
     availability: 'available', source: u2l2Src(51, 'textbook_reading', 'أقرأ', 1),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-51-01' },
     teacher: {
       answerOrGuidance: 'أداء قرائي يُقوَّم بسلامة مخارج الحروف المتقاربة: السين (سامي، الحاسِب، يستطيع) مهموسة غير مطبَّقة، والصاء (صبيحة، رصيداً، وصل) مطبَّقة؛ والتاء (تهنئ، تتبادل) versus الطاء (طريق، تطوّر، اطمأن) مع إطباق الطاء وارتفاع اللسان نحو الحنك.',
       explanation: 'التقارب الصوتي بين (س/ص) في الهمس و(ت/ط) في المخرج يوقع في الخلط؛ العلاج تثبيت صفات الإطباق في الصاد والطاء وعدم إطباق السين والتاء، مع التدرب على الكلمات من النص قبل قراءة المقطع كاملاً.',
@@ -196,6 +208,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     subparts: ['توزيع دورَي سامي والحاسِب.', 'أداء الحوار بنبرة تعبّر عن شخصية كل متحدث.', 'مراعاة علامات التعجب والاستفهام والوقف.'],
     interaction: { kind: 'speak', preparationLabel: 'أخطط لأدائي (دوري، نبرتي، مواقف الوقف):', criteria: ['وضوح النطق وضبط الأواخر', 'تلوين صوتي مناسب للشخصيتين', 'احترام أدوار الكلام', 'توظيف علامات الترقيم في الأداء'] },
     availability: 'available', source: u2l2Src(51, 'textbook_reading', 'أقرأ: تمثيل الحوار', 2),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-51-02' },
     teacher: {
       answerOrGuidance: 'أداء تمثيلي حرّ للحوار الوارد ص٥١ بين ضحِكَ سامي وكتبَ يُخاطِبُ الحاسِبَ، والحاسِبِ الذي يجيبه؛ يُقوَّم بمعايير الأداء الشفهي لا بإجابة نموذجية واحدة.',
       explanation: 'التمثيل يعمّق فهم شخصيتي الحوار: سامي الإنسان المبتكر، والحاسِب الذي يعترف بفضل العقل البشري؛ ويُلاحَظ التزام الممثلين بنص الحوار دون إضافة عبارات جديدة.',
@@ -229,6 +242,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     },
     checkExplanation: 'القياس الصرفي: نَواقِل على وزن فَواعِل مفردها ناقِل/ناقِلَة، ودارات مفردها دارَة، وأُمنيات جمع مؤنث سالم مفرده أمنية. والحاسِب جمعه حواسِب، والرسالة جمعها رسائِل، والذكاء مصدر يبقى مفرداً وجمعه القياسي أذكياء للعاقل أو يُكتفى بالمصدر.',
     availability: 'available', source: u2l2Src(52, 'textbook_exercise', 'الفهم القرائي: الجدول', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-52-01' },
     teacher: {
       answerOrGuidance: 'مفرد الجمع: ناقِل (ناقِلَة)، دارَة، أُمنيَة. جمع المفرد: حواسِب، رسائِل، وأمّا ذَكاء فمصدر يُستعمل مفرداً وجمعه القياسي للعاقل أذكياء.',
       explanation: 'يُستند في التحويل إلى أوزان الجمع المعروفة (فواعِل، جمع المؤنث السالم، جموع التكسير)؛ وتُقبل «ناقِلة» لأن النواقل آلات، ويُوجَّه المتعلم إلى أن المصادر قد لا تُجمع جمعاً قياسياً.',
@@ -242,6 +256,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     subparts: ['ثلاث كلمات من النص تنتمي لحقل الحاسوب والتقنية.'],
     interaction: { kind: 'write', label: 'كلمات مجال الحاسِب التي استخرجتها:', rows: 3 },
     availability: 'available', source: u2l2Src(52, 'textbook_exercise', 'الفهم القرائي', 2),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-52-02' },
     teacher: {
       answerOrGuidance: 'من الكلمات المنتمية لمجال الحاسِب في النص: الحاسِبُ، البَرمَجَةُ (مُبَرمَج)، داراتٌ/لوحة الدارات، الشّاشَةُ، الرَّسائِلُ الإلكترونيّة، الذَّكاءُ الاصطناعيّ. يكفي المتعلم بثلاث منها.',
       explanation: 'النص حقل معجمي تقني؛ يُقبل أي ثلاث كلمات فعلًا واردة في النص ومرتبطة بالحاسوب، ويُرفض ما ليس منه أو ما لم يرد في النص.',
@@ -255,6 +270,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     subparts: ['تحديد شخصيات الحوار.'],
     interaction: { kind: 'write', label: 'شخصيات النص:', rows: 2 },
     availability: 'available', source: u2l2Src(52, 'textbook_exercise', 'الفهم القرائي', 3),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-52-03' },
     teacher: {
       answerOrGuidance: 'شخصيتان متحاورتان: سامي (الإنسان)، والحاسِب (بصوت المتكلم الذي يخاطب سامي).',
       explanation: 'النص حوار بين طرفين فقط؛ العبارات الملونة في الكتاب تُميّز كلام كل طرف، فالحاسِب متكلم في ردوده وسامي هو المخاطَب الإنسان.',
@@ -278,6 +294,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     answerKey: { 'classify-excluded': 'saving' },
     checkExplanation: 'النص صرّح بأن بني البشر «نَبقى بشراً نُفَكِّرُ ونَشعرُ ونُحِسُّ ونُبدِع»، ويتمنّى سامي أن يكون مع أسرته في العيد القادم (أمنية)، ففكرة المشاعر والأحاسيس والأمنيات واردة. وصرّح بأن الحاسِب «آلةٌ من معدنٍ ونواقلَ وداراتٍ»، فالفكرة الثانية واردة نصاً. أما توفير «المال» فلم يرد له ذكر في النص؛ المنصوص عليه تقديم الأفكار في الوقت والمكان المناسبين وحفظها وتنظيمها، ولذلك فالخيار الثالث هو الفكرة التي لم ترد بتمامها وهو المستبعَد الصحيح.',
     availability: 'available', source: u2l2Src(52, 'textbook_exercise', 'الفهم القرائي: استبعاد فكرة', 4),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-52-04' },
     teacher: {
       answerOrGuidance: 'المستبعَد: «وُجودُ الحاسِبِ يُوفِّرُ الوقتَ والجهدَ والمالَ» لأن لفظة «المال» لم ترد في النص، بينما وردت الفكرتان الأخريان: مشاعرُ البشر وأحاسيسُهم وأمنياتُهم، وكونُ الحاسِب آلةً من معدنٍ ونواقلَ وداراتٍ.',
       explanation: 'مهارة الاستبعاد تقتضي مسح النص للتحقق من ورود كل فكرة بحروفها؛ الفكرتان الأولى والثانية منصوص عليهما في الحوار ص٥١، أما الثالثة فيعوزها لفظ «المال» الذي لم يُذكر، فهي الغائبة وإن كان معنى توفير الوقت والجهد مقارباً لما في النص.',
@@ -303,6 +320,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
       ],
     },
     availability: 'available', source: u2l2Src(52, 'textbook_exercise', 'الفهم القرائي: مخطط الأفكار', 5, U2L2_LOCKED_SOURCE_NOTES.mindMap),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-52-05' },
     teacher: {
       answerOrGuidance: `تقبل أي فروع مستنبطة من النص. عن الإنسان: يملك عقلاً مُبدِعاً يَحِقُّ له الاختراع، تنتابه مشاعرُ وأمنيات، يبتكر ويُبدع ويتقن العمل. عن الحاسِب: آلة من معدن ونواقل ودارات، ينجز الأعمال بسرعة ودقة وتنظيم، يوفّر الوقت والجهد، لا يقدّم إلا ما أودعه فيه العقل البشري. ${U2L2_LOCKED_SOURCE_NOTES.mindMap}`,
       explanation: 'المخطط أداة تنظيم لا إغلاق؛ تُقوَّم صلة كل فرع بالفكرة المحورية وسنده من النص، ولا تُفرض إجابة وحيدة لأن دوائر الكتاب فارغة أصلاً.',
@@ -324,6 +342,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
       ],
     },
     availability: 'available', source: u2l2Src(53, 'textbook_exercise', 'الفهم القرائي', 6),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-53-01' },
     teacher: {
       answerOrGuidance: 'إجابة شخصية؛ يُقبل اختيار أي عبارة واردة فعلاً في النص مع سبب معقول، مثل عبارة الحاسِب: «أنا الحاسِبُ الَّذي يحفَظُ كلَّ أفكارِ البَشَرِ ومشاعرِهم» لأنها تجمع وظيفته بإيجاز، أو «لا تَقدُمُ إلَّا ما أودَعَكَ الإنسانُ إيَّاه» لأنها تثبت فضل العقل البشري.',
       explanation: 'يُتحقق من شرطين معاً: أن العبارة منقولة من النص لا مخترعة، وأن السبب مرتبط بمعناها؛ فالنشاط يربط الفهم القرائي بالتذوق.',
@@ -337,6 +356,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     subparts: ['نصيحة أو أكثر عن الجلسة الصحية أمام الحاسِب.', 'رسم صورة ملائمة (يُنجَز يدوياً على الورق).', U2L2_LOCKED_SOURCE_NOTES.drawingTasks],
     interaction: { kind: 'write', label: 'نصائحي لوضعية الجلوس الصحي:', rows: 5 },
     availability: 'available', source: u2l2Src(53, 'textbook_exercise', 'الفهم القرائي: نصائح صحية', 7, U2L2_LOCKED_SOURCE_NOTES.drawingTasks),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-53-02' },
     teacher: {
       answerOrGuidance: 'تُقبل نصائح سليمة مثل: استقامة الظهر، إبقاء الشاشة عند مستوى العين، ترك مسافة مناسبة بين العين والشاشة، أخذ فترات راحة، إراحة اليدين، الجلوس على كرسي مريح. والرسم يُنفذ يدوياً ولا تُحاكَم عليه الكتابة الرقمية.',
       explanation: 'النشاط يربط موضوع الدرس بالصحة المدرسية؛ يُقوَّم الشق الكتابي بصحة النصائح، ويوثَّق الشق الرسومي بوصفه أداءً يدوياً خارج المنصة الرقمية.',
@@ -349,6 +369,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     subparts: ['إكمال واحد يعبر عن رأي المتعلم بأهمية التقنيات.'],
     interaction: { kind: 'write', label: 'رأيي في أهمية التقنيات الحديثة:', rows: 4 },
     availability: 'available', source: u2l2Src(53, 'textbook_exercise', 'الفهم القرائي', 8),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-53-03' },
     teacher: {
       answerOrGuidance: 'رأي شخصي مقبول إذا كان معقولاً ومرتبطاً، مثل: توفير الوقت والجهد، تنظيم الأعمال وحفظ المعلومات، تقريب المسافات وتسهيل التواصل، دعم التعلم والبحث، شريطة استعمالها الواعي.',
       explanation: 'السؤال يطلب الرأي لا الحفظ؛ فيُقوَّم الاتساق المنطقي وسلامة التعبير، ويُستأنس بفكرة النص عن أن الحاسِب يخدم الإنسان ويوفّر وقته وجهده.',
@@ -361,6 +382,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     subparts: ['كتابة جمل حوارية بين سامي والحاسِب على نسق النص.', 'الحفاظ على شخصيتي الطرفين.'],
     interaction: { kind: 'write', label: 'المقطع الحواري الذي أضيفه:', rows: 6 },
     availability: 'available', source: u2l2Src(53, 'textbook_exercise', 'الفهم القرائي: إضافة مقطع حواري', 9),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-53-04' },
     teacher: {
       answerOrGuidance: 'إنتاج كتابي مفتوح على نسق الحوار؛ يُقبل مقطع يدير فيه سامي سؤالاً جديداً ويجيب الحاسِب مؤكداً تبعيته للعقل البشري، مع سلامة علامات التنصير والترقيم وعلامات التعجب والاستفهام.',
       explanation: 'يقيس النشاط فهم بنية الحوار وأسلوب الشخصيتين؛ يُوجَّه المتعلم إلى إبقاء الحاسِب معترفاً بفضل العقل البشري حتى لا يتناقض المقطع المضاف مع فكرة النص.',
@@ -374,6 +396,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     subparts: ['تحية افتتاحية مناسبة للإذاعة الصباحية.', 'معلومات عن أهمية التلفاز وآداب مشاهدته.', 'ختام وتحيّة.'],
     interaction: { kind: 'speak', preparationLabel: 'مخطط حديثي الإذاعي (تحية، معلومات، ختام):', criteria: ['تحية وختام واضحان', 'معلومات صحيحة ومرتبطة بالموضوع', 'تلوين صوتي وسرعة مناسبان', 'الالتزام بالوقت'] },
     availability: 'available', source: u2l2Src(53, 'textbook_expression', 'أتواصل شفوياً: الإذاعة المدرسية'),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-53-05' },
     teacher: {
       answerOrGuidance: 'حديث إذاعي حرّ؛ يُتوقع أن يضم تحية صباحية، ثم فوائد التلفاز (متابعة الأخبار والبرامج التعليمية والثقافية) وآداب مشاهدته (اختيار المحتوى الهادف، ضبط الوقت، البعد المناسب عن الشاشة، مراعاة الواجبات)، ثم ختام بالشكر.',
       explanation: 'ينقل مهارة الحديث الإذاعي من درس سابق إلى موضوع جديد؛ يُقوَّم بمعايير الأداء الشفهي ومحوري المحتوى (الأهمية والآداب) لا بنص موحَّد.',
@@ -393,6 +416,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     answerKey: { 'name-a': 'جُمْلَةٌ فِعْلِيَّةٌ' },
     checkExplanation: 'الجملة التي تبدأ بفعلٍ تسمّى جملة فعلية، ركناها فعل وفاعل؛ وقد درستها سابقاً، واليوم تحويلها إلى اسمية بتقديم الفاعل.',
     availability: 'available', source: u2l2Src(54, 'textbook_grammar', 'قواعد اللغة', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-54-01' },
     teacher: {
       answerOrGuidance: 'جُمْلَةٌ فِعْلِيَّةٌ؛ لأنها بدأت بفعل (يحتاجُ/ويُواصِلُ).',
       explanation: 'استقراء يبني التسمية من ملاحظة كلمة الابتداء؛ ويمهّد للقاعدة التي تحوّل هذه الجمل بتقديم فاعلها.',
@@ -413,6 +437,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     answerKey: { fa1: 'الإبداعُ', fa2: 'المُبدِعُ' },
     checkExplanation: 'الفاعل من قام بالفعل: في الجملة الأولى الإبداعُ هو المحتاج، وفي الثانية المُبدِعُ هو المواصِل؛ وكلاهما اسم مرفوع.',
     availability: 'available', source: u2l2Src(54, 'textbook_grammar', 'قواعد اللغة', 2),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-54-02' },
     teacher: {
       answerOrGuidance: 'فاعل الجملة الأولى: الإبداعُ. وفاعل الجملة الثانية: المُبدِعُ.',
       explanation: 'بتحديد الفاعل يتهيأ المتعلم لتقديمه على الفعل في خطوة التحويل؛ علامة الفاعل الرفع.',
@@ -431,6 +456,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     answerKey: { 'name-b': 'جُمْلَةٌ اسْمِيَّةٌ' },
     checkExplanation: 'بعد تقديم الفاعل (الإبداعُ/المُبدِعُ) صدرت الجملة باسم مرفوع فأصبحت جملة اسمية؛ الاسم الأول مبتدأ والجملة الفعلية بعده في محل رفع خبر.',
     availability: 'available', source: u2l2Src(54, 'textbook_grammar', 'قواعد اللغة', 3),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-54-03' },
     teacher: {
       answerOrGuidance: 'جُمْلَةٌ اسْمِيَّةٌ؛ لأنهما بدأتا باسم (الإبداعُ/المُبدِعُ) بعد أن كانا فاعلين.',
       explanation: 'الملاحظة الاستقرائية تقود إلى القاعدة: تقديم الفاعل على فعله يحوّل الجملة الفعلية اسمية.',
@@ -448,6 +474,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     answerKey: { change: 'تتحوّل الجملة الفعلية إلى جملة اسمية بتقدُّم الفاعل (اسماً مرفوعاً) على الفعل، فيصير الاسم مبتدأ والجملة الفعلية بعده خبراً.' },
     checkExplanation: 'التغيير ليس في الكلمات بل في ترتيبها ونوع الجملة: الفاعل يتقدّم فيصبح مبتدأ، وتبقى الجملة الفعلية بعده خبراً، فتنتقل الجملة من فعلية إلى اسمية.',
     availability: 'available', source: u2l2Src(54, 'textbook_grammar', 'قواعد اللغة', 4),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-54-04' },
     teacher: {
       answerOrGuidance: 'تتحوَّل الجملة الفعلية إلى جملة اسمية؛ لأن الفاعل يتقدّم على الفعل فيُصبح مبتدأ، والجملة الفعلية بعده في محل رفع خبر.',
       explanation: 'هذا هو جوهر القاعدة المطبوعة؛ يؤكَّد أن المعنى واحد والاختلاف في الرتبة ونوع الجملة.',
@@ -465,6 +492,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     answerKey: { conv1: 'الخَبيرُ يَبرمِجُ الحاسِبَ.' },
     checkExplanation: 'الفاعل «الخَبيرُ» يتقدّم على الفعل «يَبرمِجُ» فتصبح: الخَبيرُ يَبرمِجُ الحاسِبَ. جملة اسمية: الخبير مبتدأ، والجملة الفعلية بعده خبر.',
     availability: 'available', source: u2l2Src(54, 'textbook_grammar', 'أطبّق: التحويل', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-54-05' },
     teacher: {
       answerOrGuidance: 'الخَبيرُ يَبرمِجُ الحاسِبَ.',
       explanation: 'تطبيق مباشر للقاعدة؛ يُحفَظ المفعول به «الحاسِبَ» منصوباً كما هو، والفاعل يبقى مرفوعاً لكنه يتقدّم صدر الجملة.',
@@ -489,6 +517,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     },
     checkExplanation: 'يعود الفاعل «الحاسِبُ» بعد الفعل: يُحَوِّلُ الحاسِبُ الأرقامَ…، ولَن يَتَفَوَّقَ الحاسِبُ على الإنسان. عكس العملية السابقة يعيد الجملة فعلية مع بقاء المعنى والأحكام الإعرابية.',
     availability: 'available', source: u2l2Src(54, 'textbook_grammar', 'أطبّق: التحويل', 2),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-54-06' },
     teacher: {
       answerOrGuidance: 'يُحَوِّلُ الحاسِبُ الأَرقامَ إِلى بَياناتٍ. ولَن يَتَفَوَّقَ الحاسِبُ عَلَى الإِنسانِ.',
       explanation: 'في الجملة الثانية فعل ناسخ «لن» يبقى قبل الفعل، والفاعل يتأخر عن الفعل؛ يُنبَّه إلى أن أدوات النفي لا تُغيّر موضع الفاعل المطلوب.',
@@ -515,6 +544,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
       rows: 4,
     },
     availability: 'available', source: u2l2Src(55, 'textbook_grammar', 'التقويم النهائي النحوي', 1),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-55-07' },
     teacher: {
       answerOrGuidance: 'مهمة أدائية مفتوحة بلا نص موحَّد. يُتوقَّع أن يصوغ المتعلم جملة اسمية سليمة مثل «الحاسوبُ مفيدٌ» ثم يحوّلها الزميل إلى «يُفيدُ الحاسوبُ» بتقديم الفعل وتأخير الفاعل؛ يُقوَّم صحة ركني الجملة الاسمية وصحة التحويل الفعلي دون فرض جملة بعينها.',
       explanation: 'تنقل مهارة التحويل من التدريب الموجه إلى إنتاج شخصي متبادل؛ المعيار هو سلامة البنية في النوعين واحتفاظ المعنى، لا مطابقة نموذج واحد.',
@@ -540,6 +570,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
       ],
     },
     availability: 'available', source: u2l2Src(55, 'textbook_grammar', 'التقويم النهائي النحوي', 2),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-55-08' },
     teacher: {
       answerOrGuidance: 'أداء شفهي مفتوح؛ يُقبل أي حديث عن لعبة حاسوبية حقيقية يوظّف فيه المتعلم النوعين، مثل جملة اسمية «اللعبةُ ممتعةٌ» وجملة فعلية «ألعبُها في وقت فراغي». يُقوَّم بالمعايير المعلنة لا بنص موحَّد.',
       explanation: 'يربط القاعدة النحوية بالتعبير الشفهي التلقائي؛ يُراقِب المعلم توظيف النوعين أثناء الكلام الطبيعي لا الحفظ.',
@@ -559,6 +590,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
       rows: 6,
     },
     availability: 'available', source: u2l2Src(55, 'textbook_grammar', 'التقويم النهائي النحوي', 3),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-55-09' },
     teacher: {
       answerOrGuidance: 'إنتاج كتابي مفتوح؛ يُقبل أي موضوع يفي بالعدد (١٥ كلمة فأكثر) ويضم النوعين، مثل «الحاسوبُ وسيلةٌ نافعةٌ (اسمية). يُنظّمُ معلوماتي ويوفّر وقتي (فعلية)». تُقوَّم سلامة الجمل وتحقق العدد والشرط دون نموذج ملزم.',
       explanation: 'مهمة توظيف كتابي للقاعدة؛ يُتحقق من العدد ومن وجود ركني النوعين ومن صحة الرسم، وتبقى الأفكار من اختيار المتعلم.',
@@ -597,6 +629,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     },
     checkExplanation: 'الأفعال تدل على حدث وزمن: التفتَ، انبثقتْ، تبادلَ، أتمنّى. والأسماء تدل على شيء أو صفة بلا زمن: رسالة، الطيّبة، ممتع. وبناءً على هذا التصنيف تُدرَس تاء كل قسم في الأسئلة التالية.',
     availability: 'available', source: u2l2Src(55, 'textbook_spelling', 'إملاء: التاء المبسوطة', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-55-01' },
     teacher: {
       answerOrGuidance: 'أفعال: التَفَتَ، انبثَقَتْ، تَبادَلَ، أتَمَنَّى. أسماء: رِسالَةٌ (وردت مرتين)، الطَّيِّبَةُ، مُمتِعٌ.',
       explanation: 'التصنيف مدخل التمييز الإملائي؛ يُعاد بالمتعلم إلى علامتي الاسم والفعل قبل النظر إلى شكل التاء.',
@@ -611,6 +644,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     answerKey: { t2: 'مَبسوطَةً' },
     checkExplanation: 'التاء في «التَفَتَ» أصلية من بنية الفعل، والأفعال المبنية على تاءٍ أصلية تُختم بتاء مبسوطة لا مربوطة.',
     availability: 'available', source: u2l2Src(55, 'textbook_spelling', 'إملاء: التاء المبسوطة', 2),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-55-02' },
     teacher: {
       answerOrGuidance: 'مَبسوطَةً (ت).',
       explanation: 'تنص قاعدة الدرس على أن الأفعال المنتهية بتاءٍ أصلية أو متصلة تُختم بالتاء المبسوطة.',
@@ -625,6 +659,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     answerKey: { t3: 'مَبسوطَةً' },
     checkExplanation: 'تاء التأنيث الساكنة التي تلحق الأفعال (انبثقَتْ) تُكتب مبسوطة؛ المربوطة خاصة بالأسماء المفردة المؤنثة.',
     availability: 'available', source: u2l2Src(55, 'textbook_spelling', 'إملاء: التاء المبسوطة', 3),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-55-03' },
     teacher: {
       answerOrGuidance: 'مَبسوطَةً (ت).',
       explanation: 'التفريق الجوهري: تاء التأنيث في الأفعال مبسوطة دائماً، بينما التاء المربوطة في الأسماء.',
@@ -640,6 +675,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     answerKey: { t4: 'مَبسوطَةً' },
     checkExplanation: 'تاء الفاعل المتصلة بالفعل (كتبتُ) متحركة وتُكتب مبسوطة؛ فكل تاء في آخر الفعل أصلية أو للتأنيث أو للفاعل هي مبسوطة.',
     availability: 'available', source: u2l2Src(55, 'textbook_spelling', 'إملاء: التاء المبسوطة', 4),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-55-04' },
     teacher: {
       answerOrGuidance: 'مَبسوطَةً (ت).',
       explanation: 'حركة التاء لا تغيّر صورتها في الفعل؛ تبقى مبسوطة لأنها من ملحقات الأفعال.',
@@ -654,6 +690,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     answerKey: { t5: 'مَبسوطَةً' },
     checkExplanation: 'جمع المؤنث السالم يُختم بألف وتاء مبسوطة (أُمني+ات)، وتُعد تاؤه من مواضع التاء المبسوطة في الأسماء بحسب قاعدة الدرس.',
     availability: 'available', source: u2l2Src(55, 'textbook_spelling', 'إملاء: التاء المبسوطة', 5),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-55-05' },
     teacher: {
       answerOrGuidance: 'مَبسوطَةً (ت)؛ لأنها تاء جمع المؤنث السالم.',
       explanation: 'يضع «أستنتج» جمع المؤنث السالم ضمن مواضع المبسوطة؛ فلا تُكتب «أمنياة».',
@@ -669,6 +706,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     answerKey: { t6: 'مَبسوطَةً' },
     checkExplanation: 'الاسم الثلاثي الساكن الوسط (وَقْت) من مواضع التاء المبسوطة في الأسماء؛ فلا تُرسم مربوطة.',
     availability: 'available', source: u2l2Src(55, 'textbook_spelling', 'إملاء: التاء المبسوطة', 6),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-55-06' },
     teacher: {
       answerOrGuidance: 'مَبسوطَةً (ت).',
       explanation: 'يعدد «أستنتج» الاسم الثلاثي الساكن الوسط ضمن مواضع المبسوطة، مثل: وقت، بيت، صوت.',
@@ -691,6 +729,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     answerKey: { 'verb-pron': 'تاءً', 'noun-pron': 'هاءً' },
     checkExplanation: 'عند الوقف: التاء المبسوطة في الفعل «انبثقَتْ» تبقى تاءً، بينما التاء المربوطة في الاسم «رسالة» تُلفظ هاءً؛ وهذا أمارة التفريق الصوتي بينهما.',
     availability: 'available', source: u2l2Src(56, 'textbook_spelling', 'إملاء: التاء المربوطة', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-56-01' },
     teacher: {
       answerOrGuidance: 'في «انبثَقَتْ» لُفظت تاءً، وفي «رِسالَةٌ» لُفظت هاءً عند الوقف.',
       explanation: 'الاختبار الصوتي المطبوع: المربوطة هاءٌ ساكنة عند الوقف، والمبسوطة تاءٌ ساكنة؛ يربط الأذنُ الصورة الخطية بالنطق.',
@@ -705,6 +744,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     answerKey: { 't-risala': 'مَربوطَةً' },
     checkExplanation: 'تاء التأنيث في الاسم المفرد المؤنث تُكتب مربوطة (ة) وتُنطق هاءً عند الوقف، بحسب «أستنتج» ص٥٦.',
     availability: 'available', source: u2l2Src(56, 'textbook_spelling', 'إملاء: التاء المربوطة', 2),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-56-02' },
     teacher: {
       answerOrGuidance: 'مَربوطَةً (ة).',
       explanation: 'المربوطة تكون في آخر الاسم المفرد المؤنث؛ وهو مقابل تاء التأنيث المبسوطة في الفعل.',
@@ -725,6 +765,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     answerKey: { hadaiq: 'حَديقَةٌ', kathira: 'كَثيرَةٌ' },
     checkExplanation: 'حَدائِق جمع تكسير مفرده حَديقَة (مربوطة)، وكثير مؤنثه كَثيرَة (مربوطة)؛ كلاهما اسم مفرد مؤنث يختم بتاء مربوطة.',
     availability: 'available', source: u2l2Src(56, 'textbook_spelling', 'أطبّق: التاء المربوطة'),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-56-03' },
     teacher: {
       answerOrGuidance: 'حَديقَةٌ، وكَثيرَةٌ.',
       explanation: 'التطبيق يثبت أن المفرد المؤنث يُختم بالمربوطة؛ ويُربط بالجمع (حدائق) ليلاحظ المتعلم تغيّر الصورة بين المفرد والجمع.',
@@ -748,6 +789,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
       ],
     },
     availability: 'available', source: u2l2Src(56, 'textbook_spelling', 'أطبّق: جدول التاء المبسوطة'),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-56-04' },
     teacher: {
       answerOrGuidance: 'أمثلة مقبولة: أفعال مثل كتَبَتْ، انبثقَتْ، لعبْتُ؛ أسماء مثل وَقْت، بيْت، أُمنيات، مَكتبات. يُقبل أي أربع كلمات صحيحة التاء ومنوّعة الحالات.',
       explanation: 'النشاط إنتاجي مفتوح؛ يُتحقق من شرطين: انتهاء الكلمة بتاء مبسوطة فعلاً، وصحة تصنيفها فعلًا أو اسمًا.',
@@ -783,6 +825,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     },
     checkExplanation: 'شجرة اسم مفرد مؤنث فاؤه مربوطة؛ بيت اسم ثلاثي ساكن الوسط بتاء مبسوطة؛ قرأت فعل آخره تاء تأنيث ساكنة مبسوطة؛ كاتبات جمع مؤنث سالم بتاء مبسوطة. كل كلمة تقابل سبباً واحداً.',
     availability: 'available', source: u2l2Src(57, 'textbook_spelling', 'التقويم النهائي: وصل التاء بسببها', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-57-01' },
     teacher: {
       answerOrGuidance: 'شَجَرَة ← اسم مفرد مؤنث. بَيْت ← اسم ثلاثي ساكن الوسط. قَرَأَتْ ← تاء تأنيث ساكنة في الفعل. كاتِبات ← تاء جمع المؤنث السالم.',
       explanation: 'تطابق واحد لواحد يغطي حالات الدرس كلها؛ يُنبَّه إلى أن «شجرة» مؤنث مفرد يأخذ المربوطة بينما «قرأت» فعل يأخذ المبسوطة رغم اشتراكهما في دلالة التأنيث.',
@@ -812,6 +855,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     },
     checkExplanation: 'المعيار واحد: هل الكلمة اسم مفرد مؤنث (مربوطة) أم فعل/جمع مؤنث سالم/اسم ثلاثي (مبسوطة)؟ مدرسة مربوطة، والبقية مبسوطة لأسبابها المذكورة.',
     availability: 'available', source: u2l2Src(57, 'textbook_spelling', 'التقويم النهائي: تعليل التاء', 2),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-57-02' },
     teacher: {
       answerOrGuidance: 'مَدرَسَة: اسم مفرد مؤنث ← مربوطة. باتَ: فعل تاؤه أصلية ← مبسوطة. قارئات: جمع مؤنث سالم ← مبسوطة. صَنَعَتْ: فعل فيه تاء تأنيث ساكنة ← مبسوطة. كُنْتُ: فعل فيه تاء فاعل ← مبسوطة.',
       explanation: 'التعليل يربط الرسم بالقاعدة لا بالحفظ؛ يُطلب من المتعلم ذكر السبب (نوع الكلمة وموضع التاء) لا الاكتفاء بقول «مبسوطة/مربوطة».',
@@ -825,6 +869,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     subparts: ['حوار لمدة دقيقتين.', 'تضمين كلمات فيها النوعان من التاء.'],
     interaction: { kind: 'speak', preparationLabel: 'كلماتي المخططة (مبسوطة/مربوطة) قبل الحوار:', criteria: ['استعمال كلمات فيها تاء مبسوطة ومربوطة', 'الحوار في موضوع فائدة الألعاب التعليمية', 'وضوح النطق واحترام الأدوار'] },
     availability: 'available', source: u2l2Src(57, 'textbook_spelling', 'التقويم النهائي: حوار'),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-57-03' },
     teacher: {
       answerOrGuidance: 'أداء شفهي مفتوح؛ يُقبل أي حوار يذكر فوائد الألعاب التعليمية (التعلم باللعب، المتعة والتشويق، تثبيت المعلومات) ويوظّف كلمات مثل: وَقْت، بيْت، لعبْتُ (مبسوطة) ومدرسة، لعبة، متعة (مربوطة).',
       explanation: 'يوظّف القاعدة في إنتاج كلام حقيقي؛ يُقوَّم المعنى وصحة رسم/نطق التاء في الكلمات المستعملة.',
@@ -837,6 +882,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     subparts: ['فقرة قوامها عشر كلمات تقريباً.', 'تضمين النوعين من التاء.'],
     interaction: { kind: 'write', label: 'فقرتي عن هواياتي المفضلة:', rows: 5 },
     availability: 'available', source: u2l2Src(57, 'textbook_spelling', 'التقويم النهائي: فقرة'),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-57-04' },
     teacher: {
       answerOrGuidance: 'فقرة حرة؛ نموذج إرشادي: «هوايتي المفضلة لعبة كرة في وقت الفراغ، أكتبُ في دفتري قصةً جميلةً وأشارك صديقاتي في مسابقاتٍ مدرسية.» تُقوَّم قربها من عشر كلمات واحتواؤها تاءً مبسوطة ومربوطة.',
       explanation: 'إنتاج كتابي شخصي يطبّق القاعدة؛ يُتحقق من العدد التقريبي للكلمات وصحة رسم التاء في الكلمات المستعملة.',
@@ -853,6 +899,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     ],
     interaction: { kind: 'write', label: 'ملاحظاتي عن رسم الأحرف الملوّنة ومواضعها:', rows: 4 },
     availability: 'available', source: u2l2Src(57, 'textbook_exercise', 'الخط: ملاحظة رسم الأحرف', 1),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-57-05' },
     teacher: {
       answerOrGuidance: 'ملاحظة بصرية موجَّهة: الراء والزاي يتشاركان جسماً واحداً تفصله النقطة (الزاي بنقطة)، والذال يقابل الدال في الجسم نفسه مع نقطة؛ وتلاحَظ مواضع الحروف من الكلمة (أول/وسط/آخر) استعداداً لتجريدها في النشاط التالي.',
       explanation: 'يُحتفَظ بنص التوجيه كما طُبع (د–ذ) وتُوثَّق الملاحظة حول الكلمات الملوّنة الفعلية (ر/ز/ذ) بوصفها حدود مصدر بدل إصلاحها صامتاً؛ التركيز على أن النقطة فارق الرسم بين الحروف المتقاربة الأجسام.',
@@ -870,6 +917,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
       modelDescription: 'جرّد الحرف الملوّن من كل كلمة على ورقة مسطّرة منتبهاً لموضعه (أول/وسط/آخر)، ولاحظ أن الزاي راء بنقطة والذال دال بنقطة. دوّن هنا أصعب موضع لاحظته.',
     },
     availability: 'available', source: u2l2Src(58, 'textbook_exercise', 'الخط: تجريد الأحرف', 2, U2L2_LOCKED_SOURCE_NOTES.calligraphyShapes),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-58-01' },
     teacher: {
       answerOrGuidance: 'تجريد يدوي يُقوَّم على الورق بمحاكاة موضع الحرف؛ المعيار سلامة شكل الحرف في موضعه وضبط النقطة الفارقة (ز/ذ) لا الكتابة بلوحة المفاتيح.',
       explanation: 'النشاط حركي بصري؛ يُعلن أن الأشكال الخطية لا تُحاكى رقمياً بأمانة فيُحتفَظ بالرسم اليدوي.',
@@ -885,6 +933,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
       modelDescription: 'تابع ترتيب البدء المرقّم لأشكال الدال (منفرد، أول، وسط، آخر) ثم اكتب الحرف على الورق باتباع البدايات نفسها، ولخّص هنا ترتيب حركات يدك.',
     },
     availability: 'available', source: u2l2Src(58, 'textbook_exercise', 'أتعلّم: أشكال الدال', undefined, U2L2_LOCKED_SOURCE_NOTES.calligraphyShapes),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-58-02' },
     teacher: {
       answerOrGuidance: 'يقلّد المتعلم أشكال الدال المرقمة ويتدرب على كتابتها يدوياً؛ يُقوَّم العمل بالنظر المباشر للرسم على الورق وفق ترتيب البدء المطبوع.',
       explanation: 'أشكال الرقعة مرسومة لا تُستبدل بحروف مطبعية؛ تُعلَن حدود الوسيط الرقمي ويبقى التدريب على الكراسة.',
@@ -901,6 +950,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
       modelDescription: 'حاكِ العبارة على ورقة مسطّرة بخط الرقعة منتبهاً للدال في صديقي وقدراتك وللذال في بذكائك، مع ملاحظة ميل الحروف والخط الأفقي الأطول من العمودي.',
     },
     availability: 'available', source: u2l2Src(58, 'textbook_exercise', 'أتدرّب: محاكاة العبارة'),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-58-03' },
     teacher: {
       answerOrGuidance: 'محاكاة خطية تُقوَّم يدوياً؛ المعيار محاكاة أشكال الدال والذال بمواضعهما والالتزام بميل الرقعة وطول الخط الأفقي بحسب «الفائدة».',
       explanation: 'اختيرت العبارة من روح الحوار لتجمع الدال والذال في جملة ذات معنى؛ يقوّم المعلم الرسم بالنظر لا الكتابة الرقمية.',
@@ -913,6 +963,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     subparts: ['الجدول يعرض دال وذال بخط النسخ (صف) والرقعة (صف) بأشكال مرسومة.', 'الملاحظة بصرية على الأشكال لا على أسماء الحروف.'],
     interaction: { kind: 'write', label: 'الفروق التي لاحظتها بين الرقعة والنسخ في رسم د/ذ:', rows: 4 },
     availability: 'available', source: u2l2Src(58, 'textbook_exercise', 'أطبّق: الفرق بين الرقعة والنسخ'),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-58-04' },
     teacher: {
       answerOrGuidance: 'يُتوقَّع أن يلاحظ المتعلم أن خط النسخ أكثر استدارة ووضوحاً وتستقر حروفه على السطر، بينما الرقعة أميل وأقصر وينزل جزء من الحرف تحت السطر، مع بقاء هوية الدال والذال والنقطة الفارقة بينهما.',
       explanation: 'مقارنة معمارية تثبت أن الخط يغيّر «ثوب» الحرف لا هويته؛ لا تُستبدل الأشكال المرسومة بوصف رقمي.',
@@ -936,6 +987,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     answerKey: { a: 'حَقائِقُ', b: 'دَقيقَةٌ', c: 'الواقِعَ' },
     checkExplanation: 'الجمل الأربع حقائق علمية يمكن التحقق منها (تمدّد المعادن بالحرارة، الذهب لا يصدأ، الإنسان الكائن الحي الوحيد الذي ينام على ظهره، المصدر اسم غير مرتبط بزمن). فهي حقائق، بألفاظ دقيقة، والكاتب يستعمل الواقع لا الخيال.',
     availability: 'available', source: u2l2Src(59, 'textbook_expression', 'أعبّر كتابياً: حقيقة علمية', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'U2L2-59-01' },
     teacher: {
       answerOrGuidance: 'أ. حَقائِقُ. ب. دَقيقَةٌ. ت. الواقِعَ.',
       explanation: 'يؤسس التمرير لخصائص الأسلوب العلمي: معلومات قابلة للتحقق، ألفاظ دقيقة لا تحتمل أكثر من معنى، وابتعاد عن الخيال والمشاعر.',
@@ -954,6 +1006,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
       rows: 5,
     },
     availability: 'available', source: u2l2Src(59, 'textbook_expression', 'أتعلّم: خصائص الحقائق العلمية'),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-59-02' },
     teacher: {
       answerOrGuidance: 'القائمة المعتمدة المطبوعة في الإطار: ١. الدقة والثبات. ٢. البعد عن الخيال وألفاظه. ٣. اختيار الألفاظ الدقيقة. ٤. استعمال الأرقام والبيانات العلمية. ٥. حيادية الكاتب إذ لا يعرِض رأيَهُ. تُقوَّم إعادة الصياغة باستيفاء الخصائص لا بمطابقة حرفية لأنها مهمة فهم وتعبير.',
       explanation: 'المحتوى معرفي مطبوع في المصدر نفسه؛ المطلوب استيعاب الخصائص وتطبيقها عند الكتابة، مع فهم أن الأسلوب العلمي وصفي موضوعي بلا رأي شخصي، ولذلك لا تُفرض مطابقة حرفية بل استيفاء المضامين الخمسة.',
@@ -966,6 +1019,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     subparts: ['حقائق علمية مسترجعة من سنوات سابقة.', 'الالتزام بخصائص الأسلوب العلمي.'],
     interaction: { kind: 'write', label: 'حقائق علمية أكتبها مع زملائي:', rows: 5 },
     availability: 'available', source: u2l2Src(59, 'textbook_expression', 'أتدرّب: كتابة الحقائق العلمية'),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-59-03' },
     teacher: {
       answerOrGuidance: 'إنتاج تعاوني مفتوح؛ تُقبل حقائق صحيحة قابلة للتحقق مثل: الماء يتجمد عند درجة صفر مئوية، الأرض كوكب يدور حول الشمس، النبات يصنع غذاءه بالبناء الضوئي، بصياغة دقيقة محايدة.',
       explanation: 'يُقوَّم صدق الحقيقة وقابليتها للتحقق وسلامة توظيف خصائص الأسلوب العلمي (دقة، حياد، بيانات).',
@@ -979,6 +1033,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     subparts: ['البحث في مكتبة المدرسة.', 'عرض الحقائق في مجلة الحائط (مهمة صفية).'],
     interaction: { kind: 'write', label: 'مسودة الحقائق التي سأعرضها في مجلة الحائط:', rows: 6 },
     availability: 'available', source: u2l2Src(59, 'textbook_expression', 'أطبّق: مجلة الحائط'),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-59-04' },
     teacher: {
       answerOrGuidance: 'مشروع مفتوح؛ يُقبل جمع حقائق موثّقة من مصادر المكتبة مع ذكر المصدر، وصياغتها بالأسلوب العلمي ثم عرضها؛ يُقوَّم التوثيق والدقة والحياد.',
       explanation: 'ينقل المهارة إلى بحث قصير موثّق وعرض صفّي؛ يُشترط ذكر المصدر تمشياً مع مبدأ تتبّع المعلومة.',
@@ -996,6 +1051,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     ],
     interaction: { kind: 'write', label: 'جُملي الفعلية والاسمية المكوّنة من الكلمات:', rows: 7 },
     availability: 'available', source: u2l2Src(60, 'activity_book', 'ألعب وأتعلّم'),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-60-01' },
     teacher: {
       answerOrGuidance: 'لعبة إنتاج مفتوحة؛ تُقبل الجمل الصحيحة نحوياً المستعملة لكلمات البطاقات، مثل: طارَتِ العَصافيرُ إِلى السَّماءِ (فعلية)، الوَطَنُ جَميلٌ (اسمية)، عادَتِ العَصافيرُ إِلى أَعشاشِها (فعلية)، الحُبُّ وَالحَنينُ في كُلِّ أَنحاءِ الوَطَن (اسمية). تُحسب الجملة الصحيحة فقط.',
       explanation: 'تجمع اللعبة مهارتي الدرس النحويتين (الجملة الفعلية والاسمية) بسرعة وتنافس؛ يتحقق المعلم من صدور كل جملة عن فعل+فاعل أو مبتدأ+خبر ومن استعمال كلمات البطاقات.',
@@ -1009,6 +1065,7 @@ export const U2L2_ACTIVITIES: U2L2Activity[] = [
     subparts: ['البحث بمساعدة الأسرة ومصادر التعلم.', 'تتبّع مراحل تطوّر الحاسِب وتوثيق المصدر.'],
     interaction: { kind: 'write', label: 'نتائج بحثي عن مراحل تطوّر الحاسِب (مع المصدر):', rows: 7 },
     availability: 'available', source: u2l2Src(60, 'activity_book', 'أنا وأسرتي'),
+    disclosure: { kind: 'guidance_only', sourceRef: 'U2L2-60-02' },
     teacher: {
       answerOrGuidance: 'بحث أسري مفتوح؛ يُقبل أن يذكر المتعلم مراحل تطوّر الحاسِب (من الحواسيب الضخمة إلى الحواسيب الشخصية فالمحمولة فاللوحية والذكية) مع ذكر مصدر التعلم، ويُقوَّم الترتيب المنطقي والتوثيق.',
       explanation: 'يوسّع التعلم خارج الصف ويربطه بموضوع الذكاء الاصطناعي؛ شرط القبول وجود مصدر معلَن وصحة الترتيب العام للمراحل دون اشتراط حصرها.',

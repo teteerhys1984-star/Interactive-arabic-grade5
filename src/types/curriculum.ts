@@ -360,6 +360,114 @@ export interface TeacherLessonGuide {
   lessonTestAnswerKeyRef: string;
 }
 
+/* ---------------------------------------------------------------- */
+/* 5.b ANSWER DISCLOSURE — one explicit decision per answer record   */
+/* ---------------------------------------------------------------- */
+
+/**
+ * DECLARED DISCLOSURE OF AN ANSWER RECORD.
+ *
+ * WHY IT IS EXPLICIT AND MANDATORY: the mere presence of
+ * `teacher.answerOrGuidance` (or any other text field) must never imply that the
+ * text is safe to show a learner. The decision is declared once, in the record
+ * that owns the text, and consumed by one resolver for both scopes.
+ *
+ * RULES (owner-approved spec v2):
+ *  - `sourceRef` is mandatory on EVERY kind: a disclosure without a source
+ *    reference is an audit error, never a default.
+ *  - There is NO default kind. A record without `disclosure` fails the coverage
+ *    audit and renders nothing.
+ *  - `teacher_only` must never reach a student surface.
+ *  - `no_approved_content` renders nothing for the learner (no misleading
+ *    button, no "no answer" wording) and an explicit declared-gap row for the
+ *    teacher.
+ */
+export type AnswerDisclosure =
+  | {
+      /** An approved key exists (accepted answers / correct choice / model key). */
+      kind: 'approved_key';
+      /** Source-lock record id or documented platform source. */
+      sourceRef: string;
+    }
+  | {
+      /** Approved teacher guidance usable by the learner as answer guidance. */
+      kind: 'guidance_only';
+      sourceRef: string;
+    }
+  | {
+      /** Teacher-only material (grading procedure, lock administration). */
+      kind: 'teacher_only';
+      sourceRef: string;
+    }
+  | {
+      /** No approved content exists for this record. Nothing may be shown. */
+      kind: 'no_approved_content';
+      sourceRef: string;
+    };
+
+export type AnswerDisclosureKind = AnswerDisclosure['kind'];
+
+/* ---------------------------------------------------------------- */
+/* 5.c TEACHER SOLUTIONS MODEL — approved guide vs declared absence  */
+/* ---------------------------------------------------------------- */
+
+/** Fields that prove a declared absence is documented, not an omission. */
+export interface DeclaredAbsenceStatement {
+  /** Why no approved solutions exist for this lesson. */
+  reason: string;
+  /** Source-lock document that proves the absence. */
+  sourceRef: string;
+  /** ISO date of the declaration. */
+  declaredOn: string;
+  /** The independent, later content task required to fill the gap. */
+  deferredContentTask: string;
+}
+
+/** One audited source record belonging to a lesson with no answer key. */
+export interface DeclaredSourceRecord {
+  sourceActivityId: string;
+  lessonStepId: string;
+  pageNumber: number;
+}
+
+/** A registered lesson whose source carries an approved teacher guide. */
+export interface ApprovedLessonSolutions {
+  kind: 'approved';
+  lessonId: string;
+  unitId: string;
+  pedagogicalObjectives: string[];
+  grammarNotes?: string[];
+  spellingRules?: string[];
+  sourceAlerts?: string[];
+  /** Must be non-empty: an approved guide always carries its solutions. */
+  exerciseSolutions: TeacherExerciseSolution[];
+  sourceCoverage?: SourceCoverageEntry[];
+  /** Must reference a registered assessment. */
+  lessonTestAnswerKeyRef: string;
+}
+
+/**
+ * A registered lesson whose source carries NO approved answer key.
+ *
+ * This is NOT a lesson guide with missing fields: it is a distinct, documented
+ * model. It may not carry solutions, objectives, notes or any answer text — the
+ * audit rejects it if it does (rule A8).
+ */
+export interface DeclaredAbsenceLessonSolutions {
+  kind: 'declared_absence';
+  lessonId: string;
+  unitId: string;
+  /** Optional and deferred by owner decision D2 — never derived or invented. */
+  pedagogicalObjectives?: string[];
+  declaration: DeclaredAbsenceStatement;
+  /** Every audited source record of the lesson, with its lesson step. */
+  sourceRecords: DeclaredSourceRecord[];
+}
+
+export type TeacherSolutionsModel =
+  | ApprovedLessonSolutions
+  | DeclaredAbsenceLessonSolutions;
+
 export interface TeacherUnitSummary {
   unitId: string;
   unitTitle: string;

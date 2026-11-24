@@ -1,3 +1,5 @@
+import { AnswerDisclosure } from '../../types/curriculum';
+
 /** Platform-only practice, authorized for Lesson 2 steps 5 and 6.
  * Book: docs/source-locks/lesson-02-bil-rayi-wal-rayi-al-akhar.md, pp. 17–19.
  * Supporting sources and owner decision: docs/redesign/pr-02-source-authorization.md.
@@ -5,7 +7,7 @@
  */
 export interface PlatformOption { id: string; label: string; reason: string }
 export interface PlatformRow { id: string; label: string; options: PlatformOption[]; correctId: string }
-export interface PlatformExercise { id: string; title: string; prompt: string; rows: PlatformRow[] }
+export interface PlatformExercise { id: string; title: string; prompt: string; rows: PlatformRow[]; disclosure: AnswerDisclosure }
 
 const grammarTypes: PlatformOption[] = [
   { id: 'verb', label: 'فعل', reason: 'الفعل يدل على حدث ويرتبط بزمن.' },
@@ -22,6 +24,7 @@ export const LESSON2_PLATFORM_EXERCISES: Record<'l2-s5' | 'l2-s6', PlatformExerc
         { id: 'l2p-g-classify-julus', label: 'جُلوس', options: grammarTypes, correctId: 'source' },
         { id: 'l2p-g-classify-kursi', label: 'كُرسيّ', options: grammarTypes, correctId: 'thing' },
       ],
+      disclosure: { kind: 'approved_key', sourceRef: 'platform:l2p-g-classify' },
     },
     {
       id: 'l2p-g-reason', title: 'أفسّر السبب', prompt: 'صل كل حكم بالسبب المناسب له.',
@@ -37,6 +40,7 @@ export const LESSON2_PLATFORM_EXERCISES: Record<'l2-s5' | 'l2-s6', PlatformExerc
           { id: 'thing', label: 'اسم شيء', reason: 'قرأَ يدل على فعل وقع، لا على شيء.' },
         ] },
       ],
+      disclosure: { kind: 'approved_key', sourceRef: 'platform:l2p-g-reason' },
     },
     {
       id: 'l2p-g-context', title: 'أطبّق في جملة', prompt: 'أكمل الجملة بكلمة تسمّي الحدث نفسه، لا شيئًا، وتناسب موضعها: أحبُّ ___ قبل النوم.',
@@ -45,6 +49,7 @@ export const LESSON2_PLATFORM_EXERCISES: Record<'l2-s5' | 'l2-s6', PlatformExerc
         { id: 'read', label: 'قرأَ', reason: 'قرأَ فعل ماضٍ وليس اسمًا للحدث، ولا يناسب الموضع هنا.' },
         { id: 'book', label: 'الكتابَ', reason: 'أحب الكتاب جملة سليمة، لكن الكتاب اسم شيء ولا يحقق طلب تسمية الحدث.' },
       ] }],
+      disclosure: { kind: 'approved_key', sourceRef: 'platform:l2p-g-context' },
     },
   ],
   'l2-s6': [
@@ -60,6 +65,7 @@ export const LESSON2_PLATFORM_EXERCISES: Record<'l2-s5' | 'l2-s6', PlatformExerc
           { id: 'source', label: 'مصدر', reason: 'إقبال مصدر الفعل الرباعي أقبل، وهمزته قطع.' },
         ] },
       ],
+      disclosure: { kind: 'approved_key', sourceRef: 'platform:l2p-s-classify' },
     },
     {
       id: 'l2p-s-reason', title: 'أعلّل همزة القطع', prompt: 'لماذا كُتبت الهمزة في الفعل الماضي أقبلَ همزة قطع؟',
@@ -68,6 +74,7 @@ export const LESSON2_PLATFORM_EXERCISES: Record<'l2-s5' | 'l2-s6', PlatformExerc
         { id: 'past3', label: 'لأنها في فعل ماضٍ ثلاثي', reason: 'أقبلَ فعل رباعي وليس ثلاثيًا.' },
         { id: 'noun', label: 'لأنها في مصدر فعل رباعي', reason: 'أقبلَ فعل ماضٍ، أما مصدره فهو إقبال.' },
       ] }],
+      disclosure: { kind: 'approved_key', sourceRef: 'platform:l2p-s-reason' },
     },
     {
       id: 'l2p-s-context', title: 'أطبّق في جملة', prompt: 'اختر الفعل الماضي الرباعي المبدوء بهمزة قطع الذي يناسب معنى الجملة: ___ الطفلُ إلى المدرسة.',
@@ -76,6 +83,7 @@ export const LESSON2_PLATFORM_EXERCISES: Record<'l2-s5' | 'l2-s6', PlatformExerc
         { id: 'akhadha', label: 'أخذَ', reason: 'أخذَ فعل ماضٍ ثلاثي لا يحقق شرط الفعل الرباعي ولا يناسب المعنى هنا.' },
         { id: 'qiraa', label: 'قراءةٌ', reason: 'قراءةٌ مصدر وليست فعلًا ماضيًا.' },
       ] }],
+      disclosure: { kind: 'approved_key', sourceRef: 'platform:l2p-s-context' },
     },
   ],
 };

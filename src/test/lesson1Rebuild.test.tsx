@@ -242,9 +242,7 @@ describe('Lesson 1 — activity interaction protocol', () => {
     render(<Lesson1StepRenderer step={stepById('l1-s4')} />);
     const choiceActivity = screen.getByLabelText('نشاط ٥ (الفهم القرائي)');
     const wrongChoice = within(choiceActivity).getByRole('button', { name: 'سمكةٍ من الذهب.' });
-    const modelAnswerButton = within(choiceActivity).getByRole('button', {
-      name: 'اعرض الإجابة النموذجية (بعد المحاولة)',
-    });
+    const modelAnswerButton = within(choiceActivity).getByRole('button', { name: 'أظهر الجواب' });
 
     // 1) selection alone reveals nothing
     fireEvent.click(wrongChoice);
@@ -252,7 +250,9 @@ describe('Lesson 1 — activity interaction protocol', () => {
     expect(choiceActivity.textContent).not.toContain('✔');
     expect(choiceActivity.textContent).not.toContain('⟳');
     expect(choiceActivity.textContent).not.toContain('نتيجة التحقّق');
-    expect(modelAnswerButton).toBeDisabled();
+    // the reveal is the single shared surface, available without an attempt (D4)
+    expect(modelAnswerButton).toBeEnabled();
+    expect(choiceActivity.querySelector('.answer-reveal-panel')).toBeNull();
 
     // 2) check → per-item result + why-wrong
     fireEvent.click(within(choiceActivity).getByRole('button', { name: 'تحقّق من إجاباتي' }));
@@ -260,10 +260,10 @@ describe('Lesson 1 — activity interaction protocol', () => {
     expect(choiceActivity.textContent).toContain('العملِ والتّعاونِ');
     expect(choiceActivity.textContent).toContain('نتيجة التحقّق');
 
-    // 3) model answer unlocks only after the first check, and is labelled
-    expect(modelAnswerButton).toBeEnabled();
+    // 3) the same single surface shows the approved key and its rationale
     fireEvent.click(modelAnswerButton);
-    expect(choiceActivity.textContent).toContain('الإجابة النموذجية (منصة)');
+    expect(choiceActivity.textContent).toContain('الجواب المعتمد');
+    expect(choiceActivity.textContent).toContain('سمكةٍ من الذهب');
 
     // 4) edit & retry
     fireEvent.click(within(choiceActivity).getByRole('button', { name: 'عدّل إجاباتي' }));
@@ -502,9 +502,8 @@ describe('Lesson 1 — unified attempt → check protocol (platform drills and a
     expect(activity.textContent).not.toContain('✔');
     expect(activity.textContent).not.toContain('⟳');
     expect(activity.textContent).not.toContain('نتيجة التحقّق');
-    expect(
-      within(activity).getByRole('button', { name: 'اعرض الإجابة النموذجية (بعد المحاولة)' }),
-    ).toBeDisabled();
+    expect(within(activity).getByRole('button', { name: 'أظهر الجواب' })).toBeEnabled();
+    expect(activity.querySelector('.answer-reveal-panel')).toBeNull();
 
     // change the answer before checking — the check grades the newest value
     fireEvent.change(pluralField, { target: { value: 'السمكات' } });
@@ -699,10 +698,9 @@ describe('Lesson 1 — event-diagram grading and stale-verdict clearing', () => 
         expect(activity.textContent).not.toContain('✔');
         expect(activity.textContent).not.toContain('⟳');
         expect(activity.textContent).not.toContain('نتيجة التحقّق');
-        const modelAnswer = within(activity).queryByRole('button', {
-          name: 'اعرض الإجابة النموذجية (بعد المحاولة)',
-        });
-        if (modelAnswer) expect(modelAnswer).toBeDisabled();
+        // the shared reveal exists only where an approved key exists (never a dead button)
+        const modelAnswer = within(activity).queryByRole('button', { name: 'أظهر الجواب' });
+        expect(activity.querySelector('.answer-reveal-panel')).toBeNull();
 
         const check = within(activity).queryByRole('button', { name: 'تحقّق من إجاباتي' });
         if (!check) return; // the pending decode activity has its check disabled
@@ -722,7 +720,7 @@ describe('Lesson 1 — event-diagram grading and stale-verdict clearing', () => 
             afterCheck.includes('نتيجة التحقّق') ||
             afterCheck.includes('سجّلنا محاولتك'),
         ).toBe(true);
-        expect(modelAnswer).toBeEnabled();
+        if (modelAnswer) expect(modelAnswer).toBeEnabled();
       });
 
       cleanup();
@@ -739,9 +737,6 @@ describe('Lesson 1 — pending decode activity (L1-080) never produces a verdict
     const activity = decodeActivity();
     const textarea = within(activity).getByLabelText('مساحة فك الرموز');
     const check = within(activity).getByRole('button', { name: 'تحقّق من إجاباتي' });
-    const modelAnswer = within(activity).getByRole('button', {
-      name: 'اعرض الإجابة النموذجية (بعد المحاولة)',
-    });
 
     // data level: the activity stays pending and its model answer holds no key
     const pendingActivity = TEXTBOOK_ACTIVITIES.find((item) => item.id === 'a-p11-1')!;
@@ -761,13 +756,14 @@ describe('Lesson 1 — pending decode activity (L1-080) never produces a verdict
     expect(within(activity).getByText(/بندٌ معلّق \(غير محلول\)/)).toBeInTheDocument();
     expect(check).toBeDisabled();
     expect(check).toHaveAttribute('title', 'التصحيح معطّل لأنّ المطابقة معلّقة بانتظار الاعتماد');
-    expect(modelAnswer).toBeDisabled();
+    // no approved key ⇒ the reveal is absent entirely, not a disabled button
+    expect(within(activity).queryByRole('button', { name: 'أظهر الجواب' })).toBeNull();
 
     // writing an answer enables nothing and reveals nothing
     fireEvent.change(textarea, { target: { value: 'رموزٌ رموزٌ رموز' } });
     expect(textarea).toHaveValue('رموزٌ رموزٌ رموز');
     expect(check).toBeDisabled();
-    expect(modelAnswer).toBeDisabled();
+    expect(within(activity).queryByRole('button', { name: 'أظهر الجواب' })).toBeNull();
     expect(activity.textContent).not.toContain('✔');
     expect(activity.textContent).not.toContain('⟳');
     expect(activity.textContent).not.toContain('نتيجة التحقّق');
@@ -777,7 +773,7 @@ describe('Lesson 1 — pending decode activity (L1-080) never produces a verdict
     fireEvent.change(textarea, { target: { value: 'الجملة الأولى فقط' } });
     expect(textarea).toHaveValue('الجملة الأولى فقط');
     expect(check).toBeDisabled();
-    expect(modelAnswer).toBeDisabled();
+    expect(within(activity).queryByRole('button', { name: 'أظهر الجواب' })).toBeNull();
     expect(activity.textContent).not.toContain('✔');
     expect(activity.textContent).not.toContain('⟳');
     expect(activity.textContent).not.toContain('نتيجة التحقّق');
@@ -785,8 +781,8 @@ describe('Lesson 1 — pending decode activity (L1-080) never produces a verdict
     // clicking the disabled check changes nothing: no verdict, no model answer panel
     fireEvent.click(check);
     expect(activity.textContent).not.toContain('نتيجة التحقّق');
-    expect(activity.querySelector('.l1-model-answer')).toBeNull();
-    expect(modelAnswer).toBeDisabled();
+    expect(activity.querySelector('.answer-reveal-panel')).toBeNull();
+    expect(within(activity).queryByRole('button', { name: 'أظهر الجواب' })).toBeNull();
     expect(within(activity).queryByRole('button', { name: 'تحقّق مجدّدًا' })).toBeNull();
     expect(within(activity).queryByRole('button', { name: 'عدّل إجاباتي' })).toBeNull();
 

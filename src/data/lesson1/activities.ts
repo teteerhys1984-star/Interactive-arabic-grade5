@@ -1,4 +1,4 @@
-import { SourceReference } from '../../types/curriculum';
+import { AnswerDisclosure, SourceReference } from '../../types/curriculum';
 import { getSourceRecord } from './readingSource';
 import { src } from './sourceMeta';
 
@@ -86,6 +86,12 @@ export interface TextbookActivity {
   printedVariant?: string;
   uncertain?: string;
   source: SourceReference;
+  /**
+   * Explicit, mandatory disclosure decision for this record.
+   * Derived strictly from the already-approved `status` and the approved
+   * `solution` text: no wording was added, changed or re-derived.
+   */
+  disclosure: AnswerDisclosure;
 }
 
 export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
@@ -99,6 +105,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     ]},
     solution: { answer: 'الأولى: ثلاثةُ صيادين في مركبٍ يسحبون شبكةً ممتلئةً بالسمك. الثانية: صيادون على الشاطئ يصنعون مركبًا (ألواحُ خشبٍ ومطرقةٌ وحبل).', explanation: 'وصف نموذجي مطابق لمحتوى الصورتين كما وردا في سجلّ المصدر (L1-004)، ويُظهر ملاحظة العمل والتعاون.' },
     source: src(4, 'textbook_exercise', 'الصُّورتان', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-004-1' },
   },
   {
     id: 'a-p4-2', page: 4, section: 'أستكشف الصورتين', printedNumber: '٢', status: 'solved',
@@ -106,6 +113,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'المشترك: العمل والتعاون بين الصيادين لتحقيق هدفٍ مشترك.', explanation: 'كلتا الصورتين تجسّدان العمل الجماعي: سحب الشبكة وصنع المركب.' },
     source: src(4, 'textbook_exercise', 'الصُّورتان', 2),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-004-2' },
   },
   {
     id: 'a-p4-3', page: 4, section: 'أستمع وأتحدث', printedNumber: '١', status: 'solved',
@@ -116,6 +124,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     ]},
     solution: { answer: 'الشخصيّة الرّئيسة: الصيّاد. المكان: شاطئ البحر.', explanation: 'الأحداث تدور حول الصيّاد على الشاطئ أمام البحر (L1-013).' },
     source: src(4, 'textbook_reading', 'أَسْتَمِعُ', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-004-1' },
   },
   {
     id: 'a-p4-4', page: 4, section: 'أستمع وأتحدث', printedNumber: '٢', status: 'solved',
@@ -123,6 +132,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'أمنيّته: اصطياد سمكةٍ ذهبيّةٍ ليشتري بثمنها زورقًا للصّيد.', explanation: 'الأمنيّة واردة حرفيًّا في مطلع النص (L1-013).' },
     source: src(4, 'textbook_reading', 'أَسْتَمِعُ', 2),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-004-2' },
   },
   {
     id: 'a-p4-5', page: 4, section: 'أستمع وأتحدث', printedNumber: '٣', status: 'solved',
@@ -130,6 +140,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'مثال: حلم الصيّاد بسمكةٍ ذهبيّة، فنصحه البحر بالتعاون، فبنى مع زملائه مركبًا وتحقّق حلمه.', explanation: 'تلخيص بأقلّ عددٍ من الجمل يُظهر فهم تسلسل الأحداث.' },
     source: src(4, 'textbook_reading', 'أَسْتَمِعُ', 3),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-004-3' },
   },
 
   /* ---------------- page 5 ---------------- */
@@ -139,6 +150,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'قراءةٌ معبّرة تُبرز النداء في «يا صديقي، امنحني» والاستفهام في «كيف أيُّها البحرُ؟!».', explanation: 'النداء والاستفهام واردان في المقطع الأوّل (L1-014، L1-016)؛ مراعاتهما تحقق التلوين الصوتي.' },
     source: src(5, 'textbook_reading', 'أَقْرَأُ', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-005-1' },
   },
   {
     id: 'a-p5-2', page: 5, section: 'أقرأ', printedNumber: '٢', status: 'solved',
@@ -146,6 +158,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'قراءةٌ تُبرز التعجّب في «يا لها من فكرةٍ ...!» ومشاعر الفرح في ختام النص.', explanation: 'التعجّب وارد في L1-025 والفرح في L1-028/L1-029.' },
     source: src(5, 'textbook_reading', 'أَقْرَأُ', 2),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-005-2' },
   },
   {
     id: 'a-p5-3', page: 5, section: 'أقرأ', printedNumber: '٣', status: 'solved',
@@ -153,6 +166,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'قراءةٌ جهريّة سليمة النطق مع تلوينٍ صوتيٍّ مناسب للمعنى.', explanation: 'تدريب على الطلاقة والتعبير الصوتي.' },
     source: src(5, 'textbook_reading', 'أَقْرَأُ', 3),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-005-3' },
   },
 
   /* ---------------- page 6 ---------------- */
@@ -167,6 +181,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     ]},
     solution: { answer: 'جمع الشَّبَكَة: الشِّباك / الشَّبَكات. ضدّ فرح: حزن. معنى «قَصَّتْ»: معلّق بانتظار الاعتماد.', explanation: 'القراءة «قَصَّتْ» معتمدة بقرار صريح من صاحب المشروع، لكنّ الكلمة لا ترد في النصّ المطبوع المتاح (سياقها في نصّ الاستماع)، لذا يُترك مفتاح معناها معلّقًا بلا تخمين ولا اشتقاق.' },
     source: src(6, 'textbook_exercise', 'الفَهْمُ القِرائِيُّ', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-006-1' },
   },
   {
     id: 'a-p6-2', page: 6, section: 'الفهم القرائي', printedNumber: '٢', status: 'solved',
@@ -177,6 +192,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     ]},
     solution: { answer: 'خفقَ: اضطرب وتحرّكت أمواجه. يرويها: يحكيها ويقصّها.', explanation: 'المعنيان مستفادان من سياقي الجملتين (L1-029، L1-018).' },
     source: src(6, 'textbook_exercise', 'الفَهْمُ القِرائِيُّ', 2),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-006-2' },
   },
   {
     id: 'a-p6-3', page: 6, section: 'الفهم القرائي', printedNumber: '٣', status: 'solved',
@@ -222,6 +238,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     ], arrows: [['b1', 'b2'], ['b2', 'b3'], ['b3', 'b4'], ['b4', 'b5']] },
     solution: { answer: 'الفراغ ١: نصيحة البحر للصيّاد بالتعاون مع زملائه على صنع مركبٍ للصّيد (L1-020). الفراغ ٢: توفّر المال وتعاونهم على صنع المركب وتجهيزه وإنزاله إلى الماء (L1-027).', explanation: 'المخطط يتتبّع تسلسل الأحداث المطبوع: اللجوء ← نصيحة البحر ← الاتفاق ← الاصطياد ← بناء المركب.' },
     source: src(6, 'textbook_exercise', 'الفَهْمُ القِرائِيُّ', 3),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-006-3' },
   },
   {
     id: 'a-p6-4', page: 6, section: 'الفهم القرائي', printedNumber: '٤', status: 'solved',
@@ -243,6 +260,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     ]},
     solution: { answer: 'صف١: النتيجة = بناء المركب وتجهيزه وإنزاله إلى الماء؛ العبرة = التعاون يحقق الهدف. صف٢: السبب = نجاح التعاون وحصول كلّ صيّادٍ على سمكته؛ العبرة = ثمرة التعاون تظهر أثرها.', explanation: 'الربط بين السبب والنتيجة مستمدٌّ من L1-027 وL1-028 وL1-029، ثم تُستخرج العبرة.' },
     source: src(6, 'textbook_exercise', 'الفَهْمُ القِرائِيُّ', 4),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-006-4' },
   },
   {
     id: 'a-p6-5', page: 6, section: 'الفهم القرائي', printedNumber: '٥', status: 'solved',
@@ -254,6 +272,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     ], correctId: 'b' },
     solution: { answer: 'ب. العملِ والتّعاونِ.', explanation: 'القصة تؤكد أنّ الحلم يتحقّق بالعمل الجماعي لا بانتظار المعجزات؛ والخياران الآخران قراءةٌ حرفيّة تناقض رمز السمكة (L1-028).' },
     source: src(6, 'textbook_exercise', 'الفَهْمُ القِرائِيُّ', 5),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-006-5' },
   },
   {
     id: 'a-p6-6', page: 6, section: 'الفهم القرائي', printedNumber: '٦', status: 'solved',
@@ -265,6 +284,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     ], correctIds: ['a', 'c'] },
     solution: { answer: 'أ و ت: «البحرُ ضاحكٌ» و«استمعَ البحرُ إلى أغاني الصيّادين»، وهذه الصفات هي: التشخيص (إعطاءُ البحر صفاتٍ إنسانيّةً كالضحك والاستماع).', explanation: 'أعطى الكاتب البحر صفات الإنسان؛ وأمّا «في المياه سمكٌ» فجملةٌ خبريّة مجرّدة لا تشخيص فيها. وحقل «وهذه الصفات هي» جزءٌ من التمرين المطبوع فلا يُهمل.' },
     source: src(6, 'textbook_exercise', 'الفَهْمُ القِرائِيُّ', 6),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-006-6' },
   },
   {
     id: 'a-p6-7', page: 6, section: 'الفهم القرائي', printedNumber: '٧', status: 'solved',
@@ -272,6 +292,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'write' },
     solution: { answer: 'إجابة حرّة؛ مثال: يقرّر الصيّادون فتح مدرسةٍ لتعليم الصيد أطفالَ الحيّ.', explanation: 'نشاطٌ إبداعي ينمّي الخيال دون مساس بالنص.' },
     source: src(6, 'textbook_exercise', 'الفَهْمُ القِرائِيُّ', 7),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-006-7' },
   },
   {
     id: 'a-p6-8', page: 6, section: 'الفهم القرائي', printedNumber: '٨', status: 'solved',
@@ -279,6 +300,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'write' },
     solution: { answer: 'إجابة حرّة؛ مثال: أتعاون مع زملائي وأدّخر جزءًا من الصيد لشراء زورق.', explanation: 'ربطُ قيمة النصّ بخبرة التلميذ.' },
     source: src(6, 'textbook_exercise', 'الفَهْمُ القِرائِيُّ', 8),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-006-8' },
   },
 
   /* ---------------- page 7 ---------------- */
@@ -291,6 +313,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     ]},
     solution: { answer: 'خطة نموذجية: التخطيط = تحديد موضوع المطويّة (النظافة) وجمع المعلومات؛ مراحل التنفيذ = الإعداد الفنّيّ (رسوم - ألوان - خط) ثم الإخراج النهائيّ والتوزيع في الحيّ.', explanation: 'تطبيق مراحل تصميم المطويّة الأربع المطبوعة في L1-048 على صورة حملة النظافة (L1-045).' },
     source: src(7, 'textbook_expression', 'مُطَوِيَّة', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-007-1' },
   },
   {
     id: 'a-p7-2', page: 7, section: 'أتواصل شفوياً', printedNumber: '٢', status: 'solved',
@@ -298,6 +321,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'عرضٌ شفوي بعبارات إقناع مثل: «ساهم معنا لجعل حيّنا أنظف».', explanation: 'تنمية مهنة الإقناع الشفوي باستعمال عباراتٍ تُقنع السكّان بالمساهمة في الفعّاليّة كما يطلب التمرين المطبوع كاملًا.' },
     source: src(7, 'textbook_expression', 'أُطَبِّقُ', 2),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-007-2' },
   },
 
   /* ---------------- page 8 ---------------- */
@@ -307,6 +331,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'text_inputs', fields: [{ id: 'q1', label: 'ماذا نسمّي كلًّا منها؟', acceptedAnswers: ['جملة', 'الجملة', 'الجُمْلَة'] }]},
     solution: { answer: 'الجملة.', explanation: 'لأنّ كلّ تركيبٍ من الأمثلة الثلاثة (L1-051) أفاد معنى تامًّا.' },
     source: src(8, 'textbook_grammar', 'الجُمْلَةُ', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-008-1' },
   },
   {
     id: 'a-p8-2', page: 8, section: 'قواعد اللغة', printedNumber: '٢', status: 'solved',
@@ -314,6 +339,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'text_inputs', fields: [{ id: 'q2', label: 'ماذا نسمّي هذا النوع من الجُمل؟', acceptedAnswers: ['جملة اسمية', 'الجملة الاسمية', 'اسمية'] }]},
     solution: { answer: 'الجملة الاسمية.', explanation: 'لأنّها بدأت باسمٍ: «الشِّباكُ قويةٌ».' },
     source: src(8, 'textbook_grammar', 'الجُمْلَةُ', 2),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-008-2' },
   },
   {
     id: 'a-p8-3', page: 8, section: 'قواعد اللغة', printedNumber: '٣', status: 'solved',
@@ -321,6 +347,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'text_inputs', fields: [{ id: 'q3', label: 'ماذا نسمّي هذا النوع من الجُمل؟', acceptedAnswers: ['جملة فعلية', 'الجملة الفعلية', 'فعلية'] }]},
     solution: { answer: 'الجملة الفعلية.', explanation: 'لأنّهما بدأتا بفعلٍ: «فرحَ الصيّادُ» و«صنعَ العمّالُ مركبًا».' },
     source: src(8, 'textbook_grammar', 'الجُمْلَةُ', 3),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-008-3' },
   },
   {
     id: 'a-p8-4', page: 8, section: 'قواعد اللغة', printedNumber: '٤', status: 'solved',
@@ -335,6 +362,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     ]},
     solution: { answer: 'الشاطئُ ساحرٌ: اسمية. تعاونَ الصيّادون على مواجهةِ العاصفةِ: فعلية. التعاونُ قوّةٌ: اسمية.', explanation: 'التصنيف بحسب بداية الجملة: اسم أم فعل.' },
     source: src(8, 'textbook_grammar', 'أُطَبِّقُ', 4),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-008-4' },
   },
   {
     id: 'a-p8-5', page: 8, section: 'التقويم النهائي', printedNumber: '١', status: 'solved',
@@ -350,6 +378,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     ]},
     solution: { answer: 'اسمية / اسمية / اسمية / فعلية / فعلية.', explanation: 'ثلاث جملٍ بدأت باسمٍ وجملتان بدأتا بفعلٍ؛ والواو في الأخيرتين حرف عطفٍ وبداية التركيب بعدها فعلٌ (يقضون/يقبضون).' },
     source: src(8, 'textbook_grammar', 'التَّقويمُ النَّهائيُّ', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-008-1' },
   },
   {
     id: 'a-p8-6', page: 8, section: 'التقويم النهائي', printedNumber: '٢', status: 'solved',
@@ -357,6 +386,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'عرضٌ حرّ لمدّة دقيقتين يجمع بين الجملتين الاسمية والفعلية عن حرفةٍ يعرفها التلميذ.', explanation: 'تطبيقٌ شفوي للقاعدة على موضوع النصّ المطبوع: «حرفةٍ أعرفها».' },
     source: src(8, 'textbook_grammar', 'التَّقويمُ النَّهائيُّ', 2),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-008-2' },
   },
   {
     id: 'a-p8-7', page: 8, section: 'التقويم النهائي', printedNumber: '٣', status: 'solved',
@@ -364,6 +394,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'write' },
     solution: { answer: 'فقرة حرّة من سطرين؛ مثال: «الإخلاصُ كنزٌ. يُتقنُ المخلصُ عملَهُ فينالُ الثّقة».', explanation: 'كتابةٌ توظّف النوعين معًا كما يطلب التمرين.' },
     source: src(8, 'textbook_grammar', 'التَّقويمُ النَّهائيُّ', 3),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-008-3' },
   },
 
   /* ---------------- page 9 ---------------- */
@@ -373,6 +404,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'text_inputs', fields: [{ id: 'q1', label: 'ماذا نسمّي هذا النوع من الهمزات؟', acceptedAnswers: ['الهمزة الأولية', 'همزة أولية', 'الهمزة الأوليّة'] }]},
     solution: { answer: 'الهمزة الأوّليّة.', explanation: 'لأنّها تأتي في أول الكلمة (L1-066).' },
     source: src(9, 'textbook_spelling', 'إملاء', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-009-1' },
   },
   {
     id: 'a-p9-2', page: 9, section: 'إملاء', printedNumber: '٢', status: 'solved',
@@ -380,6 +412,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'text_inputs', fields: [{ id: 'q2', label: 'ماذا نسمّي هذا النوع من الهمزة الأوّليّة؟', acceptedAnswers: ['همزة القطع', 'همزة قطع', 'الهمزة القطع'] }]},
     solution: { answer: 'همزة القطع.', explanation: 'تُكتب وتُلفظ دائمًا، فوق الألف إذا فُتحت أو ضُمّت وتحتها إذا كُسرت (L1-066).' },
     source: src(9, 'textbook_spelling', 'إملاء', 2),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-009-2' },
   },
   {
     id: 'a-p9-3', page: 9, section: 'إملاء', printedNumber: '٣', status: 'solved',
@@ -387,6 +420,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'text_inputs', fields: [{ id: 'q3', label: 'ماذا نسمّي هذا النوع من الهمزة الأوّليّة؟', acceptedAnswers: ['همزة الوصل', 'همزة وصل', 'الهمزة الوصل'] }]},
     solution: { answer: 'همزة الوصل.', explanation: 'تُكتب ألفًا وتُلفظ في أول الكلام ولا تُلفظ في أثناءه (L1-066)؛ ومثالها المطبوع «وامْنَحْني» (L1-062).' },
     source: src(9, 'textbook_spelling', 'إملاء', 3),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-009-3' },
   },
   {
     id: 'a-p9-4', page: 9, section: 'إملاء', printedNumber: '٤', status: 'solved',
@@ -401,6 +435,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     ]},
     solution: { answer: 'أرغبُ: قطع. اقتناءِ: وصل. إسهامها: قطع.', explanation: '«إسهامها» همزة قطعٍ مكسورة تُرسم تحت الألف وتبقى منطوقة؛ و«اقتناءِ» مصدرٌ سداسيٌّ همزته وصل.' },
     source: src(9, 'textbook_spelling', 'أُطَبِّقُ', 4),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-009-4' },
   },
   {
     id: 'a-p9-5', page: 9, section: 'إملاء', printedNumber: '٥', status: 'solved',
@@ -415,6 +450,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     ]},
     solution: { answer: 'همزة قطع: «أبي» (فوق الألف لأنّها مفتوحة) أو «إنجازِهم» (تحت الألف لأنّها مكسورة)؛ السَّببُ: حركة الهمزة؛ همزة وصل: «انظرْ» أو «استفدْ» أو «احرصْ».', explanation: 'في الفقرة «إنجازِهم» همزة قطع مكسورة تُرسم تحت الألف، و«أبي» همزة قطع مفتوحة فوق الألف؛ وهمزة القطع تُرسم فوق الألف إذا فُتحت أو ضُمّت وتحتها إذا كُسرت، أما همزة الوصل فتُكتب ألفًا بلا رسم همزة كما في «انظرْ» و«استفدْ» و«احرصْ» (L1-066). وعنوان العمود الثالث «السَّببُ» معتمد بقرار صريح.' },
     source: src(9, 'textbook_spelling', 'التَّقويمُ النَّهائيُّ', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-009-1' },
   },
   {
     id: 'a-p9-6', page: 9, section: 'إملاء', printedNumber: '٦', status: 'solved',
@@ -422,6 +458,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'write' },
     solution: { answer: 'مثال: «أحببتُ البحرَ» (همزة قطع) / «استمعتُ إلى الموجِ» (همزة وصل).', explanation: 'توظيفٌ حرّ للنوعين في جملتين مفيدتين.' },
     source: src(9, 'textbook_spelling', 'التَّقويمُ النَّهائيُّ', 2),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-009-2' },
   },
 
   /* ---------------- page 10 ---------------- */
@@ -431,6 +468,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'write' },
     solution: { answer: 'محاكاة رسم الحركات والتنوين والتضعيف (فتحة، ضمة، كسرة، سكون، تنوين الفتح والضمّ والكسر، شدّة) بخطّ الرقعة وفق السطر المعروض في L1-072.', explanation: 'تدريبٌ خطّي على عناصر الضبط المعروضة في الصفحة.' },
     source: src(10, 'textbook_exercise', 'الخَطُّ', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-010-1' },
   },
   {
     id: 'a-p10-2', page: 10, section: 'الخط', printedNumber: '٢', status: 'solved',
@@ -438,6 +476,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'write' },
     solution: { answer: 'كتابة الجملة كما طُبعت («يَصْطادُ») بخطّ الرقعة مع رسم الحركات.', explanation: 'تطبيق قواعد خطّ الرقعة؛ والقراءة المعتمدة «يصطادُ» كما في الكتاب المطبوع.' },
     source: src(10, 'textbook_exercise', 'أُطَبِّقُ', 2),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-010-2' },
   },
   {
     id: 'a-p10-3', page: 10, section: 'أعبر كتابياً', printedNumber: '١', status: 'solved',
@@ -445,6 +484,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'write' },
     solution: { answer: 'إعادة صوغٍ حرّة؛ مثال: «وقفَ الصيّادُ على الشاطئ متضرّعًا: يا بحرُ، هبني سمكةً ذهبيّةً…»، مع إبقاء المعنى واستبدال بعض المفردات.', explanation: 'مهارة استبدال المفردات والتراكيب المطبوعة في L1-077.' },
     source: src(10, 'textbook_expression', 'أُعَبِّرُ كِتابِيّاً', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-010-1' },
   },
 
   /* ---------------- page 11 ---------------- */
@@ -456,6 +496,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     solution: { answer: 'بانتظار اعتماد المطابقة النهائية من صاحب المشروع.', explanation: 'يفكّ التلميذ الرموز مستعينًا بلوحة الحروف↔الأشكال المطبوعة (L1-079)؛ والتصحيح الآلي معطّل لأنّ المطابقة لم تُعتمد بعد.' },
     uncertain: 'المطابقة مسودةٌ بانتظار الاعتماد',
     source: src(11, 'activity_book', 'أَلْعَبُ وَأَتَعَلَّمُ', 1, 'المطابقة المقترحة لصفّي الرموز مسودة بانتظار اعتماد صريح؛ لا تُعرض إجابة'),
+    disclosure: { kind: 'no_approved_content', sourceRef: 'L1-011' },
   },
   {
     id: 'a-p11-2', page: 11, section: 'ألعب وأتعلم', printedNumber: '٢', status: 'solved',
@@ -463,6 +504,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'يسجّل التلميذ الزمن الذي احتاج إليه أول مرّة.', explanation: 'قياس السرعة الذاتية قبل التدريب وبعده.' },
     source: src(11, 'activity_book', 'أَلْعَبُ وَأَتَعَلَّمُ', 2),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-011-2' },
   },
   {
     id: 'a-p11-3', page: 11, section: 'ألعب وأتعلم', printedNumber: '٣', status: 'solved',
@@ -470,6 +512,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'يحوّل التلميذ العبارة التي اختارها زميله إلى رموزٍ مقابلةٍ وفق الجدول.', explanation: 'تعزيز مطابقة الحرف ورمزه في الاتجاه المعاكس.' },
     source: src(11, 'activity_book', 'أَلْعَبُ وَأَتَعَلَّمُ', 3),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-011-3' },
   },
   {
     id: 'a-p11-4', page: 11, section: 'ألعب وأتعلم', printedNumber: '٤', status: 'solved',
@@ -477,6 +520,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'أستنتج أنّ التدريب يقلّل الزمن ويحسّن الإنجاز.', explanation: 'استنتاج قيمة المثابرة والمران.' },
     source: src(11, 'activity_book', 'أَلْعَبُ وَأَتَعَلَّمُ', 4),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-011-4' },
   },
   {
     id: 'a-p11-5', page: 11, section: 'أنا وأسرتي', printedNumber: '١', status: 'solved',
@@ -484,6 +528,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'الحكمة: الحلم يتحقّق بالعمل والتعاون لا بانتظار المعجزات، مع البحث عن قصصٍ شعبيّةٍ مشابهة لعرضها في الدرس القادم.', explanation: 'ربطُ الدرس بالأسرة والمجتمع كما يطلب النشاط المطبوع.' },
     source: src(11, 'activity_book', 'أَنا وَأُسْرَتي', 1),
+    disclosure: { kind: 'approved_key', sourceRef: 'L1-011-1' },
   },
 ];
 

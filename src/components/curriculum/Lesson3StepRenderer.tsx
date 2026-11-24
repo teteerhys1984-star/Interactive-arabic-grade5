@@ -1,43 +1,20 @@
 import React, { useState } from 'react';
 import { LessonStep } from '../../types/curriculum';
 import { SourceBadge } from '../common/SourceBadge';
-import { AnswerReveal, AnswerRevealProps } from '../common/AnswerReveal';
+import { AnswerReveal } from '../common/AnswerReveal';
+import { fromKeyedLesson, resolveAnswerReveal } from '../common/answerDisclosure';
 import { getLesson3Activity, Lesson3Activity, Lesson3Interaction } from '../../data/lesson3/activities';
 import { LESSON3_STEP_CONTENT, Lesson3Block } from '../../data/lesson3/content';
 import { clearDraft, readDraft, writeDraft } from '../../utils/draftStorage';
 
 const LESSON3_DRAFT_SCOPE = 'lesson3';
 
-/* ---- Student/teacher content separation (owner directive) -----------------
- * Every available Lesson-3 `teacher.answerOrGuidance` was audited item by item
- * against the locked source record:
- *  - L3_MODEL_ANSWER_IDS: concrete approved answers, safe to present to the
- *    learner as the model answer («الحل النموذجي المعتمد»).
- *  - every other available activity carries honest open-task guidance (free
- *    performance, accepted-example lists, assessment criteria the learner can
- *    act on) → shown verbatim under «إرشادات للإجابة». No Lesson-3 guidance is
- *    pure teacher-only grading procedure, so no available activity is hidden.
- * `teacher.explanation` is a teacher note by definition (grading mechanics,
- * source administration) and is never rendered in the student panel.
- * No answer text is invented, rewritten, or paraphrased here. */
-const L3_MODEL_ANSWER_IDS = new Set([
-  'L3-25-02', 'L3-25-04', 'L3-25-05', 'L3-27-01', 'L3-27-03',
-  'L3-27-04', 'L3-27-05', 'L3-27-06', 'L3-27-07', 'L3-28-03',
-  'L3-28-04', 'L3-28-05', 'L3-28-06', 'L3-29-01', 'L3-29-02',
-  'L3-30-01', 'L3-30-02', 'L3-30-03', 'L3-30-04', 'L3-31-01',
-  'L3-31-02', 'L3-31-03', 'L3-31-04', 'L3-32-01', 'L3-32-02',
-  'L3-34-01', 'L3-34-02',
-]);
-
-const buildLesson3Reveal = (activity: Lesson3Activity): AnswerRevealProps | null => {
-  if (activity.availability !== 'available') return null;
-  return {
-    modelAnswer: activity.teacher.answerOrGuidance,
-    heading: L3_MODEL_ANSWER_IDS.has(activity.sourceActivityId)
-      ? 'الحل النموذجي المعتمد'
-      : 'إرشادات للإجابة',
-  };
-};
+/* ---- «أظهر الجواب»: one shared path --------------------------------------
+ * The decision lives in the DATA (`disclosure` + `sourceRef` on every record)
+ * and is consumed by `resolveAnswerReveal`. Nothing is inferred from the mere
+ * presence of `teacher.answerOrGuidance`; `teacher.explanation` is a teacher
+ * note by definition and never reaches the student surface.
+ */
 
 /**
  * Lesson 3 renderer.
@@ -187,7 +164,7 @@ const Lesson3ActivityWidget: React.FC<{ activity: Lesson3Activity }> = ({ activi
   };
 
   /* Owner directive: student-facing reveal payload, or null ⇒ no button. */
-  const revealProps = buildLesson3Reveal(activity);
+  const revealProps = resolveAnswerReveal(fromKeyedLesson(activity), 'student');
 
   return (
     <section className="activity-widget l2-activity-widget" aria-label={`نشاط المصدر ${activity.sourceActivityId}`}>
