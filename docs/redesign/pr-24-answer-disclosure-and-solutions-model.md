@@ -86,6 +86,16 @@ Errors (not warnings): unregistered lesson (A1), wrong unit (A2), two records fo
 
 ---
 
+## 3.b Owner review round 1 (2026-11-23)
+
+**D14 corrected.** `U2L1-46-07` («أَكْتُبُ مَا يُمْلِيهِ عَلَيَّ الْمُعَلِّمُ») is now `teacher_only`, not `no_approved_content`: the printed instruction makes the teacher the source of the dictated text, and the record carries the approved grading basis. Student scope yields nothing; teacher scope keeps the basis. Evidence and consequence are documented in the record itself and covered by `disclosureCoverage.test.ts` + a new UI test in `unit2Lesson1.test.tsx`.
+
+**D8 — evidence, not renderer behaviour.** The former annotation rule leaned on `availability`/renderer behaviour. A new per-record report (`docs/redesign/pr-24-d8-classification-report.md`) lists, for all 347 answer records: id, proposed classification, the data evidence behind it, the exact source reference, and whether it is **confirmed** (312) or **needs an owner decision** (35).
+
+The audit lesson adopted from D14: a missing *printed* key does not prove the absence of approved content (a teacher-dictated task is teacher-sourced). The blanket "gap ⇒ no_approved_content" rule now allows only that one documented, tested exception.
+
+The 35 flagged records are **unchanged** until the owner rules; they already behave safely (`teacher_only` unreachable from the student surface, `no_approved_content` renders nothing).
+
 ## 4. What is deliberately *not* done
 
 - No solution, guidance, objective, test key or answer text was authored, derived or inferred for unit2-lesson3 / unit3-lesson1.
@@ -96,7 +106,7 @@ Errors (not warnings): unregistered lesson (A1), wrong unit (A2), two records fo
 
 ## 5. Verification
 
-- `npm test` — 283 passed / 23 files.
+- `npm test` — 285 passed / 23 files.
 - `npm run typecheck` — clean.
 - `npm run build` — clean.
 - New: `src/test/teacherSolutionsModel.test.tsx` (contract + A1–A11 negative cases + portal three states, including a lesson with no approved solutions).

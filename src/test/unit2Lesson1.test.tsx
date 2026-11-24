@@ -108,6 +108,24 @@ describe('Unit 2 Lesson 1 — مخترعٌ من بلادي source-lock implement
     expect(JSON.stringify(U2L1_STEP_CONTENT['u2l1-s5'])).not.toContain('الاستعمالُ المفيدُ مرتبطٌ');
   });
 
+  it('D14: the dictated spelling task shows nothing to the learner but keeps its grading basis for the teacher', () => {
+    const lesson = getLessonById('unit2-lesson1')!.lesson;
+    render(<LessonFlow lesson={lesson} />);
+    fireEvent.click(screen.getByRole('button', { name: /^الخطوة 7:/ }));
+
+    const activity = screen.getByLabelText('نشاط المصدر U2L1-46-07');
+    // The writing space is a student surface; the key and the grading basis are not.
+    expect(within(activity).getByLabelText('ما كتبته من إملاء المعلم:')).toBeInTheDocument();
+    expect(within(activity).queryByRole('button', { name: 'أظهر الجواب' })).toBeNull();
+    expect(activity.querySelector('.answer-reveal-panel')).toBeNull();
+    const text = activity.textContent ?? '';
+    expect(text).not.toContain('يمليها المعلم من موارده');
+    expect(text).not.toContain('يُحكَّم تصحيحها');
+    expect(text).not.toContain('قائمة كلمات الفقرة المحلَّلة');
+    expect(text).not.toContain('الإجابة المعتمدة');
+    expect(text).not.toContain('إرشادات');
+  });
+
   it('opens the lesson from the home curriculum list without offering a Unit 2 test', () => {
     render(<App />);
 

@@ -6,7 +6,12 @@ import { U2L1_ACTIVITIES } from '../data/unit2Lesson1/activities';
 import { U2L2_ACTIVITIES } from '../data/unit2Lesson2/activities';
 import { U2L3_ACTIVITIES } from '../data/unit2Lesson3/activities';
 import { U3L1_ACTIVITIES } from '../data/unit3Lesson1/activities';
-import { hasValidDisclosure } from '../components/common/answerDisclosure';
+import {
+  fromKeyedLesson,
+  hasValidDisclosure,
+  resolveAnswerReveal,
+  toStudentReveal,
+} from '../components/common/answerDisclosure';
 
 /**
  * Explicit disclosure coverage.
@@ -78,11 +83,11 @@ describe('disclosure coverage — every registered record is classified explicit
     expect(count(LESSON3_ACTIVITIES, 'approved_key')).toBe(27);
     expect(count(LESSON3_ACTIVITIES, 'guidance_only')).toBe(24);
 
-    // unit 2 lesson 1: 1 teacher-only + 1 source gap (U2L1-46-07: the gap wins
-    // over teacher_only because the source carries no material at all),
+    // unit 2 lesson 1: 2 teacher-only (U2L1-44-04 peer assessment +
+    // U2L1-46-07 teacher dictation, owner decision D14), 0 source gaps,
     // 18 model keys, 25 guidance.
-    expect(count(U2L1_ACTIVITIES, 'teacher_only')).toBe(1);
-    expect(count(U2L1_ACTIVITIES, 'no_approved_content')).toBe(1);
+    expect(count(U2L1_ACTIVITIES, 'teacher_only')).toBe(2);
+    expect(count(U2L1_ACTIVITIES, 'no_approved_content')).toBe(0);
     expect(count(U2L1_ACTIVITIES, 'approved_key')).toBe(18);
     expect(count(U2L1_ACTIVITIES, 'guidance_only')).toBe(25);
 
@@ -95,14 +100,47 @@ describe('disclosure coverage — every registered record is classified explicit
     expect(count(U3L1_ACTIVITIES, 'no_approved_content')).toBe(57);
   });
 
-  it('never classifies a source-gap record as displayable', () => {
+  it('never classifies a source-gap record as displayable, and D14 is the one owner-approved exception', () => {
     const gaps = [
       ...LESSON2_ACTIVITIES.filter((activity) => activity.availability === 'gap'),
       ...U2L1_ACTIVITIES.filter((activity) => activity.availability === 'gap'),
     ];
     expect(gaps.length).toBe(13);
+
+    /*
+     * A missing PRINTED key does not imply "nothing approved exists": in a
+     * teacher-dictated task the teacher IS the source of the text, and the owner
+     * ruled (D14) that U2L1-46-07 is teacher_only. That is the only exception,
+     * and it is still unreachable from the student surface.
+     */
+    const DICTATION = 'U2L1-46-07';
     gaps.forEach((activity) => {
-      expect(activity.disclosure.kind).toBe('no_approved_content');
+      expect(['no_approved_content', 'teacher_only']).toContain(activity.disclosure.kind);
+      if (activity.sourceActivityId === DICTATION) {
+        expect(activity.disclosure.kind).toBe('teacher_only');
+      } else {
+        expect(activity.disclosure.kind).toBe('no_approved_content');
+      }
     });
+  });
+
+  it('D14: the dictated spelling task is teacher-owned, never student-visible', () => {
+    const dictation = U2L1_ACTIVITIES.find(
+      (activity) => activity.sourceActivityId === 'U2L1-46-07',
+    )!;
+    // Evidence the classification rests on: the printed instruction itself.
+    expect(dictation.instruction).toContain('يُمْلِيهِ عَلَيَّ الْمُعَلِّمُ');
+    expect(dictation.disclosure).toEqual({ kind: 'teacher_only', sourceRef: 'U2L1-46-07' });
+
+    // Student scope: nothing at all — no button, no key, no wording.
+    expect(resolveAnswerReveal(fromKeyedLesson(dictation), 'student')).toBeNull();
+    expect(toStudentReveal(fromKeyedLesson(dictation))).toBeNull();
+
+    // Teacher scope: the approved grading basis stays available.
+    const teacherView = resolveAnswerReveal(fromKeyedLesson(dictation), 'teacher');
+    expect(teacherView).not.toBeNull();
+    expect(teacherView!.sourceRef).toBe('U2L1-46-07');
+    expect(teacherView!.modelAnswer).toContain('يمليها المعلم');
+    expect(teacherView!.explanation).toContain('حدّ مصدر معلن');
   });
 });

@@ -741,7 +741,17 @@ export const U2L1_ACTIVITIES: U2L1Activity[] = [
     subparts: [U2L1_LOCKED_SOURCE_NOTES.dictation, 'مساحة الكتابة عند إملاء المعلم في الصف (أو قراءة وليّ/زميل للنص من الكتاب).'],
     interaction: { kind: 'write', label: 'ما كتبته من إملاء المعلم:', rows: 6 },
     availability: 'gap', source: u2l1Src(46, 'textbook_spelling', 'إملاء: الهمزة الأولية', 4, U2L1_LOCKED_SOURCE_NOTES.dictation),
-    disclosure: { kind: 'no_approved_content', sourceRef: 'U2L1-46-07' },
+    /*
+     * OWNER DECISION D14 (re-affirmed 2026-11-23): this is a teacher-dictated
+     * spelling task, so it is `teacher_only`, NOT `no_approved_content`.
+     * Evidence: the printed instruction itself («أَكْتُبُ مَا يُمْلِيهِ عَلَيَّ
+     * الْمُعَلِّمُ») makes the teacher the source of the text, and the record's
+     * `teacher.answerOrGuidance` carries the approved grading basis (the two
+     * hamza rules + the analysed paragraph word list of U2L1-46-05).
+     * Consequence: nothing reaches the student surface, and the teacher keeps the
+     * grading basis inside the approved scope.
+     */
+    disclosure: { kind: 'teacher_only', sourceRef: 'U2L1-46-07' },
     teacher: {
       answerOrGuidance: 'لا مادة مطبوعة لهذه المهمة في كتاب الطالب؛ يمليها المعلم من موارده (غالباً فقرة الدرس نفسها أو جمل عليها). يُحكَّم تصحيحها بقاعدتي الهمزتين وبقائمة كلمات الفقرة المحلَّلة في الاستخراج.',
       explanation: `حدّ مصدر معلن: ${U2L1_LOCKED_SOURCE_NOTES.dictation} ولذلك لا تضع المنصة نصّاً بديلاً منسوباً إلى الكتاب؛ المساحة الكتابية هنا لورقة إملاء الطالب فقط.`,
