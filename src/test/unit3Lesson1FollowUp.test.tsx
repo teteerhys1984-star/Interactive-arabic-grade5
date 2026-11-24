@@ -48,7 +48,7 @@ const normalized = (value: string) =>
     .replace(/\s+/g, ' ')
     .trim();
 
-describe('point 1 — listening items answered from the PRINTED poem, never from audio', () => {
+describe('point 1 — conditional guidance based on the PRINTED poem, never answers to the missing audio', () => {
   const LISTENING = ['u3l1-a-05', 'u3l1-a-06', 'u3l1-a-07'] as const;
 
   it('they are now guidance_only, and the approved key stays at zero', () => {
