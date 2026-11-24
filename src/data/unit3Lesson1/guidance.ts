@@ -20,10 +20,14 @@ import { U3L1_ACTIVITY_BY_ID, U3L1Activity } from './activities';
  *  - It is NOT attributed to the textbook or to a teacher guide. The learner
  *    sees the heading «إرشادات للإجابة» plus an explicit notice that the answer
  *    is platform-suggested.
- *  - It does NOT invent content where the source is missing: the eight records
- *    that depend on an unavailable artifact (the three listening items with no
- *    audio and the five calligraphy items that reproduce a printed hand-drawn
- *    model) have NO entry here and stay `no_approved_content`.
+ *  - It does NOT invent content where the source is missing: the five calligraphy
+ *    records (a printed hand-drawn Ruq'ah model a machine font cannot reproduce)
+ *    have NO entry here and stay `no_approved_content`.
+ *  - It NEVER claims to transcribe the missing listening recording. The three
+ *    listening items on ص٧٣ do get guidance, but only where the PRINTED poem on
+ *    ص٧٤ supports it, and each of them carries `U3L1_LISTENING_GUIDANCE_NOTICE`
+ *    verbatim: «إرشادات مقترحة استنادًا إلى القصيدة المطبوعة، وليست تفريغًا
+ *    للتسجيل الصوتي أو إجابة مؤكدة لما ورد فيه».
  *
  * Every entry says what a good answer looks like and why; where an open question
  * has many valid answers, the entry says so instead of pretending to one key.
@@ -34,11 +38,29 @@ export interface U3L1SuggestedAnswer {
   modelAnswer: string;
   /** Why this is the answer / how the learner should judge their own attempt. */
   explanation: string;
+  /**
+   * Per-answer honesty notice, shown verbatim instead of the default one. Used
+   * where the default wording would not say enough — e.g. a listening item
+   * answered from the printed poem, or a partially settled question.
+   */
+  notice?: string;
 }
 
 /** Shown with every suggested answer, so it is never read as a book key. */
 export const U3L1_GUIDANCE_NOTICE =
   'إجابة مقترحة أعدّتها المنصة لأغراض تعليمية، وليست إجابة معتمدة من الكتاب المدرسي ولا من دليل المعلّم.';
+
+/**
+ * Mandated wording for the three listening items (ص٧٣). The recording does not
+ * exist in the supplied source, so anything shown is an inference from the
+ * PRINTED poem — never a transcription of audio nobody has.
+ */
+export const U3L1_LISTENING_GUIDANCE_NOTICE =
+  'إرشادات مقترحة استنادًا إلى القصيدة المطبوعة، وليست تفريغًا للتسجيل الصوتي أو إجابة مؤكدة لما ورد فيه.';
+
+/** The notice a given activity must display with its suggested answer. */
+export const u3l1GuidanceNotice = (activityId: string): string =>
+  U3L1_SUGGESTED_ANSWERS[activityId]?.notice ?? U3L1_GUIDANCE_NOTICE;
 
 export const U3L1_SUGGESTED_ANSWERS: Record<string, U3L1SuggestedAnswer> = {
   /* ============================ ص٧٣ ============================ */
@@ -65,6 +87,35 @@ export const U3L1_SUGGESTED_ANSWERS: Record<string, U3L1SuggestedAnswer> = {
       'نموذج للعرض: «أهتمّ بمجال العلوم والتجارب، ولهذا تعبّر الصورة الثانية عن مجال اهتمامي؛ فأنا أحبّ أن أعرف كيف تعمل الأشياء وأن أجرّب بنفسي. وأحترم الصورة الأولى أيضًا لأن القراءة أول طريق لكل عالم صغير.»',
     explanation:
       'السؤال شخصي مفتوح، ولا يوجد جواب واحد؛ يُقبل أي اختيار لأحد المجالين (أو كليهما) بشرط بيان سببٍ واضح مرتبط بالمتعلم نفسه، مع عبارة واحدة على الأقل تعبّر عن المشاعر.',
+  },
+
+  /*
+   * ===================== ص٧٣: أسئلة الاستماع الثلاثة =====================
+   * NO recording exists in the supplied source, so nothing here is presented as
+   * what the recording says. Each item is answered ONLY from the poem printed on
+   * ص٧٤ (or, for the titles, from its theme), and says exactly which printed
+   * words support it. The activity's audio gap stays declared on screen.
+   */
+  'u3l1-a-05': {
+    modelAnswer:
+      'أ. الكاتِبُ في النَّصِّ: «واثِقٌ». ب. لَنْ يَغْلِبَنا: «الجَهْلُ».',
+    explanation:
+      'الجواب في الشطر الثاني مأخوذ حرفيًا من القصيدة المطبوعة: «كَلّا لَنْ يَغْلِبَنا الجَهْلُ»، فلا شكّ فيه. وفي الشطر الأول: صوت القصيدة ثابت لا يظهر تردّدًا في أيّ بيت («لا نَتَوانَى»، «لا تَخْشَى أَبَداً أَنْ تَفْشَلَ»، «نِعْمَ القَوْلُ، وَنِعْمَ الفِعْلُ»)، فأقرب الخيارات إلى هذا النصّ «واثِقٌ»؛ وهو استدلال من طباع النصّ المطبوع، لا حكم على تسجيل لم يُسمع.',
+    notice: U3L1_LISTENING_GUIDANCE_NOTICE,
+  },
+  'u3l1-a-06': {
+    modelAnswer:
+      'أ. نَبْحَثُ في أَيَّةِ مُشْكَلَةٍ وَسَرِيعاً يَأْتينا «الحَلُّ». ب. تَتَحَقَّقُ سَعادَتُنا بِـ «العَمَل».',
+    explanation:
+      'الفراغان مأخوذان حرفيًا من بيتين مطبوعين في القصيدة: «نَبْحَثُ في أَيَّةِ مُشْكَلَةٍ / وَسَرِيعاً يَأْتينا الحَلُّ!» و«ما دُمْنَا نَدْرُسُ خُطْوَتَنا / وَسَعادَتُنا أَنَّا... نَعْمَلُ»؛ فـ«العمل» هو ما تتحقّق به السعادة في البيت السادس.',
+    notice: U3L1_LISTENING_GUIDANCE_NOTICE,
+  },
+  'u3l1-a-07': {
+    modelAnswer:
+      'عناوين مقترحة: «بالعِلْمِ نَسْمُو»، «لَنْ يَغْلِبَنا الجَهْلُ»، «العَمَلُ طريقُ السَّعادة»، «العُلَماءُ الصِّغارُ يَصْنَعونَ الغَد».',
+    explanation:
+      'السؤال مفتوح، ولا يوجد عنوان واحد صحيح؛ وتُقبل كلّ عناوين قصيرة تلخّص فكرة من أفكار القصيدة المطبوعة (العلم، مواجهة الجهل، العمل والسعادة، بناء الوطن)، ويُفضّل أن يذكر المتعلم البيت الذي أخذ منه عنوانه.',
+    notice: U3L1_LISTENING_GUIDANCE_NOTICE,
   },
 
   /* ============================ ص٧٤ ============================ */
@@ -307,9 +358,11 @@ export const U3L1_SUGGESTED_ANSWERS: Record<string, U3L1SuggestedAnswer> = {
   },
   'u3l1-a-51': {
     modelAnswer:
-      'مكان الإرسال والتاريخ: أعلى الصفحة ويمينها (أ) — وفي النموذج: «دمشق ٢٠١٨/٢/٢٦». واسم المرسل: أسفل الصفحة ويسارها (ث)، إذ ورد التوقيع «صَديقُكَ مازِن» بعد الخاتمة في أسفل الرسالة (فإن وضعه النموذج المطبوع في اليمين فاتّبع النموذج).',
+      'المحسوم من نموذج الرسالة المطبوع ص٨١: مكانُ الإرسال والتاريخ في أعلى الرسالة (أوّل سطر في النموذج: «دمشق ٢٠١٨/٢/٢٦»)، واسمُ المرسل في أسفلها بعد الخاتمة (آخر سطر في النموذج: «صَديقُكَ مازِن»).',
     explanation:
-      'النموذج المطبوع ص٨١ يبدأ بالمدينة والتاريخ وينتهي بالتوقيع؛ وقاعدة الرسالة الشخصية: الجهة والتاريخ في الأعلى، والتوقيع في الأسفل. ويُنبَّه المتعلم إلى مراجعة النموذج لضبط الجهة (يمين/يسار).',
+      'أمّا تحديد «يمين الصفحة» أو «يسارها» — وهو الفرق بين الخيارات الأربعة (أ، ب، ت، ث) — فلم يُحسم: النموذج المتاح يُثبت ترتيب عناصر الرسالة (الجهة والتاريخ أوّلًا، والتوقيع آخرًا) ولا يثبت موضع السطر على يمين الصفحة أو يسارها. لذلك لا تُعرض أي من الخيارات الأربعة إجابةً نهائية، ويُترك هذا الجزء دون حسم؛ ويُراجع المتعلم النموذج المطبوع في كتابه ويسجّل موضعه كما يراه، ويُقبل منه ما يطابق النموذج.',
+    notice:
+      'إرشادات مقترحة استنادًا إلى نموذج الرسالة المطبوع ص٨١؛ حُسم فيها موضع الجهة والتاريخ (أعلى) وموضع اسم المرسل (أسفل)، ولم يُحسم موضع السطر يمينًا أو يسارًا، فلم تُقدَّم إجابة عن الاختيارات الأربعة.',
   },
   'u3l1-a-52': {
     modelAnswer:

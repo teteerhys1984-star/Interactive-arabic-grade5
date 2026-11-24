@@ -51,11 +51,16 @@ export interface U3L1Activity {
    * platform-authored and live in `./guidance.ts`, one entry per answerable
    * activity, and every such record declares `guidance_only`.
    *
-   * The eight records that depend on an artifact the source does not contain
-   * (the three listening items on ص٧٣ — no audio and no listening text — and
-   * the five calligraphy items on ص٨٠–٨١ — no faithful machine model of the
-   * hand-drawn Ruq'ah shapes) keep `no_approved_content`: no answer is invented
+   * The five records that depend on an artifact the source does not contain (the
+   * calligraphy items on ص٨٠–٨١, whose Ruq'ah models are hand-drawn and cannot be
+   * replaced by a machine font) keep `no_approved_content`: no answer is invented
    * for them and no «أظهر الجواب» button is rendered.
+   *
+   * The three listening items on ص٧٣ carry `guidance_only` too — but ONLY for
+   * what the poem printed on ص٧٤ supports, and each shows the mandated notice
+   * «إرشادات مقترحة استنادًا إلى القصيدة المطبوعة، وليست تفريغًا للتسجيل الصوتي
+   * أو إجابة مؤكدة لما ورد فيه». The audio gap itself stays declared on screen:
+   * nothing here claims to transcribe a recording the source does not contain.
    */
   disclosure: AnswerDisclosure;
 }
@@ -121,7 +126,7 @@ export const U3L1_ACTIVITIES: U3L1Activity[] = [
       ],
     },
     source: u3l1Src(73, 'textbook_exercise', 'أستمع إلى النص', 1, U3L1_LISTENING_AUDIO_GAP),
-    disclosure: { kind: 'no_approved_content', sourceRef: 'U3L1-73-05' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'U3L1-73-05' },
     gapNote: U3L1_LISTENING_AUDIO_GAP,
   },
   {
@@ -139,7 +144,7 @@ export const U3L1_ACTIVITIES: U3L1Activity[] = [
       ],
     },
     source: u3l1Src(73, 'textbook_exercise', 'أستمع إلى النص', 2, U3L1_LISTENING_AUDIO_GAP),
-    disclosure: { kind: 'no_approved_content', sourceRef: 'U3L1-73-06' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'U3L1-73-06' },
     gapNote: U3L1_LISTENING_AUDIO_GAP,
   },
   {
@@ -147,7 +152,7 @@ export const U3L1_ACTIVITIES: U3L1Activity[] = [
     instruction: 'أَقْتَرِحُ عَناوينَ أُخْرى لِلنَّصِّ.', subparts: [],
     interaction: { kind: 'write', label: 'عناوين أخرى أقترحها', rows: 3 },
     source: u3l1Src(73, 'textbook_exercise', 'أستمع إلى النص', 3, U3L1_LISTENING_AUDIO_GAP),
-    disclosure: { kind: 'no_approved_content', sourceRef: 'U3L1-73-07' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'U3L1-73-07' },
     gapNote: U3L1_LISTENING_AUDIO_GAP,
   },
 

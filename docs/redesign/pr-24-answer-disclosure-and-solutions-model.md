@@ -123,7 +123,7 @@ so the portal shows no «solutions»). It was never meant to leave the learner
 without any help, and the owner rejected an answer-less lesson.
 
 `src/data/unit3Lesson1/guidance.ts` now carries a platform-authored, grade-5
-answer for **49** of the 57 activities, built from the printed task plus the book
+answer for **52** of the 57 activities, built from the printed task plus the book
 content the lesson already reproduces (poem, رفع/نصب/جزم rules, hamza rule,
 dictation passage, letter model) and the platform's image descriptions. Every
 one of those records is declared `guidance_only`:
@@ -133,11 +133,23 @@ one of those records is declared `guidance_only`:
   **not** attributed to the textbook or to a teacher guide;
 - revealed only through the unchanged `resolveAnswerReveal()` + `<AnswerReveal>`.
 
-**8** activities stay `no_approved_content` and keep their declared gap: the
-three listening items on ص٧٣ (no audio, no listening text, and the poem is not
-attached to them) and the five calligraphy items on ص٨٠–٨١ (hand-drawn Ruq'ah
-models a machine font cannot reproduce faithfully). No answer was invented for
-them and no button is rendered.
+**5** calligraphy activities on ص٨٠–٨١ stay `no_approved_content` (hand-drawn
+Ruq'ah models a machine font cannot reproduce faithfully): no answer is invented
+and no button is rendered.
+
+The three listening items on ص٧٣ were revisited in the owner's review: the
+recording still does not exist and the poem is still NOT claimed to be the
+listening text, but the poem IS printed on ص٧٤, so each item is now answered
+only from that printed text — the two blanks of U3L1-73-06 and «لن يغلبنا
+الجهل» are literal, «واثق» is an inference labelled as such, and the titles are
+declared open. Every one of them carries the mandated notice: «إرشادات مقترحة
+استنادًا إلى القصيدة المطبوعة، وليست تفريغًا للتسجيل الصوتي أو إجابة مؤكدة لما
+ورد فيه».
+
+`U3L1-81-03` (sender position) is no longer answered by a guess: the printed
+letter model settles *top / bottom* (date first, signature last) and does not
+settle *right / left*, so none of the four printed options is presented as the
+answer and the ambiguity is named instead.
 
 The teacher portal record stays `declared_absence` (zero approved solutions) and
 gains `declaration.studentGuidanceNote`, which tells the teacher that student

@@ -436,10 +436,9 @@ describe('parity 3/3 — the classification never changed what a record contains
    * unreachable — never a guessed answer, never an empty button.
    */
   it('unit 3 lesson 1 reveals its suggested answers only where they exist', () => {
-    const UNDECIDABLE = new Set([
-      'U3L1-73-05', 'U3L1-73-06', 'U3L1-73-07',
-      'U3L1-80-02', 'U3L1-80-03', 'U3L1-80-04', 'U3L1-80-05', 'U3L1-81-01',
-    ]);
+    /* The three listening items joined this list in the follow-up round: they are
+       answered from the PRINTED poem, never from the missing recording. */
+    const UNDECIDABLE = new Set(['U3L1-80-02', 'U3L1-80-03', 'U3L1-80-04', 'U3L1-80-05', 'U3L1-81-01']);
     let revealed = 0;
     U3L1_ACTIVITIES.forEach((activity) => {
       const payload = resolveAnswerReveal(u3l1RevealRecord(activity), 'student');
@@ -452,7 +451,7 @@ describe('parity 3/3 — the classification never changed what a record contains
       expect(payload!.heading).not.toContain('المعتمد');
       revealed += 1;
     });
-    expect(revealed).toBe(49);
+    expect(revealed).toBe(52);
   });
 
   it('platform drills keep their approved key', () => {

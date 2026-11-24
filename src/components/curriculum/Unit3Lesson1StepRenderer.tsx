@@ -12,7 +12,7 @@ import {
 import { U3L1Block, U3L1_POEM, U3L1_STEP_CONTENT } from '../../data/unit3Lesson1/content';
 import { U3L1_LISTENING_AUDIO_GAP, U3L1_LOCKED_SOURCE_NOTES } from '../../data/unit3Lesson1/sourceMeta';
 import { clearDraft, readDraft, writeDraft } from '../../utils/draftStorage';
-import { u3l1RevealRecord, U3L1_GUIDANCE_NOTICE } from '../../data/unit3Lesson1/guidance';
+import { u3l1RevealRecord, u3l1GuidanceNotice } from '../../data/unit3Lesson1/guidance';
 import './unit3Lesson1.css';
 
 /**
@@ -34,7 +34,8 @@ const U3L1_DRAFT_SCOPE = 'unit3lesson1';
 // Student-facing summaries are keyed by the unchanged, authoritative source notes.
 // Unknown notes fail closed rather than exposing internal audit details.
 const STUDENT_SOURCE_NOTES: Record<string, string> = {
-  [U3L1_LISTENING_AUDIO_GAP]: 'التسجيل غير متوفر. نفّذ أسئلة الاستماع كما طُبعت في ص٧٣ بلا حلول.',
+  [U3L1_LISTENING_AUDIO_GAP]:
+    'التسجيل غير متوفر. الأسئلة الثلاثة معروضة كما طُبعت، ومعها إرشادات مقترحة مستندة إلى القصيدة المطبوعة ص٧٤ لا إلى التسجيل.',
   [U3L1_LOCKED_SOURCE_NOTES.poemListeningRelation]: 'القصيدة نصّ قراءة فقط؛ لا تُنسب إلى نصّ الاستماع.',
   [U3L1_LOCKED_SOURCE_NOTES.dictationAudio]: 'تسجيل الإملاء غير متوفر. ينفّذ المعلم الإملاء بقراءة النص المطبوع.',
   [U3L1_LOCKED_SOURCE_NOTES.handwritingModels]: 'شاهد أشكال الخط في الكتاب ونفّذها يدويًا على ورقة مسطّرة؛ لا يعرضها خط الحاسوب كما رُسمت.',
@@ -246,7 +247,7 @@ const U3L1ActivityWidget: React.FC<{ activity: U3L1Activity }> = ({ activity }) 
       {revealProps && (
         <div className="u3l1-reveal-block">
           <AnswerReveal {...revealProps} />
-          <p className="u3l1-guidance-notice" role="note">{U3L1_GUIDANCE_NOTICE}</p>
+          <p className="u3l1-guidance-notice" role="note">{u3l1GuidanceNotice(activity.id)}</p>
         </div>
       )}
       <footer className="l2-activity-footer">
