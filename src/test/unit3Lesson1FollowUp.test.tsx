@@ -53,10 +53,14 @@ describe('point 1 — listening items answered from the PRINTED poem, never from
     expect(U3L1_ACTIVITIES.some((activity) => activity.disclosure.kind === 'approved_key')).toBe(false);
   });
 
-  it('every listening answer carries the mandated notice verbatim, not the generic one', () => {
-    expect(U3L1_LISTENING_GUIDANCE_NOTICE).toBe(
+  it('every listening answer carries the mandated conditional notice', () => {
+    /* The owner's sentence is kept verbatim… */
+    expect(U3L1_LISTENING_GUIDANCE_NOTICE).toContain(
       'إرشادات مقترحة استنادًا إلى القصيدة المطبوعة، وليست تفريغًا للتسجيل الصوتي أو إجابة مؤكدة لما ورد فيه.',
     );
+    /* …and the condition is stated explicitly, not left to inference. */
+    expect(U3L1_LISTENING_GUIDANCE_NOTICE).toContain('إذا كان النص المقصود');
+    expect(U3L1_LISTENING_GUIDANCE_NOTICE).toContain('لا تحسم إجابات أسئلة الاستماع');
     LISTENING.forEach((id) => {
       expect(U3L1_SUGGESTED_ANSWERS[id].notice).toBe(U3L1_LISTENING_GUIDANCE_NOTICE);
       expect(u3l1GuidanceNotice(id)).toBe(U3L1_LISTENING_GUIDANCE_NOTICE);
@@ -73,49 +77,67 @@ describe('point 1 — listening items answered from the PRINTED poem, never from
     expect(U3L1_LISTENING_AUDIO_GAP).toContain('لا يُعرض نصّ استماع');
   });
 
-  it('U3L1-73-05 answers are traceable to the printed poem, and the settled blank is literal', () => {
-    const answer = U3L1_SUGGESTED_ANSWERS['u3l1-a-05'].modelAnswer;
-    /* Part ب is printed verbatim in stanza 2 — this one is settled. */
-    expect(answer).toContain('الجَهْلُ');
-    expect(normalized(poemText)).toContain(normalized('كَلّا لَنْ يَغْلِبَنا الجَهْلُ'));
-    /* Part أ is an inference from the poem's confident voice, and says so. */
-    expect(answer).toContain('واثِقٌ');
-    expect(answer).not.toContain('مُتَرَدِّدٌ');
-    expect(U3L1_SUGGESTED_ANSWERS['u3l1-a-05'].explanation).toMatch(/استدلال|لا حكم على تسجيل/);
+  it('every listening answer is phrased CONDITIONALLY: the poem is never assumed to be the recording', () => {
+    LISTENING.forEach((id) => {
+      const entry = U3L1_SUGGESTED_ANSWERS[id];
+      expect(entry.modelAnswer, id).toContain('إذا كان النص المقصود');
+      expect(entry.modelAnswer, id).toContain('غير مثبت');
+      /* No flat assertion that this IS the listening text. */
+      expect(`${entry.modelAnswer} ${entry.explanation}`, id).not.toMatch(
+        /نصّ الاستماع هو القصيدة|القصيدة هي نصّ الاستماع|الكاتب في القصيدة/,
+      );
+    });
   });
 
-  it('U3L1-73-06 fills both blanks with words printed in the poem', () => {
-    const answer = U3L1_SUGGESTED_ANSWERS['u3l1-a-06'].modelAnswer;
-    expect(answer).toContain('الحَلُّ');
-    expect(answer).toContain('العَمَل');
-    /* The poem holds both source lines. */
+  it('U3L1-73-05 does NOT present «واثق» as an answer to the recording', () => {
+    const entry = U3L1_SUGGESTED_ANSWERS['u3l1-a-05'];
+    /* The literal part is still tied to the printed verse, conditionally. */
+    expect(entry.modelAnswer).toContain('لَنْ يَغْلِبَنا الجَهْلُ');
+    expect(normalized(poemText)).toContain(normalized('كَلّا لَنْ يَغْلِبَنا الجَهْلُ'));
+    /* «واثق» survives only as a conditional inference, never as a settled key. */
+    expect(entry.modelAnswer).toContain('واثِقٌ');
+    expect(entry.modelAnswer).toMatch(/إن كان السؤال عنها/);
+    expect(entry.explanation).toContain('لا تحسم');
+    /* Part أ is declared unsettled: the poem does not contain «الكاتب». */
+    expect(entry.modelAnswer).toContain('لا يمكن حسمه');
+    expect(entry.explanation).toContain('الشطر «أ» فيبقى دون حسم');
+    expect(normalized(poemText)).not.toContain(normalized('الكاتب'));
+  });
+
+  it('U3L1-73-06 ties both blanks to printed verses without claiming the recording', () => {
+    const entry = U3L1_SUGGESTED_ANSWERS['u3l1-a-06'];
+    expect(entry.modelAnswer).toContain('الحَلُّ');
+    expect(entry.modelAnswer).toContain('العَمَل');
     expect(normalized(poemText)).toContain(
-      normalized('نَبْحَثُ في أَيَّةِ مُشْكِلَةٍ وَسَرِيعاً يَأْتينا الحَلُّ!'),
+      normalized('نَبْحَثُ في أَيَّةِ مُشْكَلَةٍ وَسَرِيعاً يَأْتينا الحَلُّ!'),
     );
     expect(normalized(poemText)).toContain(normalized('وَسَعادَتُنا أَنَّا... نَعْمَلُ'));
+    expect(entry.modelAnswer).toContain('إذا كان النص المقصود');
+    expect(entry.explanation).toContain('لا يُدّعى أنها محسومة');
     /* The stem's wording matches the printed line it completes. */
     const printed = U3L1_ACTIVITY_BY_ID['u3l1-a-06'].subparts.join(' ');
     expect(printed).toContain('نَبْحَثُ في أَيَّةِ مُشْكَلَةٍ وَسَرِيعاً يَأْتينا');
     expect(printed).toContain('تَتَحَقَّقُ سَعادَتُنا بِـ');
   });
 
-  it('U3L1-73-07 titles are drawn from the poem and declared open', () => {
+  it('U3L1-73-07 titles are conditional suggestions, not answers to the recording', () => {
     const entry = U3L1_SUGGESTED_ANSWERS['u3l1-a-07'];
-    expect(entry.modelAnswer).toContain('لَنْ يَغْلِبَنا الجَهْلُ');
+    expect(entry.modelAnswer).toContain('إذا كان النص المقصود');
+    expect(entry.modelAnswer).toContain('لا إجابات عن التسجيل');
     expect(entry.explanation).toMatch(/مفتوح|لا يوجد عنوان واحد/);
-    /* Nothing presented as the single right title. */
-    expect(entry.explanation).toMatch(/تُقبل/);
+    expect(entry.explanation).toContain('ولا تُقدَّم هذه العناوين جوابًا مؤكدًا');
   });
 
-  it('no listening answer claims to be a transcription or an approved key', () => {
+  it('no listening answer claims to be a transcription, an approved key or a settled listening answer', () => {
     LISTENING.forEach((id) => {
       const text = `${U3L1_SUGGESTED_ANSWERS[id].modelAnswer} ${U3L1_SUGGESTED_ANSWERS[id].explanation}`;
-      expect(text).not.toMatch(/تفريغ|نصّ الاستماع|قال المتحدث|التسجيل يقول/);
+      expect(text).not.toMatch(/تفريغ|قال المتحدث|التسجيل يقول/);
       expect(text).not.toMatch(/إجابة معتمدة|مفتاح إجابة/);
+      expect(text).not.toMatch(/فلا شكّ فيه|جواب مؤكد/);
     });
   });
 
-  it('the student sees the mandated notice next to the listening activity', () => {
+  it('the student sees the conditional notice next to the listening activity', () => {
     render(<Unit3Lesson1StepRenderer step={U3L1_STEPS[0]} />);
 
     const item05 = screen.getByLabelText('نشاط المصدر U3L1-73-05');
@@ -124,20 +146,21 @@ describe('point 1 — listening items answered from the PRINTED poem, never from
     expect(within(item05).queryByText(U3L1_GUIDANCE_NOTICE)).toBeNull();
     expect(within(item05).getByText('إرشادات للإجابة')).toBeInTheDocument();
     expect(within(item05).queryByText('الحل النموذجي المعتمد')).toBeNull();
+    expect(within(item05).getByText(U3L1_SUGGESTED_ANSWERS['u3l1-a-05'].modelAnswer)).toHaveTextContent(
+      'إذا كان النص المقصود',
+    );
     /* The declared audio gap is still on screen for the same activity. */
     const notes = within(item05).getAllByRole('note').map((note) => note.textContent ?? '');
     expect(notes.some((note) => note.includes('التسجيل'))).toBe(true);
   });
 
-  it('a listening item with no support in the printed poem would stay silent (guard)', () => {
-    /* Documented boundary: only poem-supported inference is allowed. A record
-       declared no_approved_content still yields nothing, whatever text it holds. */
-    const audioOnly = {
+  it('a record declared no_approved_content still yields nothing (guard)', () => {
+    const gapRecord = {
       ...u3l1RevealRecord(U3L1_ACTIVITY_BY_ID['u3l1-a-45']),
       disclosure: { kind: 'no_approved_content' as const, sourceRef: 'U3L1-80-02' },
       modelAnswer: 'نصّ مُقحم',
     };
-    expect(toStudentReveal(audioOnly)).toBeNull();
+    expect(toStudentReveal(gapRecord)).toBeNull();
   });
 });
 
@@ -145,27 +168,37 @@ describe('point 2 — U3L1-81-03 is not answered by a guess', () => {
   const record = U3L1_ACTIVITY_BY_ID['u3l1-a-51'];
   const entry = U3L1_SUGGESTED_ANSWERS['u3l1-a-51'];
 
-  it('states the settled facts from the printed model: date at the top, sender at the bottom', () => {
-    expect(entry.modelAnswer).toContain('أعلى');
-    expect(entry.modelAnswer).toContain('أسفل');
+  it('states only what the transcribed model proves: the ORDER of the lines', () => {
+    expect(entry.modelAnswer).toContain('ترتيب الأسطر');
     expect(entry.modelAnswer).toContain('دمشق ٢٠١٨/٢/٢٦');
     expect(entry.modelAnswer).toContain('صَديقُكَ مازِن');
-    /* …and nothing about a right/left side presented as the answer. */
-    expect(entry.modelAnswer).not.toMatch(/يمينها|يسارها/);
+    expect(entry.modelAnswer).toContain('أوّلًا');
+    expect(entry.modelAnswer).toContain('آخرًا');
+  });
+
+  it('does NOT claim a visual position (top/bottom, right/left) anywhere', () => {
+    const text = `${entry.modelAnswer} ${entry.explanation} ${entry.notice ?? ''}`;
+    /* No settled positional assertion… */
+    expect(entry.modelAnswer).not.toMatch(/في أعلى (الرسالة|الصفحة)|في أسفل (الرسالة|الصفحة)/);
+    expect(entry.modelAnswer).not.toMatch(/أعلى الرسالة|أسفل الرسالة/);
+    /* …and the needed evidence is named instead. */
+    expect(entry.modelAnswer).toContain('لا يثبته النصّ المنقول');
+    expect(entry.explanation).toContain('صورة الصفحة المطبوعة');
+    expect(entry.explanation).toContain('الموضع البصري');
+    expect(text).toContain('لم يُخمَّن');
   });
 
   it('presents none of the four printed options as the answer', () => {
     expect(entry.modelAnswer).not.toMatch(/\(أ\)|\(ب\)|\(ت\)|\(ث\)/);
     expect(entry.modelAnswer).not.toMatch(/أعلى الصفحة ويسارها|أسفل الصفحة ويمينها|أسفل الصفحة ويسارها/);
-    /* The explanation names which distinction stayed open. */
-    expect(entry.explanation).toContain('لم يُحسم');
-    expect(entry.explanation).toMatch(/يمين|يسار/);
+    expect(entry.modelAnswer).toContain('ولا تُعرض أي من الخيارات الأربعة إجابةً محسومة');
+    expect(entry.notice).toContain('فلم تُقدَّم إجابة عن أي من الخيارات الأربعة');
   });
 
   it('keeps its own honest notice instead of the generic one', () => {
     expect(u3l1GuidanceNotice('u3l1-a-51')).toBe(entry.notice);
     expect(entry.notice).toBeDefined();
-    expect(entry.notice).toContain('لم يُحسم موضع السطر');
+    expect(entry.notice).toContain('لا يثبت الموضع البصري');
     expect(entry.notice).not.toBe(U3L1_GUIDANCE_NOTICE);
   });
 
@@ -177,7 +210,7 @@ describe('point 2 — U3L1-81-03 is not answered by a guess', () => {
     expect(payload!.heading).not.toContain('المعتمد');
   });
 
-  it('the learner sees the settled part and the open part side by side', () => {
+  it('the learner sees the settled order and the open position side by side', () => {
     render(<Unit3Lesson1StepRenderer step={U3L1_STEPS[8]} />);
     const letter = screen.getByLabelText('نشاط المصدر U3L1-81-03');
     fireEvent.click(within(letter).getByRole('button', { name: 'أظهر الجواب' }));
@@ -189,18 +222,28 @@ describe('point 2 — U3L1-81-03 is not answered by a guess', () => {
 });
 
 describe('scope guard — the other answers were not touched', () => {
-  it('only the three listening records changed class, and the five gaps stayed gaps', () => {
+  it('only the five calligraphy records stay without content, and nothing became a key', () => {
     const gapIds = U3L1_ACTIVITIES.filter((activity) => activity.disclosure.kind === 'no_approved_content').map(
       (activity) => activity.id,
     );
     expect(gapIds).toEqual(['u3l1-a-45', 'u3l1-a-46', 'u3l1-a-47', 'u3l1-a-48', 'u3l1-a-49']);
     expect(U3L1_UNDECIDABLE_IDS).toEqual(gapIds);
-    /* Every activity still has exactly one disclosure and a source reference. */
+    expect(U3L1_ACTIVITIES.some((activity) => activity.disclosure.kind === 'approved_key')).toBe(false);
+    expect(U3L1_ACTIVITIES.filter((activity) => activity.disclosure.kind === 'guidance_only')).toHaveLength(52);
     U3L1_ACTIVITIES.forEach((activity) => {
       expect(activity.disclosure.sourceRef.trim().length).toBeGreaterThan(0);
     });
-    /* No content was added to this suite's scope: the poem and stems unchanged. */
+  });
+
+  it('the book text, the poem and the activity order are unchanged', () => {
     expect(U3L1_POEM.stanzas).toHaveLength(8);
+    expect(U3L1_POEM.stanzas[5].left).toContain('نَعْمَلُ');
     expect(U3L1_STEP_CONTENT['u3l1-s1'].blocks.length).toBeGreaterThan(0);
+    const order = U3L1_STEPS.flatMap((step) =>
+      U3L1_STEP_CONTENT[step.id].blocks
+        .filter((block) => block.kind === 'activity')
+        .map((block) => (block as { activityId: string }).activityId),
+    );
+    expect(order).toEqual(U3L1_ACTIVITIES.map((activity) => activity.id));
   });
 });

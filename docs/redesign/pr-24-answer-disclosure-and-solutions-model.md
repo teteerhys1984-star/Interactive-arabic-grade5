@@ -137,19 +137,23 @@ one of those records is declared `guidance_only`:
 Ruq'ah models a machine font cannot reproduce faithfully): no answer is invented
 and no button is rendered.
 
-The three listening items on ص٧٣ were revisited in the owner's review: the
-recording still does not exist and the poem is still NOT claimed to be the
-listening text, but the poem IS printed on ص٧٤, so each item is now answered
-only from that printed text — the two blanks of U3L1-73-06 and «لن يغلبنا
-الجهل» are literal, «واثق» is an inference labelled as such, and the titles are
-declared open. Every one of them carries the mandated notice: «إرشادات مقترحة
-استنادًا إلى القصيدة المطبوعة، وليست تفريغًا للتسجيل الصوتي أو إجابة مؤكدة لما
-ورد فيه».
+The three listening items on ص٧٣ carry CONDITIONAL guidance only: the recording
+does not exist, the poem is never claimed to be the listening text, and every
+answer opens with «إذا كان النص المقصود بالاستماع هو القصيدة المطبوعة — وهذا غير
+مثبت —». The guidance helps read the poem and explicitly does NOT settle the
+listening questions: the two blanks of U3L1-73-06 match printed verses, «لن
+يغلبنا الجهل» matches a printed hemistich, but U3L1-73-05.أ («الكاتب») stays
+unsettled because that word does not occur in the poem and «واثق» is offered only
+as a conditional inference; U3L1-73-07 titles are declared suggested, not
+settled. Each keeps the mandated notice «إرشادات مقترحة استنادًا إلى القصيدة
+المطبوعة، وليست تفريغًا للتسجيل الصوتي أو إجابة مؤكدة لما ورد فيه» with the
+condition stated explicitly. The declared audio gap is unchanged.
 
-`U3L1-81-03` (sender position) is no longer answered by a guess: the printed
-letter model settles *top / bottom* (date first, signature last) and does not
-settle *right / left*, so none of the four printed options is presented as the
-answer and the ambiguity is named instead.
+`U3L1-81-03` (sender position) is not answered at all: the transcribed
+`letterModel` proves only the ORDER of the lines (place+date first, signature
+last), not their visual position (top/bottom, right/left), so none of the four
+printed options is presented as the answer and the missing evidence — the scanned
+page 81 — is named instead.
 
 The teacher portal record stays `declared_absence` (zero approved solutions) and
 gains `declaration.studentGuidanceNote`, which tells the teacher that student

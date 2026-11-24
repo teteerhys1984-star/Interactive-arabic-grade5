@@ -35,7 +35,7 @@ const U3L1_DRAFT_SCOPE = 'unit3lesson1';
 // Unknown notes fail closed rather than exposing internal audit details.
 const STUDENT_SOURCE_NOTES: Record<string, string> = {
   [U3L1_LISTENING_AUDIO_GAP]:
-    'التسجيل غير متوفر. الأسئلة الثلاثة معروضة كما طُبعت، ومعها إرشادات مقترحة مستندة إلى القصيدة المطبوعة ص٧٤ لا إلى التسجيل.',
+    'التسجيل غير متوفر. الأسئلة الثلاثة معروضة كما طُبعت، ومعها إرشادات مشروطة تساعد على فهم القصيدة المطبوعة ص٧٤، ولا تحسم أسئلة الاستماع ولا تدّعي أنها نصّ التسجيل.',
   [U3L1_LOCKED_SOURCE_NOTES.poemListeningRelation]: 'القصيدة نصّ قراءة فقط؛ لا تُنسب إلى نصّ الاستماع.',
   [U3L1_LOCKED_SOURCE_NOTES.dictationAudio]: 'تسجيل الإملاء غير متوفر. ينفّذ المعلم الإملاء بقراءة النص المطبوع.',
   [U3L1_LOCKED_SOURCE_NOTES.handwritingModels]: 'شاهد أشكال الخط في الكتاب ونفّذها يدويًا على ورقة مسطّرة؛ لا يعرضها خط الحاسوب كما رُسمت.',
