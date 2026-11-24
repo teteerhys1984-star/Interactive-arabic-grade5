@@ -12,6 +12,7 @@ import {
 import { U3L1Block, U3L1_POEM, U3L1_STEP_CONTENT } from '../../data/unit3Lesson1/content';
 import { U3L1_LISTENING_AUDIO_GAP, U3L1_LOCKED_SOURCE_NOTES } from '../../data/unit3Lesson1/sourceMeta';
 import { clearDraft, readDraft, writeDraft } from '../../utils/draftStorage';
+import { u3l1RevealRecord, u3l1GuidanceNotice } from '../../data/unit3Lesson1/guidance';
 import './unit3Lesson1.css';
 
 /**
@@ -21,15 +22,20 @@ import './unit3Lesson1.css';
  * shared SourceBadge / draftStorage / CSS design system, and no new storage
  * or navigation mechanism. Source blocks are labelled «من الكتاب»; platform
  * interface notes are labelled «ملاحظة المنصة» and never attributed to the
- * textbook. There is deliberately NO answer key, NO correctness feedback and
- * NO grading widget: the supplied source carries no approved key.
+ * textbook. There is still NO approved answer key, NO correctness feedback and
+ * NO grading widget: the supplied source carries no approved key. What the
+ * lesson DOES offer is a platform-authored suggested answer for every activity
+ * that can be answered from the printed task and the reproduced book content,
+ * surfaced through the shared «أظهر الجواب» path under «إرشادات للإجابة» and
+ * followed by an explicit notice that it is not an approved key.
  */
 const U3L1_DRAFT_SCOPE = 'unit3lesson1';
 
 // Student-facing summaries are keyed by the unchanged, authoritative source notes.
 // Unknown notes fail closed rather than exposing internal audit details.
 const STUDENT_SOURCE_NOTES: Record<string, string> = {
-  [U3L1_LISTENING_AUDIO_GAP]: 'التسجيل غير متوفر. نفّذ أسئلة الاستماع كما طُبعت في ص٧٣ بلا حلول.',
+  [U3L1_LISTENING_AUDIO_GAP]:
+    'التسجيل غير متوفر. الأسئلة الثلاثة معروضة كما طُبعت، ومعها إرشادات مشروطة تساعد على فهم القصيدة المطبوعة ص٧٤، ولا تحسم أسئلة الاستماع ولا تدّعي أنها نصّ التسجيل.',
   [U3L1_LOCKED_SOURCE_NOTES.poemListeningRelation]: 'القصيدة نصّ قراءة فقط؛ لا تُنسب إلى نصّ الاستماع.',
   [U3L1_LOCKED_SOURCE_NOTES.dictationAudio]: 'تسجيل الإملاء غير متوفر. ينفّذ المعلم الإملاء بقراءة النص المطبوع.',
   [U3L1_LOCKED_SOURCE_NOTES.handwritingModels]: 'شاهد أشكال الخط في الكتاب ونفّذها يدويًا على ورقة مسطّرة؛ لا يعرضها خط الحاسوب كما رُسمت.',
@@ -192,13 +198,14 @@ const U3L1ActivityWidget: React.FC<{ activity: U3L1Activity }> = ({ activity }) 
   };
 
   /**
-   * Shared «أظهر الجواب» path. This lesson's source carries NO approved answer
-   * key, so every record declares `no_approved_content` and the resolver returns
-   * null: no button, no wording, in the student surface. The call is kept (not
-   * omitted) so the behaviour is enforced centrally and any future approved key
-   * would surface through the same mechanism.
+   * Shared «أظهر الجواب» path — the SAME resolver and component as every other
+   * lesson. `u3l1RevealRecord` only attaches the platform's suggested answer to
+   * the activity's own disclosure; it never decides visibility. The eight
+   * activities that depend on a missing artifact declare `no_approved_content`,
+   * so the resolver returns null for them and no button exists (not even an
+   * empty one).
    */
-  const revealProps = resolveAnswerReveal(activity, 'student');
+  const revealProps = resolveAnswerReveal(u3l1RevealRecord(activity), 'student');
 
   const handleReset = () => {
     clearDraft(U3L1_DRAFT_SCOPE, activity.sourceActivityId);
@@ -237,7 +244,12 @@ const U3L1ActivityWidget: React.FC<{ activity: U3L1Activity }> = ({ activity }) 
         update={update}
         activityId={activity.id}
       />
-      {revealProps && <AnswerReveal {...revealProps} />}
+      {revealProps && (
+        <div className="u3l1-reveal-block">
+          <AnswerReveal {...revealProps} />
+          <p className="u3l1-guidance-notice" role="note">{u3l1GuidanceNotice(activity.id)}</p>
+        </div>
+      )}
       <footer className="l2-activity-footer">
         <button type="button" className="btn btn-secondary btn-small" onClick={handleSave}>
           حفظ مسودة إجابتي

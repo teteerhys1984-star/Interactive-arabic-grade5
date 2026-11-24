@@ -65,3 +65,16 @@
 .u3l1-cards { display: flex; flex-wrap: wrap; gap: .7rem; align-items: end; }
 .u3l1-cards .inter-field { flex: 1 1 13rem; min-width: 11rem; }
 .u3l1-cards .btn { align-self: end; }
+
+/* Suggested-answer block: the shared button/panel plus its honesty notice.
+   The notice sits INSIDE the reveal block, so it appears only for activities
+   that actually have a displayable answer, and never next to a gap activity. */
+.u3l1-reveal-block { display: flex; flex-direction: column; gap: .35rem; }
+.u3l1-guidance-notice {
+  margin: 0;
+  font-size: .82rem;
+  line-height: 1.7;
+  color: var(--color-text-secondary, #4b5850);
+  border-inline-start: 3px solid rgba(194, 139, 56, 0.45);
+  padding-inline-start: .5rem;
+}

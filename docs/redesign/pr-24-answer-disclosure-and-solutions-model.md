@@ -36,7 +36,8 @@ Data-driven per answer type, with **no third copy** of the key:
 | lesson1 | `fromLesson1()` | `interaction` field keys (`acceptedAnswers`, `correctId(s)`, `correctCategoryId`) + `solution` |
 | lesson2, lesson3, unit2Lesson1, unit2Lesson2 | `fromKeyedLesson()` | `answerKey` / `checkExplanation` / `teacher.answerOrGuidance` (located, never re-authored) |
 | platform drills | inline record in the renderer | the drill's own `correct` option / `correctId` |
-| unit2Lesson3, unit3Lesson1 | — | no key exists ⇒ every record declares `no_approved_content` |
+| unit2Lesson3 | — | no key exists ⇒ every record declares `no_approved_content` |
+| unit3Lesson1 | `u3l1RevealRecord()` (`data/unit3Lesson1/guidance.ts`) | platform-authored suggested answers, declared `guidance_only` — never `approved_key` (see §6) |
 
 Every lesson activity carries an explicit, mandatory `disclosure { kind, sourceRef }`.
 Coverage is enforced by `src/test/disclosureCoverage.test.ts` (339 records + platform drills); behavioural equivalence with the previous per-lesson adapters is proven by `src/test/revealParity.test.ts`.
@@ -112,3 +113,50 @@ One linked fix: lesson 1's heading override is now restricted to `approved_key`,
 - `npm run typecheck` — clean.
 - `npm run build` — clean.
 - New: `src/test/teacherSolutionsModel.test.tsx` (contract + A1–A11 negative cases + portal three states, including a lesson with no approved solutions).
+
+---
+
+## 6. Follow-up after this PR — Unit 3 Lesson 1 gets educational answers (not a key)
+
+The declared absence is a **teacher-side** statement (there is no approved key,
+so the portal shows no «solutions»). It was never meant to leave the learner
+without any help, and the owner rejected an answer-less lesson.
+
+`src/data/unit3Lesson1/guidance.ts` now carries a platform-authored, grade-5
+answer for **52** of the 57 activities, built from the printed task plus the book
+content the lesson already reproduces (poem, رفع/نصب/جزم rules, hamza rule,
+dictation passage, letter model) and the platform's image descriptions. Every
+one of those records is declared `guidance_only`:
+
+- heading «إرشادات للإجابة» — never «الحل النموذجي المعتمد»;
+- an explicit on-screen notice that the answer is platform-suggested and is
+  **not** attributed to the textbook or to a teacher guide;
+- revealed only through the unchanged `resolveAnswerReveal()` + `<AnswerReveal>`.
+
+**5** calligraphy activities on ص٨٠–٨١ stay `no_approved_content` (hand-drawn
+Ruq'ah models a machine font cannot reproduce faithfully): no answer is invented
+and no button is rendered.
+
+The three listening items on ص٧٣ carry CONDITIONAL guidance only: the recording
+does not exist, the poem is never claimed to be the listening text, and every
+answer opens with «إذا كان النص المقصود بالاستماع هو القصيدة المطبوعة — وهذا غير
+مثبت —». The guidance helps read the poem and explicitly does NOT settle the
+listening questions: the two blanks of U3L1-73-06 match printed verses, «لن
+يغلبنا الجهل» matches a printed hemistich, but U3L1-73-05.أ («الكاتب») stays
+unsettled because that word does not occur in the poem and «واثق» is offered only
+as a conditional inference; U3L1-73-07 titles are declared suggested, not
+settled. Each keeps the mandated notice «إرشادات مقترحة استنادًا إلى القصيدة
+المطبوعة، وليست تفريغًا للتسجيل الصوتي أو إجابة مؤكدة لما ورد فيه» with the
+condition stated explicitly. The declared audio gap is unchanged.
+
+`U3L1-81-03` (sender position) keeps its guidance, but the guidance settles no
+letter: the transcribed `letterModel` proves only the ORDER of the lines
+(place+date first, signature last). It says nothing about the visual position
+(top/bottom, right/left), which is exactly what the four printed options ask, so
+none of them is presented as the answer; the missing evidence — the scanned page
+81 — is named instead, and the learner is told to check the printed page.
+
+The teacher portal record stays `declared_absence` (zero approved solutions) and
+gains `declaration.studentGuidanceNote`, which tells the teacher that student
+guidance exists and is not an approved solution. Audit A8 still forbids any
+solution field on that record, and `approved_key` remains **0** for this lesson.
