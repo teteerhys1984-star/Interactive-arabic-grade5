@@ -167,7 +167,7 @@ export const LESSON3_ACTIVITIES: Lesson3Activity[] = [
     subparts: ['المقطع الأول: الأبيات ١–٣.', 'إيماءات مشاعر الاعتزاز.'],
     interaction: { kind: 'speak', preparationLabel: 'أتدرب على قراءة المقطع الأول بأداء الاعتزاز:', criteria: ['إشارات وإيماءات مناسبة', 'مشاعر اعتزاز ظاهرة'] },
     availability: 'available', source: lesson3Src(26, 'textbook_poetry', 'أقرأ', 1),
-    disclosure: { kind: 'guidance_only', sourceRef: 'L3-26-01' },
+    disclosure: { kind: 'teacher_only', sourceRef: 'L3-26-01' },
     teacher: {
       answerOrGuidance: 'أداء قراءة للمقطع الأول (الأبيات ١–٣) مع إيماءات اعتزاز؛ يقوّم الأداء لا الحفظ.',
       explanation: 'المقطع الأول يعبر عن اعتزاز الشاعر بلغته؛ المناسب نبرة فخر وإيماءات اعتزاز.',
@@ -215,7 +215,7 @@ export const LESSON3_ACTIVITIES: Lesson3Activity[] = [
       ],
     },
     availability: 'available', source: lesson3Src(27, 'textbook_exercise', 'الفهم القرائي', 1),
-    disclosure: { kind: 'approved_key', sourceRef: 'L3-27-01' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'L3-27-01' },
     teacher: {
       answerOrGuidance: 'من كلمات المكان في القصيدة: الديار، أنجد، وهاد (ويقبل: البلاد).',
       explanation: '«بين الديار تباعد الأجساد» و«تهدي الشعاع لأنجد وهاد»؛ الديار والأنجد والوهاد ألفاظ دالة على المكان.',
@@ -228,7 +228,7 @@ export const LESSON3_ACTIVITIES: Lesson3Activity[] = [
     subparts: ['حفظ مقطع واحد على الأقل.', 'إلقاء أمام الزملاء.'],
     interaction: { kind: 'speak', preparationLabel: 'أكتب المقطع الذي اخترت حفظه:', criteria: ['حفظ مقطع على الأقل', 'إلقاء أمام الزملاء'] },
     availability: 'available', source: lesson3Src(27, 'textbook_exercise', 'الفهم القرائي', 2),
-    disclosure: { kind: 'guidance_only', sourceRef: 'L3-27-02' },
+    disclosure: { kind: 'teacher_only', sourceRef: 'L3-27-02' },
     teacher: {
       answerOrGuidance: 'إلقاء مقطع من ثلاثة أبيات على الأقل من القصيدة؛ يقوّم الحفظ ووضوح الإلقاء.',
       explanation: 'المقطع في القصيدة ثلاثة أبيات؛ يختار المتعلم ما أعجبه ويلقيه.',
@@ -283,7 +283,7 @@ export const LESSON3_ACTIVITIES: Lesson3Activity[] = [
       ],
     },
     availability: 'available', source: lesson3Src(27, 'textbook_exercise', 'الفهم القرائي', 5),
-    disclosure: { kind: 'approved_key', sourceRef: 'L3-27-05' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'L3-27-05' },
     teacher: {
       answerOrGuidance: 'من البيتين: تقارب × تباعد، أنجد × وهاد، بعيدة × قريبة (ضمن صورة البيت). ومن عندي يقبل أي ضدّين سليمين مثل: الليل × النهار.',
       explanation: '«تقارب الأرواح» و«تباعد الأجساد» ضدان في البيت الرابع، و«أنجد» المرتفع و«وهاد» المنخفض ضدان في البيت الخامس.',
@@ -387,7 +387,7 @@ export const LESSON3_ACTIVITIES: Lesson3Activity[] = [
     subparts: ['تسجيل خلاصة الحوار.', 'رأي شخصي في مهمة الترجمة ودورها.'],
     interaction: { kind: 'write', label: 'أسجل خلاصة الحوار ورأيي في الترجمة:', rows: 4 },
     availability: 'available', source: lesson3Src(28, 'textbook_expression', 'أتواصل شفهياً: إجراء حوار', 2),
-    disclosure: { kind: 'guidance_only', sourceRef: 'L3-28-02' },
+    disclosure: { kind: 'teacher_only', sourceRef: 'L3-28-02' },
     teacher: {
       answerOrGuidance: 'تسجيل مفتوح؛ يتحقق المعلم من وجود خلاصة الحوار ورأي شخصي في دور الترجمة في الحياة والعلم.',
       explanation: 'المهمة مركبة من جزأين: الخلاصة ثم الرأي الشخصي؛ يقيّم المعلم وضوح الجزأين معاً.',
@@ -547,7 +547,7 @@ export const LESSON3_ACTIVITIES: Lesson3Activity[] = [
     subparts: ['حديث لمدة دقيقة.', 'استعمال الجمل الفعلية.'],
     interaction: { kind: 'speak', preparationLabel: 'أجهز حديثي عن طريقة دراستي بجمل فعلية:', criteria: ['مدة دقيقة', 'جمل فعلية'] },
     availability: 'available', source: lesson3Src(29, 'textbook_grammar', 'التقويم النهائي', 4),
-    disclosure: { kind: 'guidance_only', sourceRef: 'L3-29-05' },
+    disclosure: { kind: 'teacher_only', sourceRef: 'L3-29-05' },
     teacher: {
       answerOrGuidance: 'أداء شفهي؛ يتحقق المعلم من توظيف جمل فعلية مثل: أقرأُ النصَّ، أحفظُ القاعدةَ، أكتبُ الفقرةَ.',
       explanation: 'الهدف توظيف الجملة الفعلية في كلام طبيعي لا في جمل معزولة.',
@@ -560,7 +560,7 @@ export const LESSON3_ACTIVITIES: Lesson3Activity[] = [
     subparts: ['فقرة من ١٥ كلمة.', 'تبيين فوائد اللغة.', 'استعمال الجمل الفعلية.'],
     interaction: { kind: 'write', label: 'أكتب فقرتي (١٥ كلمة تقريباً):', rows: 4 },
     availability: 'available', source: lesson3Src(29, 'textbook_grammar', 'التقويم النهائي', 5),
-    disclosure: { kind: 'guidance_only', sourceRef: 'L3-29-06' },
+    disclosure: { kind: 'teacher_only', sourceRef: 'L3-29-06' },
     teacher: {
       answerOrGuidance: 'فقرة مفتوحة من نحو خمس عشرة كلمة؛ يتحقق المعلم من ذكر فوائد اللغة وتوظيف جمل فعلية.',
       explanation: 'يقاس الالتزام بعدد الكلمات تقريباً وبوجود جمل فعلية سليمة.',
@@ -706,7 +706,7 @@ export const LESSON3_ACTIVITIES: Lesson3Activity[] = [
       ],
     },
     availability: 'available', source: lesson3Src(31, 'textbook_spelling', 'أطبق'),
-    disclosure: { kind: 'approved_key', sourceRef: 'L3-31-03' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'L3-31-03' },
     teacher: {
       answerOrGuidance: 'أمثلة معتمدة: استقبالاً، انتهاءِ (أو اختتام)، ابنَهُ، ابنتَهُ.',
       explanation: 'الفراغات تتطلب مصدراً خماسياً أو اسماً من أسماء همزة الوصل ليستقيم المعنى.',
@@ -779,7 +779,7 @@ export const LESSON3_ACTIVITIES: Lesson3Activity[] = [
     subparts: ['حوار لمدة دقيقة.', 'توظيف كلمات فيها همزة وصل.'],
     interaction: { kind: 'speak', preparationLabel: 'أجهز وسائلي لتعلم اللغة بكلمات فيها همزة وصل:', criteria: ['مدة دقيقة', 'كلمات بهمزة وصل'] },
     availability: 'available', source: lesson3Src(32, 'textbook_spelling', 'التقويم النهائي', 4),
-    disclosure: { kind: 'guidance_only', sourceRef: 'L3-32-03' },
+    disclosure: { kind: 'teacher_only', sourceRef: 'L3-32-03' },
     teacher: {
       answerOrGuidance: 'أداء شفهي؛ يتحقق المعلم من توظيف كلمات مثل: استمع، استفهم، انتبه، استعمل.',
       explanation: 'يربط النشاط الإملاء بالاستعمال الشفهي الطبيعي.',
@@ -792,7 +792,7 @@ export const LESSON3_ACTIVITIES: Lesson3Activity[] = [
     subparts: ['فقرة من سطرين.', 'كلمات تحوي همزة وصل.'],
     interaction: { kind: 'write', label: 'أكتب فقرتي من سطرين:', rows: 4 },
     availability: 'available', source: lesson3Src(32, 'textbook_spelling', 'التقويم النهائي', 5),
-    disclosure: { kind: 'guidance_only', sourceRef: 'L3-32-04' },
+    disclosure: { kind: 'teacher_only', sourceRef: 'L3-32-04' },
     teacher: {
       answerOrGuidance: 'فقرة مفتوحة من سطرين؛ يتحقق المعلم من ذكر فوائد تعلم اللغة ورسم كلمات همزة الوصل رسماً صحيحاً.',
       explanation: 'يراقب المعلم رسم همزات الوصل في أثناء الكتابة لا في اختبار معزول.',
@@ -813,7 +813,7 @@ export const LESSON3_ACTIVITIES: Lesson3Activity[] = [
       modelDescription: 'ملاحظة رسم الأحرف (ب ت ث) في الكلمات المدوّنة من صفَّي الملاحظة الأولين في الصفحة: تقارب، اللغات، تولف، برداً، عفوت، الأكباد… مع الانتباه إلى الميل والارتكاز على السطر. الصف الثالث غير مدوّن لأن صورته غير محسومة.',
     },
     availability: 'available', source: lesson3Src(33, 'textbook_exercise', 'الخط', 1, LOCKED_SOURCE_NOTES.handwritingRow3),
-    disclosure: { kind: 'guidance_only', sourceRef: 'L3-33-01' },
+    disclosure: { kind: 'teacher_only', sourceRef: 'L3-33-01' },
     teacher: {
       answerOrGuidance: 'ملاحظة بصرية؛ يتحقق المعلم من انتباه المتعلم لميل الأحرف الثلاثة وبدايتها الأعلى وارتكازها على السطر.',
       explanation: LOCKED_SOURCE_NOTES.handwritingRow3,
@@ -829,7 +829,7 @@ export const LESSON3_ACTIVITIES: Lesson3Activity[] = [
       modelDescription: 'تجريد الحروف الملونة: كتابة أشكال الباء (بـ، ـبـ، ـب، ب) كما في النماذج المرقمة، ثم أشكال التاء والثاء على الطريقة نفسها بخط الرقعة.',
     },
     availability: 'available', source: lesson3Src(33, 'textbook_exercise', 'الخط', 2),
-    disclosure: { kind: 'guidance_only', sourceRef: 'L3-33-02' },
+    disclosure: { kind: 'teacher_only', sourceRef: 'L3-33-02' },
     teacher: {
       answerOrGuidance: 'ممارسة خطية؛ يتحقق المعلم من محاكاة الأشكال الأربعة لكل حرف وفق قاعدة الميل والارتكاز.',
       explanation: 'أتعلّم في المصدر يوثق أشكال الباء بترقيمها؛ والتاء والثاء على المنوال نفسه بنقاطها.',
@@ -846,7 +846,7 @@ export const LESSON3_ACTIVITIES: Lesson3Activity[] = [
       modelDescription: 'محاكاة رسم العبارة الملونة بخط الرقعة مع الانتباه للأحرف الملونة (ب ت ث).',
     },
     availability: 'available', source: lesson3Src(33, 'textbook_exercise', 'أتدرب'),
-    disclosure: { kind: 'guidance_only', sourceRef: 'L3-33-03' },
+    disclosure: { kind: 'teacher_only', sourceRef: 'L3-33-03' },
     teacher: {
       answerOrGuidance: 'محاكاة خطية لعبارة المصدر نفسها؛ يقوّم المعلم ميل الأحرف الثلاثة وارتكازها.',
       explanation: 'العبارة موثقة في القفل نصاً وتلويناً؛ لا تستبدل بعبارة أخرى.',
@@ -944,7 +944,7 @@ export const LESSON3_ACTIVITIES: Lesson3Activity[] = [
     subparts: ['بحث أسري موثق.', 'المطلوب: أول أبجدية، مكانها، عدد أحرفها، معلومات أخرى.'],
     interaction: { kind: 'write', label: 'أسجل نتائج بحثي الأسري:', rows: 5 },
     availability: 'available', source: lesson3Src(35, 'activity_book', 'أنا وأسرتي'),
-    disclosure: { kind: 'guidance_only', sourceRef: 'L3-35-03' },
+    disclosure: { kind: 'teacher_only', sourceRef: 'L3-35-03' },
     teacher: {
       answerOrGuidance: 'بحث مفتوح يوثقه المتعلم مع أسرته؛ يتحقق المعلم من ذكر المكان وعدد الأحرف ومصدر البحث. الشائع في المصادر البحثية الإشارة إلى الأبجديتين الأوغاريتية والفينيقية (شرح المنصة لا الكتاب).',
       explanation: 'الكتاب لا يحدد إجابة؛ يقبل أي نتائج موثقة من مصدر تعلم مناسب.',

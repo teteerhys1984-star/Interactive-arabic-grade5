@@ -552,7 +552,7 @@ export const LESSON2_ACTIVITIES: Lesson2Activity[] = [
       { id: 'partner-sources', label: 'المصادر التي يجيب بها زميلي', multiline: true },
     ]},
     availability: 'available', source: lesson2Src(18, 'textbook_grammar', 'التقويم النهائي', 3),
-    disclosure: { kind: 'guidance_only', sourceRef: 'L2-18-04' },
+    disclosure: { kind: 'teacher_only', sourceRef: 'L2-18-04' },
     teacher: {
       answerOrGuidance: 'أداء ثنائي مفتوح؛ يتحقق المعلم من وجود ثلاثة تبادلات على الأقل لكل متعلم وصحة علاقة الفعل بالمصدر.',
       explanation: 'لا يحدد المصدر ثلاثة ألفاظ بعينها، لذلك يقوّم عدد التبادلات وصحة العلاقة لا قائمة محفوظة.',

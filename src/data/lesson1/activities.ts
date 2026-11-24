@@ -140,7 +140,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'مثال: حلم الصيّاد بسمكةٍ ذهبيّة، فنصحه البحر بالتعاون، فبنى مع زملائه مركبًا وتحقّق حلمه.', explanation: 'تلخيص بأقلّ عددٍ من الجمل يُظهر فهم تسلسل الأحداث.' },
     source: src(4, 'textbook_reading', 'أَسْتَمِعُ', 3),
-    disclosure: { kind: 'approved_key', sourceRef: 'L1-004-3' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'L1-004-3' },
   },
 
   /* ---------------- page 5 ---------------- */
@@ -150,7 +150,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'قراءةٌ معبّرة تُبرز النداء في «يا صديقي، امنحني» والاستفهام في «كيف أيُّها البحرُ؟!».', explanation: 'النداء والاستفهام واردان في المقطع الأوّل (L1-014، L1-016)؛ مراعاتهما تحقق التلوين الصوتي.' },
     source: src(5, 'textbook_reading', 'أَقْرَأُ', 1),
-    disclosure: { kind: 'approved_key', sourceRef: 'L1-005-1' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'L1-005-1' },
   },
   {
     id: 'a-p5-2', page: 5, section: 'أقرأ', printedNumber: '٢', status: 'solved',
@@ -158,7 +158,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'قراءةٌ تُبرز التعجّب في «يا لها من فكرةٍ ...!» ومشاعر الفرح في ختام النص.', explanation: 'التعجّب وارد في L1-025 والفرح في L1-028/L1-029.' },
     source: src(5, 'textbook_reading', 'أَقْرَأُ', 2),
-    disclosure: { kind: 'approved_key', sourceRef: 'L1-005-2' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'L1-005-2' },
   },
   {
     id: 'a-p5-3', page: 5, section: 'أقرأ', printedNumber: '٣', status: 'solved',
@@ -166,7 +166,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'قراءةٌ جهريّة سليمة النطق مع تلوينٍ صوتيٍّ مناسب للمعنى.', explanation: 'تدريب على الطلاقة والتعبير الصوتي.' },
     source: src(5, 'textbook_reading', 'أَقْرَأُ', 3),
-    disclosure: { kind: 'approved_key', sourceRef: 'L1-005-3' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'L1-005-3' },
   },
 
   /* ---------------- page 6 ---------------- */
@@ -292,7 +292,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'write' },
     solution: { answer: 'إجابة حرّة؛ مثال: يقرّر الصيّادون فتح مدرسةٍ لتعليم الصيد أطفالَ الحيّ.', explanation: 'نشاطٌ إبداعي ينمّي الخيال دون مساس بالنص.' },
     source: src(6, 'textbook_exercise', 'الفَهْمُ القِرائِيُّ', 7),
-    disclosure: { kind: 'approved_key', sourceRef: 'L1-006-7' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'L1-006-7' },
   },
   {
     id: 'a-p6-8', page: 6, section: 'الفهم القرائي', printedNumber: '٨', status: 'solved',
@@ -300,7 +300,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'write' },
     solution: { answer: 'إجابة حرّة؛ مثال: أتعاون مع زملائي وأدّخر جزءًا من الصيد لشراء زورق.', explanation: 'ربطُ قيمة النصّ بخبرة التلميذ.' },
     source: src(6, 'textbook_exercise', 'الفَهْمُ القِرائِيُّ', 8),
-    disclosure: { kind: 'approved_key', sourceRef: 'L1-006-8' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'L1-006-8' },
   },
 
   /* ---------------- page 7 ---------------- */
@@ -313,7 +313,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     ]},
     solution: { answer: 'خطة نموذجية: التخطيط = تحديد موضوع المطويّة (النظافة) وجمع المعلومات؛ مراحل التنفيذ = الإعداد الفنّيّ (رسوم - ألوان - خط) ثم الإخراج النهائيّ والتوزيع في الحيّ.', explanation: 'تطبيق مراحل تصميم المطويّة الأربع المطبوعة في L1-048 على صورة حملة النظافة (L1-045).' },
     source: src(7, 'textbook_expression', 'مُطَوِيَّة', 1),
-    disclosure: { kind: 'approved_key', sourceRef: 'L1-007-1' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'L1-007-1' },
   },
   {
     id: 'a-p7-2', page: 7, section: 'أتواصل شفوياً', printedNumber: '٢', status: 'solved',
@@ -321,7 +321,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'عرضٌ شفوي بعبارات إقناع مثل: «ساهم معنا لجعل حيّنا أنظف».', explanation: 'تنمية مهنة الإقناع الشفوي باستعمال عباراتٍ تُقنع السكّان بالمساهمة في الفعّاليّة كما يطلب التمرين المطبوع كاملًا.' },
     source: src(7, 'textbook_expression', 'أُطَبِّقُ', 2),
-    disclosure: { kind: 'approved_key', sourceRef: 'L1-007-2' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'L1-007-2' },
   },
 
   /* ---------------- page 8 ---------------- */
@@ -386,7 +386,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'عرضٌ حرّ لمدّة دقيقتين يجمع بين الجملتين الاسمية والفعلية عن حرفةٍ يعرفها التلميذ.', explanation: 'تطبيقٌ شفوي للقاعدة على موضوع النصّ المطبوع: «حرفةٍ أعرفها».' },
     source: src(8, 'textbook_grammar', 'التَّقويمُ النَّهائيُّ', 2),
-    disclosure: { kind: 'approved_key', sourceRef: 'L1-008-2' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'L1-008-2' },
   },
   {
     id: 'a-p8-7', page: 8, section: 'التقويم النهائي', printedNumber: '٣', status: 'solved',
@@ -394,7 +394,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'write' },
     solution: { answer: 'فقرة حرّة من سطرين؛ مثال: «الإخلاصُ كنزٌ. يُتقنُ المخلصُ عملَهُ فينالُ الثّقة».', explanation: 'كتابةٌ توظّف النوعين معًا كما يطلب التمرين.' },
     source: src(8, 'textbook_grammar', 'التَّقويمُ النَّهائيُّ', 3),
-    disclosure: { kind: 'approved_key', sourceRef: 'L1-008-3' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'L1-008-3' },
   },
 
   /* ---------------- page 9 ---------------- */
@@ -458,7 +458,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'write' },
     solution: { answer: 'مثال: «أحببتُ البحرَ» (همزة قطع) / «استمعتُ إلى الموجِ» (همزة وصل).', explanation: 'توظيفٌ حرّ للنوعين في جملتين مفيدتين.' },
     source: src(9, 'textbook_spelling', 'التَّقويمُ النَّهائيُّ', 2),
-    disclosure: { kind: 'approved_key', sourceRef: 'L1-009-2' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'L1-009-2' },
   },
 
   /* ---------------- page 10 ---------------- */
@@ -468,7 +468,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'write' },
     solution: { answer: 'محاكاة رسم الحركات والتنوين والتضعيف (فتحة، ضمة، كسرة، سكون، تنوين الفتح والضمّ والكسر، شدّة) بخطّ الرقعة وفق السطر المعروض في L1-072.', explanation: 'تدريبٌ خطّي على عناصر الضبط المعروضة في الصفحة.' },
     source: src(10, 'textbook_exercise', 'الخَطُّ', 1),
-    disclosure: { kind: 'approved_key', sourceRef: 'L1-010-1' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'L1-010-1' },
   },
   {
     id: 'a-p10-2', page: 10, section: 'الخط', printedNumber: '٢', status: 'solved',
@@ -484,7 +484,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'write' },
     solution: { answer: 'إعادة صوغٍ حرّة؛ مثال: «وقفَ الصيّادُ على الشاطئ متضرّعًا: يا بحرُ، هبني سمكةً ذهبيّةً…»، مع إبقاء المعنى واستبدال بعض المفردات.', explanation: 'مهارة استبدال المفردات والتراكيب المطبوعة في L1-077.' },
     source: src(10, 'textbook_expression', 'أُعَبِّرُ كِتابِيّاً', 1),
-    disclosure: { kind: 'approved_key', sourceRef: 'L1-010-1' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'L1-010-1' },
   },
 
   /* ---------------- page 11 ---------------- */
@@ -504,7 +504,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'يسجّل التلميذ الزمن الذي احتاج إليه أول مرّة.', explanation: 'قياس السرعة الذاتية قبل التدريب وبعده.' },
     source: src(11, 'activity_book', 'أَلْعَبُ وَأَتَعَلَّمُ', 2),
-    disclosure: { kind: 'approved_key', sourceRef: 'L1-011-2' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'L1-011-2' },
   },
   {
     id: 'a-p11-3', page: 11, section: 'ألعب وأتعلم', printedNumber: '٣', status: 'solved',
@@ -512,7 +512,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'يحوّل التلميذ العبارة التي اختارها زميله إلى رموزٍ مقابلةٍ وفق الجدول.', explanation: 'تعزيز مطابقة الحرف ورمزه في الاتجاه المعاكس.' },
     source: src(11, 'activity_book', 'أَلْعَبُ وَأَتَعَلَّمُ', 3),
-    disclosure: { kind: 'approved_key', sourceRef: 'L1-011-3' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'L1-011-3' },
   },
   {
     id: 'a-p11-4', page: 11, section: 'ألعب وأتعلم', printedNumber: '٤', status: 'solved',
@@ -520,7 +520,7 @@ export const TEXTBOOK_ACTIVITIES: TextbookActivity[] = [
     interaction: { kind: 'speak' },
     solution: { answer: 'أستنتج أنّ التدريب يقلّل الزمن ويحسّن الإنجاز.', explanation: 'استنتاج قيمة المثابرة والمران.' },
     source: src(11, 'activity_book', 'أَلْعَبُ وَأَتَعَلَّمُ', 4),
-    disclosure: { kind: 'approved_key', sourceRef: 'L1-011-4' },
+    disclosure: { kind: 'guidance_only', sourceRef: 'L1-011-4' },
   },
   {
     id: 'a-p11-5', page: 11, section: 'أنا وأسرتي', printedNumber: '١', status: 'solved',

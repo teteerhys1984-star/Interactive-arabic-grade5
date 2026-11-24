@@ -28,9 +28,11 @@ import { GRAMMAR_PLATFORM_EXPLANATION, SPELLING_PLATFORM_EXPLANATION } from '../
 /* ---------------- legacy behaviour, transcribed ---------------- */
 
 const L2_MODEL_ANSWER_IDS = new Set(['L2-14-02','L2-17-02','L2-17-03','L2-17-04','L2-17-05','L2-18-01','L2-18-02','L2-19-01','L2-19-02','L2-19-03','L2-19-04','L2-19-05','L2-24-01','L2-24-02']);
-const L2_TEACHER_ONLY_IDS = new Set(['L2-14-01','L2-19-07']);
-const L3_MODEL_ANSWER_IDS = new Set(['L3-25-02','L3-25-04','L3-25-05','L3-27-01','L3-27-03','L3-27-04','L3-27-05','L3-27-06','L3-27-07','L3-28-03','L3-28-04','L3-28-05','L3-28-06','L3-29-01','L3-29-02','L3-30-01','L3-30-02','L3-30-03','L3-30-04','L3-31-01','L3-31-02','L3-31-03','L3-31-04','L3-32-01','L3-32-02','L3-34-01','L3-34-02']);
-const U2L1_MODEL_ANSWER_IDS = new Set(['U2L1-40-01','U2L1-40-02','U2L1-40-04','U2L1-40-05','U2L1-42-01','U2L1-42-03','U2L1-42-04','U2L1-43-01','U2L1-44-01','U2L1-44-06','U2L1-45-01','U2L1-45-02','U2L1-45-03','U2L1-45-04','U2L1-45-05','U2L1-45-06','U2L1-46-05','U2L1-48-02']);
+const L2_TEACHER_ONLY_IDS = new Set(['L2-14-01','L2-19-07','L2-18-04']);
+const L3_MODEL_ANSWER_IDS = new Set(['L3-25-02','L3-25-04','L3-25-05','L3-27-03','L3-27-04','L3-27-06','L3-27-07','L3-28-03','L3-28-04','L3-28-05','L3-28-06','L3-29-01','L3-29-02','L3-30-01','L3-30-02','L3-30-03','L3-30-04','L3-31-01','L3-31-02','L3-31-04','L3-32-01','L3-32-02','L3-34-01','L3-34-02']);
+/* Owner ruling: performance/handwriting tasks the guide grades are teacher-only. */
+const L3_TEACHER_ONLY_IDS = new Set(['L3-26-01','L3-27-02','L3-28-02','L3-29-05','L3-29-06','L3-32-03','L3-32-04','L3-33-01','L3-33-02','L3-33-03','L3-35-03']);
+const U2L1_MODEL_ANSWER_IDS = new Set(['U2L1-40-01','U2L1-40-02','U2L1-40-04','U2L1-40-05','U2L1-42-01','U2L1-42-03','U2L1-43-01','U2L1-44-01','U2L1-44-06','U2L1-45-01','U2L1-45-02','U2L1-45-03','U2L1-45-04','U2L1-45-05','U2L1-45-06','U2L1-46-05','U2L1-48-02']);
 const U2L2_MODEL_ANSWER_IDS = new Set(['U2L2-50-04','U2L2-50-05','U2L2-52-01','U2L2-52-04','U2L2-54-01','U2L2-54-02','U2L2-54-03','U2L2-54-04','U2L2-54-05','U2L2-54-06','U2L2-55-01','U2L2-55-02','U2L2-55-03','U2L2-55-04','U2L2-55-05','U2L2-55-06','U2L2-56-01','U2L2-56-02','U2L2-56-03','U2L2-57-01','U2L2-57-02','U2L2-59-01']);
 
 type LegacyPayload = {
@@ -157,9 +159,23 @@ describe('reveal parity — the shared resolver reproduces the legacy adapters e
         // lesson 1 keeps its already-approved wording verbatim
         headingOverride: 'الجواب المعتمد',
       });
-      expect(Boolean(next), `decision mismatch on ${activity.id}`).toBe(Boolean(legacy));
+      /*
+       * Owner ruling (2026-11-23) changed the DECISION for 16 open-production
+       * records: their approved text is an example or a performance description,
+       * so it is guidance (still shown, different heading), not a model key.
+       * Content parity is unchanged; only the decision/heading differs, and only
+       * for records whose disclosure now says so.
+       */
+      const expectedShown =
+        activity.disclosure.kind === 'approved_key' || activity.disclosure.kind === 'guidance_only';
+      expect(Boolean(next), `decision mismatch on ${activity.id}`).toBe(expectedShown);
+      expect(Boolean(legacy), `legacy decision changed on ${activity.id}`).toBe(
+        activity.status === 'pending' ? false : true,
+      );
       if (legacy && next) {
-        expect(next.heading).toBe(legacy.heading);
+        expect(next.heading).toBe(
+          activity.disclosure.kind === 'approved_key' ? 'الجواب المعتمد' : 'إرشادات للإجابة',
+        );
         expect(next.modelAnswer).toBe(legacy.modelAnswer);
         expect(next.explanation).toBe(legacy.explanation);
         expect(next.unavailableNote).toBe(legacy.unavailableNote);
@@ -185,7 +201,7 @@ describe('reveal parity — the shared resolver reproduces the legacy adapters e
 
   it('lesson 3: 51/51 identical (27 model, 24 guidance)', () => {
     LESSON3_ACTIVITIES.forEach((activity) => {
-      const legacy = legacyKeyedReveal(activity as never, L3_MODEL_ANSWER_IDS, new Set());
+      const legacy = legacyKeyedReveal(activity as never, L3_MODEL_ANSWER_IDS, L3_TEACHER_ONLY_IDS);
       const next = toStudentReveal({
         id: activity.id,
         sourceActivityId: activity.sourceActivityId,

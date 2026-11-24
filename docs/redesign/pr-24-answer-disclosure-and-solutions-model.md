@@ -94,7 +94,9 @@ Errors (not warnings): unregistered lesson (A1), wrong unit (A2), two records fo
 
 The audit lesson adopted from D14: a missing *printed* key does not prove the absence of approved content (a teacher-dictated task is teacher-sourced). The blanket "gap ⇒ no_approved_content" rule now allows only that one documented, tested exception.
 
-The 35 flagged records are **unchanged** until the owner rules; they already behave safely (`teacher_only` unreachable from the student surface, `no_approved_content` renders nothing).
+**Round 2 — the 35 are resolved.** The owner applied three rules (proven single answer ⇒ `approved_key`; examples/alternatives ⇒ `guidance_only`; teacher procedure/grading/dictation ⇒ `teacher_only`). Result: 20 → `guidance_only`, 12 → `teacher_only`, 3 confirmed unchanged, **0 left pending**, and no content touched. Final table and per-record reasons: `docs/redesign/pr-24-d35-ruling.md`.
+
+One linked fix: lesson 1's heading override is now restricted to `approved_key`, so a relabelled guidance record shows «إرشادات للإجابة» instead of claiming to be «الجواب المعتمد».
 
 ## 4. What is deliberately *not* done
 
@@ -106,7 +108,7 @@ The 35 flagged records are **unchanged** until the owner rules; they already beh
 
 ## 5. Verification
 
-- `npm test` — 285 passed / 23 files.
+- `npm test` — 292 passed / 23 files.
 - `npm run typecheck` — clean.
 - `npm run build` — clean.
 - New: `src/test/teacherSolutionsModel.test.tsx` (contract + A1–A11 negative cases + portal three states, including a lesson with no approved solutions).

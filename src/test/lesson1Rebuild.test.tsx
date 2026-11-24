@@ -275,6 +275,24 @@ describe('Lesson 1 — activity interaction protocol', () => {
     expect(choiceActivity.textContent).toContain('✔ اختيار صحيح');
   });
 
+  it('labels an open-production record as guidance, not as the approved answer', () => {
+    // a-p4-5 «أتحدّث أمام زملائي…» carries an EXAMPLE, so the owner ruling made it
+    // guidance_only. The learner must never be told an example is the model key.
+    render(<Lesson1StepRenderer step={stepById('l1-s2')} />);
+    const talkActivity = screen.getAllByLabelText(/^نشاط /)[2];
+    fireEvent.click(within(talkActivity).getByRole('button', { name: 'أظهر الجواب' }));
+    expect(talkActivity.querySelector('.answer-reveal-heading')?.textContent).toBe('إرشادات للإجابة');
+    expect(talkActivity.textContent).toContain('مثال:');
+    expect(talkActivity.textContent).not.toContain('الجواب المعتمد');
+  });
+
+  it('still labels a proven single answer as the approved answer', () => {
+    render(<Lesson1StepRenderer step={stepById('l1-s4')} />);
+    const choiceActivity = screen.getByLabelText('نشاط ٥ (الفهم القرائي)');
+    fireEvent.click(within(choiceActivity).getByRole('button', { name: 'أظهر الجواب' }));
+    expect(choiceActivity.querySelector('.answer-reveal-heading')?.textContent).toBe('الجواب المعتمد');
+  });
+
   it('checks written fields against the approved key and explains why an answer was not accepted', () => {
     render(<Lesson1StepRenderer step={stepById('l1-s4')} />);
     const firstActivity = screen.getByLabelText('نشاط ١ (الفهم القرائي)');

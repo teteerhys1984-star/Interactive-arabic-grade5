@@ -122,11 +122,18 @@ export function toStudentReveal(
   /* Nothing approved to show ⇒ no button at all (never an empty panel). */
   if (entries.length === 0 && !hasModelAnswer && !hasExplanation) return null;
 
-  const payload: StudentRevealPayload = {
-    heading: isNonEmpty(record.headingOverride)
+  /*
+   * `headingOverride` preserves an already-approved wording (lesson 1 says
+   * «الجواب المعتمد»). It is migration wording, NOT a licence to relabel: it may
+   * only replace the heading of the kind it was written for (`approved_key`).
+   * Guidance keeps its own «إرشادات للإجابة» label even in lesson 1, so the
+   * learner is never told an example is the approved answer.
+   */
+  const heading =
+    disclosure.kind === 'approved_key' && isNonEmpty(record.headingOverride)
       ? record.headingOverride
-      : DISCLOSURE_HEADINGS[disclosure.kind],
-  };
+      : DISCLOSURE_HEADINGS[disclosure.kind];
+  const payload: StudentRevealPayload = { heading };
   if (entries.length > 0) payload.entries = entries;
   if (hasModelAnswer) payload.modelAnswer = record.modelAnswer;
   if (hasExplanation) payload.explanation = record.explanation;
