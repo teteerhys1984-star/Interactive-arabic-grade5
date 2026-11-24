@@ -5,7 +5,11 @@ import {
   DeclaredAbsenceLessonSolutions,
   TeacherSolutionsModel,
 } from '../types/curriculum';
-import type { TeacherGuidanceRegistry } from '../data/guidanceRegistry';
+import {
+  type TeacherGuidanceRegistry,
+  compareGuidanceToSource,
+} from '../data/guidanceRegistry';
+import { toStudentReveal } from '../components/common/answerDisclosure';
 
 /**
  * Normalizes Arabic text for duplicate detection: strips diacritics/tatweel,
@@ -47,13 +51,21 @@ export interface AuditReport {
 }
 
 /**
- * A13 — teacher guidance counterpart.
+ * A13 — teacher guidance counterpart, verified against the ORIGINAL records.
  *
  * WHY: the student surface may show platform suggestions (`guidance_only`) while
  * the teacher portal registers the lesson as a `declared_absence`. Without a
  * counterpart, the learner sees wording the teacher cannot audit. A13 makes that
  * asymmetry an error, and forbids the opposite mistake — laundering a suggestion
  * into an approved solution.
+ *
+ * The registry is NOT trusted on its own word. Every claim is re-derived from the
+ * lesson's own activity ledger through `registry.source`:
+ *   - completeness: every record in the source has exactly one link;
+ *   - no extras:     every link points at a record the source actually has;
+ *   - classification and `sourceRef` must equal the record's own disclosure;
+ *   - the source-lock id must equal the record's own source id;
+ *   - every record the LEARNER can reveal has a teacher counterpart.
  *
  * LINK-ONLY: the audit reads ONLY ids, classifications, sourceRefs and counts. It
  * never reads or compares answer text, so it cannot become a second data source.
@@ -63,9 +75,9 @@ function auditGuidanceCounterparts(
   guidanceRegistries: TeacherGuidanceRegistry[],
   issues: AuditIssue[],
 ): void {
-  const VALID_KINDS = new Set(['approved_key', 'guidance_only', 'teacher_only', 'no_approved_content']);
   const guideByLessonId = new Map<string, TeacherSolutionsModel>();
   for (const guide of teacherGuides) guideByLessonId.set(guide.lessonId, guide);
+
   const registryByLessonId = new Map<string, TeacherGuidanceRegistry>();
 
   for (const registry of guidanceRegistries) {
@@ -83,7 +95,8 @@ function auditGuidanceCounterparts(
     registryByLessonId.set(lessonId, registry);
 
     /* A13.2 — the guidance registry must belong to a registered solutions record. */
-    if (!guideByLessonId.has(lessonId)) {
+    const guide = guideByLessonId.get(lessonId);
+    if (!guide) {
       issues.push({
         severity: 'error',
         category: 'answer_disclosure',
@@ -93,15 +106,8 @@ function auditGuidanceCounterparts(
       continue;
     }
 
-    /* A13.3 — links must be complete, unique and well formed. */
+    /* A13.3 — links must be well formed. */
     const seenLinkIds = new Set<string>();
-    const derivedCounts = {
-      total: 0,
-      approved_key: 0,
-      guidance_only: 0,
-      teacher_only: 0,
-      no_approved_content: 0,
-    };
     for (const link of registry.links) {
       if (!link.activityId || seenLinkIds.has(link.activityId)) {
         issues.push({
@@ -122,17 +128,14 @@ function auditGuidanceCounterparts(
         });
       }
 
-      if (!VALID_KINDS.has(link.classification)) {
+      if (!(link.classification in CLASSIFICATION_KEYS)) {
         issues.push({
           severity: 'error',
           category: 'answer_disclosure',
           entityId: `${lessonId}:${link.activityId}`,
           message: `إرشاد في ${lessonId} يحمل تصنيفًا غير معروف (${String(link.classification)}).`,
         });
-        continue;
       }
-      derivedCounts.total += 1;
-      derivedCounts[link.classification as keyof typeof derivedCounts] += 1;
 
       /* A13.4 — every displayed item carries its notice. */
       if (!link.notice || link.notice.trim().length === 0) {
@@ -146,6 +149,7 @@ function auditGuidanceCounterparts(
     }
 
     /* A13.5 — recorded counts must equal the ones re-derived from the links. */
+    const derivedCounts = deriveGuidanceCounts(registry.links);
     for (const key of Object.keys(derivedCounts) as (keyof typeof derivedCounts)[]) {
       if (registry.counts?.[key] !== derivedCounts[key]) {
         issues.push({
@@ -167,10 +171,144 @@ function auditGuidanceCounterparts(
       });
     }
 
-    const guide = guideByLessonId.get(lessonId) as TeacherSolutionsModel;
-    const studentVisible = derivedCounts.guidance_only + derivedCounts.approved_key;
+    /*
+     * A13.6 — the registry must match the ORIGINAL activity ledger: complete, no
+     * extras, same classification, same sourceRef, same source-lock id.
+     */
+    if (!registry.source) {
+      issues.push({
+        severity: 'error',
+        category: 'answer_disclosure',
+        entityId: lessonId,
+        message: `سجل إرشادات ${lessonId} بلا مصدر سجلات أصلي (source)؛ لا يمكن إثبات مطابقته للمنهاج.`,
+      });
+    } else {
+      const comparison = compareGuidanceToSource(registry, (record) =>
+        toStudentReveal(record) !== null,
+      );
 
-    /* A13.6 — guidance visible to the learner may never be an approved solution. */
+      /* Completeness — every original record needs exactly one link. */
+      for (const activityId of comparison.missing) {
+        issues.push({
+          severity: 'error',
+          category: 'answer_disclosure',
+          entityId: `${lessonId}:${activityId}`,
+          message: `النشاط ${activityId} في ${lessonId} بلا رابط إرشاد معلمي؛ تغطية السجل غير كاملة.`,
+        });
+      }
+
+      /* No dangling links. */
+      for (const activityId of comparison.extra) {
+        issues.push({
+          severity: 'error',
+          category: 'answer_disclosure',
+          entityId: `${lessonId}:${activityId}`,
+          message: `رابط إرشاد في ${lessonId} يشير إلى نشاط غير موجود في السجل الأصلي (${activityId}).`,
+        });
+      }
+
+      /* Classification must come from the record's disclosure, not be re-decided. */
+      for (const drift of comparison.classificationDrift) {
+        issues.push({
+          severity: 'error',
+          category: 'answer_disclosure',
+          entityId: `${lessonId}:${drift.activityId}`,
+          message: `تصنيف الإرشاد في ${lessonId} يخالف تصريح النشاط الأصلي (${drift.activityId}): المسجل «${drift.linked}» والأصلي «${drift.declared}».`,
+        });
+      }
+
+      /* sourceRef must be the record's own declared reference. */
+      for (const drift of comparison.sourceRefDrift) {
+        issues.push({
+          severity: 'error',
+          category: 'answer_disclosure',
+          entityId: `${lessonId}:${drift.activityId}`,
+          message: `مرجع الإرشاد في ${lessonId} لا يطابق مرجع النشاط الأصلي (${drift.activityId}).`,
+        });
+      }
+
+      /* The link must point at the same printed activity. */
+      for (const drift of comparison.sourceIdDrift) {
+        issues.push({
+          severity: 'error',
+          category: 'answer_disclosure',
+          entityId: `${lessonId}:${drift.activityId}`,
+          message: `رابط الإرشاد في ${lessonId} يسند النشاط ${drift.activityId} إلى مصدر ${String(
+            drift.linked,
+          )} بينما الأصل ${String(drift.declared)}.`,
+        });
+      }
+
+      /* A13.7 — whatever the learner can reveal MUST have a teacher counterpart. */
+      for (const activityId of comparison.withoutTeacherCounterpart) {
+        issues.push({
+          severity: 'error',
+          category: 'answer_disclosure',
+          entityId: `${lessonId}:${activityId}`,
+          message: `النشاط ${activityId} ظاهر للطالب في ${lessonId} دون مقابل معلمي واضح؛ الطالب يرى ما لا يستطيع المعلم تدقيقه.`,
+        });
+      }
+      for (const activityId of comparison.unresolved) {
+        issues.push({
+          severity: 'error',
+          category: 'answer_disclosure',
+          entityId: `${lessonId}:${activityId}`,
+          message: `تعذّر قراءة السجل الأصلي للنشاط ${activityId} في ${lessonId}؛ لا يمكن إثبات المقابل المعلمي.`,
+        });
+      }
+    }
+
+    /*
+     * A13.8 — `activityIds` is the registry's own claim of coverage, and it must
+     * equal the ORIGINAL ledger: no id omitted, no extra id, no duplicate. Without
+     * this, a registry could shrink its declared list and still "cover" it.
+     */
+    if (!registry.source) {
+      /* Already reported above; nothing to compare against. */
+    } else {
+      const declaredIds = registry.activityIds;
+      const sourceIds = registry.source.activityIds();
+      if (new Set(declaredIds).size !== declaredIds.length) {
+        issues.push({
+          severity: 'error',
+          category: 'answer_disclosure',
+          entityId: lessonId,
+          message: `قائمة الأنشطة المعلنة في ${lessonId} تكرر معرّفًا؛ لا تثبت التغطية.`,
+        });
+      }
+      if (declaredIds.length !== sourceIds.length) {
+        issues.push({
+          severity: 'error',
+          category: 'answer_disclosure',
+          entityId: lessonId,
+          message: `سجل إرشادات ${lessonId} يعلن ${declaredIds.length} نشاطًا بينما السجل الأصلي يحوي ${sourceIds.length}؛ التغطية ناقصة أو زائدة.`,
+        });
+      }
+      const sourceIdSet = new Set(sourceIds);
+      for (const declaredId of declaredIds) {
+        if (!sourceIdSet.has(declaredId)) {
+          issues.push({
+            severity: 'error',
+            category: 'answer_disclosure',
+            entityId: `${lessonId}:${declaredId}`,
+            message: `قائمة الأنشطة المعلنة في ${lessonId} تتضمن ${declaredId} وهو ليس في السجل الأصلي.`,
+          });
+        }
+      }
+      const declaredIdSet = new Set(declaredIds);
+      for (const sourceId of sourceIds) {
+        if (!declaredIdSet.has(sourceId)) {
+          issues.push({
+            severity: 'error',
+            category: 'answer_disclosure',
+            entityId: `${lessonId}:${sourceId}`,
+            message: `النشاط ${sourceId} في السجل الأصلي غير مذكور في قائمة الأنشطة المعلنة لـ${lessonId}.`,
+          });
+        }
+      }
+    }
+
+    /* A13.9 — guidance visible to the learner may never be an approved solution. */
     if (guide.kind === 'declared_absence' && derivedCounts.approved_key > 0) {
       issues.push({
         severity: 'error',
@@ -180,7 +318,8 @@ function auditGuidanceCounterparts(
       });
     }
 
-    /* A13.7 — visible guidance requires the documented teacher counterpart note. */
+    /* A13.10 — visible guidance requires the documented teacher counterpart note. */
+    const studentVisible = derivedCounts.guidance_only + derivedCounts.approved_key;
     if (
       studentVisible > 0 &&
       guide.kind === 'declared_absence' &&
@@ -195,7 +334,7 @@ function auditGuidanceCounterparts(
     }
   }
 
-  /* A13.8 — a documented student-guidance note MUST have its registry. */
+  /* A13.11 — a documented student-guidance note MUST have its registry. */
   for (const guide of teacherGuides) {
     if (guide.kind !== 'declared_absence') continue;
     const note = guide.declaration?.studentGuidanceNote;
@@ -208,6 +347,32 @@ function auditGuidanceCounterparts(
       });
     }
   }
+}
+
+/** Classifications a link may carry; also used for the unknown-kind guard. */
+const CLASSIFICATION_KEYS: Record<string, true> = {
+  approved_key: true,
+  guidance_only: true,
+  teacher_only: true,
+  no_approved_content: true,
+};
+
+/** Counts re-derived from the links themselves — never from declared numbers. */
+function deriveGuidanceCounts(links: TeacherGuidanceRegistry['links']) {
+  const counts = {
+    total: 0,
+    approved_key: 0,
+    guidance_only: 0,
+    teacher_only: 0,
+    no_approved_content: 0,
+  };
+  for (const link of links) {
+    counts.total += 1;
+    if (link.classification in CLASSIFICATION_KEYS) {
+      counts[link.classification as keyof typeof counts] += 1;
+    }
+  }
+  return counts;
 }
 
 /**

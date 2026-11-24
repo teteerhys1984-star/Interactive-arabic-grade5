@@ -33,6 +33,27 @@ import type { DisclosureBearingRecord } from '../components/common/answerDisclos
  *  - The teacher surface is the only consumer; the student surface is untouched.
  */
 
+/**
+ * The lesson's ORIGINAL activity ledger, exposed as data.
+ *
+ * A13 must compare the registry against the source, not trust the registry's own
+ * claims. `activityIds` alone cannot prove anything (a registry could omit an id
+ * and still list it as covered), so every registry carries a live adapter back to
+ * the authoritative records. A13 calls it with the ids it derived from the
+ * curriculum and compares ids, classifications and `sourceRef`s one by one.
+ */
+export interface TeacherGuidanceSource {
+  /** Ids of the lesson's own answer records, in printed order. */
+  activityIds(): string[];
+  /** The ORIGINAL record for an id, exactly as the single resolver consumes it. */
+  record(activityId: string): DisclosureBearingRecord | null;
+  /**
+   * Source-lock activity id (`U3L1-73-01`) for a lesson activity id, so the audit
+   * can verify each link points at the right printed activity.
+   */
+  sourceActivityId(activityId: string): string | undefined;
+}
+
 /** One source activity projected for the teacher, as a reference only. */
 export interface TeacherGuidanceSourceItem {
   /** Lesson activity id (the original record's own id). */
@@ -100,6 +121,11 @@ export interface TeacherGuidanceRegistry {
   activityIds: string[];
   /** Link-only entries, one per source activity. */
   links: TeacherGuidanceLink[];
+  /**
+   * LIVE handle on the lesson's original records. Never text, never a copy — it
+   * is the authority A13 compares the links against.
+   */
+  source: TeacherGuidanceSource;
   /** Derived from `links`; audit A13 re-derives and compares. */
   counts: TeacherGuidanceCounts;
   /** Reads the ORIGINAL record from its own module (header + text). */
@@ -127,6 +153,7 @@ export function buildTeacherGuidanceRegistry(input: {
   lessonTitle: string;
   recordLocation: string;
   items: TeacherGuidanceSourceItem[];
+  source: TeacherGuidanceSource;
 }): TeacherGuidanceRegistry {
   const links: TeacherGuidanceLink[] = [];
   const byId = new Map<string, DisclosureBearingRecord>();
@@ -169,6 +196,7 @@ export function buildTeacherGuidanceRegistry(input: {
     declaredActivityCount: input.items.length,
     activityIds: input.items.map((item) => item.activityId),
     links,
+    source: input.source,
     counts,
     readRecord: (activityId: string) => byId.get(activityId) ?? null,
   };
@@ -191,3 +219,124 @@ export const teacherOnlyGuidance = (registry: TeacherGuidanceRegistry): TeacherG
 /** True when the registry has anything the learner can reveal. */
 export const hasStudentVisibleGuidance = (registry: TeacherGuidanceRegistry): boolean =>
   registry.counts.guidance_only + registry.counts.approved_key > 0;
+
+/* ------------------------------------------------------------------ */
+/* A13 helpers — pure comparisons against the ORIGINAL records          */
+/* ------------------------------------------------------------------ */
+
+/** The classification the record's own disclosure declares, fail-closed. */
+export function declaredClassification(record: DisclosureBearingRecord | null): AnswerDisclosureKind {
+  const kind = record?.disclosure?.kind;
+  return kind === 'approved_key' ||
+    kind === 'guidance_only' ||
+    kind === 'teacher_only' ||
+    kind === 'no_approved_content'
+    ? kind
+    : 'no_approved_content';
+}
+
+/** The reference the record's own disclosure declares, or an empty string. */
+export function declaredSourceRef(record: DisclosureBearingRecord | null): string {
+  return record?.disclosure?.sourceRef?.trim() ?? '';
+}
+
+/** Structural result of comparing one registry against its original records. */
+export interface GuidanceSourceComparison {
+  /** Records whose link is missing entirely. */
+  missing: string[];
+  /** Links that point at an id the lesson does not have. */
+  extra: string[];
+  /** Links whose classification disagrees with the record's disclosure. */
+  classificationDrift: { activityId: string; declared: AnswerDisclosureKind; linked: AnswerDisclosureKind }[];
+  /** Links whose sourceRef disagrees with the record's disclosure. */
+  sourceRefDrift: { activityId: string; declared: string; linked: string }[];
+  /** Links whose source-lock id disagrees with the record's own source id. */
+  sourceIdDrift: { activityId: string; declared?: string; linked?: string }[];
+  /** Ids the learner can reveal (record declares a text-bearing kind with text). */
+  studentVisible: string[];
+  /** Student-visible ids that have no usable teacher counterpart. */
+  withoutTeacherCounterpart: string[];
+  /** Records that cannot be resolved through the module's own adapter. */
+  unresolved: string[];
+}
+
+/**
+ * Compares a registry's links against the ORIGINAL records of the lesson.
+ *
+ * LINK-ONLY: this reads ids, classifications, `sourceRef`s and source-lock ids.
+ * It never reads or compares answer text, so it cannot become a second data
+ * source for answers.
+ */
+export function compareGuidanceToSource(
+  registry: TeacherGuidanceRegistry,
+  isStudentRevealable: (record: DisclosureBearingRecord) => boolean,
+): GuidanceSourceComparison {
+  const sourceIds = registry.source.activityIds();
+  const sourceIdSet = new Set(sourceIds);
+  const byId = new Map(registry.links.map((link) => [link.activityId, link]));
+
+  const comparison: GuidanceSourceComparison = {
+    missing: [],
+    extra: [],
+    classificationDrift: [],
+    sourceRefDrift: [],
+    sourceIdDrift: [],
+    studentVisible: [],
+    withoutTeacherCounterpart: [],
+    unresolved: [],
+  };
+
+  for (const activityId of sourceIds) {
+    const link = byId.get(activityId);
+    if (!link) {
+      comparison.missing.push(activityId);
+      continue;
+    }
+    const record = registry.source.record(activityId);
+    if (!record) {
+      comparison.unresolved.push(activityId);
+      continue;
+    }
+
+    const declared = declaredClassification(record);
+    if (link.classification !== declared) {
+      comparison.classificationDrift.push({
+        activityId,
+        declared,
+        linked: link.classification,
+      });
+    }
+
+    const declaredRef = declaredSourceRef(record);
+    if (declaredRef.length > 0 && link.sourceRef.trim() !== declaredRef) {
+      comparison.sourceRefDrift.push({
+        activityId,
+        declared: declaredRef,
+        linked: link.sourceRef.trim(),
+      });
+    }
+
+    const declaredSourceId = registry.source.sourceActivityId(activityId);
+    if (declaredSourceId && link.sourceActivityId && link.sourceActivityId !== declaredSourceId) {
+      comparison.sourceIdDrift.push({
+        activityId,
+        declared: declaredSourceId,
+        linked: link.sourceActivityId,
+      });
+    }
+
+    if (isStudentRevealable(record)) {
+      comparison.studentVisible.push(activityId);
+      /* A counterpart exists only if the link is the very record the learner sees. */
+      if (!link.sourceRef.trim() || link.classification !== declared) {
+        comparison.withoutTeacherCounterpart.push(activityId);
+      }
+    }
+  }
+
+  for (const link of registry.links) {
+    if (!sourceIdSet.has(link.activityId)) comparison.extra.push(link.activityId);
+  }
+
+  return comparison;
+}

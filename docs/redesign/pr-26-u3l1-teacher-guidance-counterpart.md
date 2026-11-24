@@ -81,9 +81,23 @@ labelled «عرض الإرشادات المقترحة للدرس …» — **not
 solutions view stays unreachable, and no `.guide-solution-card` or
 «الحل النموذجي:» text exists anywhere in this lesson.
 
-### 2.3 Audit rule A13 — `src/utils/audit.ts`
+### 2.3 Audit rule A13 — `src/utils/audit.ts` (bound to the ORIGINAL ledger)
 
 `auditCurriculum(curriculum, tests, teacherGuides, guidanceRegistries)`.
+
+The registry is **not trusted on its own word**. Every registry carries a
+`source: TeacherGuidanceSource` handle back to the lesson's authoritative
+records:
+
+```ts
+interface TeacherGuidanceSource {
+  activityIds(): string[];                              // the real ledger
+  record(activityId): DisclosureBearingRecord | null;   // the real record
+  sourceActivityId(activityId): string | undefined;     // the printed task id
+}
+```
+
+A13 then re-derives every claim through `compareGuidanceToSource()`:
 
 | Rule | Severity | Rejects |
 |---|---|---|
@@ -91,13 +105,29 @@ solutions view stays unreachable, and no `.guide-solution-card` or
 | A13.2 | error | a registry with no registered solutions record |
 | A13.3 | error | duplicate/empty activity id, missing `sourceRef`, unknown classification |
 | A13.4 | error | a displayed item with no notice |
-| A13.5 | error | recorded counts ≠ counts re-derived from the links; `declaredActivityCount` ≠ link count |
-| A13.6 | error | `approved_key > 0` inside a `declared_absence` (laundering a suggestion) |
-| A13.7 | error | student-visible guidance without the documented `studentGuidanceNote` |
-| A13.8 | error | a documented `studentGuidanceNote` with **no** registry (student sees what the teacher cannot audit) |
+| A13.5 | error | recorded counts ≠ counts re-derived from the links |
+| A13.6 | error | **a record with no link (incomplete coverage)**, a link to a non-existent record (**extra**), a classification that contradicts the record's `disclosure`, a `sourceRef` that is not the record's own reference, or a `sourceActivityId` that points at the wrong printed task |
+| A13.7 | error | any record the **learner can reveal** (decided by the same `toStudentReveal` the student surface uses) with no usable teacher counterpart |
+| A13.8 | error | `activityIds` that omits an original id, lists a foreign id, repeats one, or has a different length than the original ledger |
+| A13.9 | error | `approved_key > 0` inside a `declared_absence` (laundering a suggestion) |
+| A13.10 | error | student-visible guidance without the documented `studentGuidanceNote` |
+| A13.11 | error | a documented `studentGuidanceNote` with **no** registry |
 
-A13 reads **only** ids, classifications, `sourceRef`s and counts — never text — so
-it cannot become a second data source either.
+A13 reads **only** ids, classifications, `sourceRef`s, source-lock ids and
+counts — never text — so it cannot become a second data source.
+
+### 2.3.1 U3L1 source adapter — `src/data/unit3Lesson1/guidanceRegistry.ts`
+
+```ts
+const U3L1_GUIDANCE_SOURCE = {
+  activityIds: () => U3L1_ACTIVITIES.map((a) => a.id),
+  record: (id) => U3L1_ACTIVITY_BY_ID[id] ? u3l1RevealRecord(U3L1_ACTIVITY_BY_ID[id]) : null,
+  sourceActivityId: (id) => U3L1_ACTIVITY_BY_ID[id]?.sourceActivityId,
+};
+```
+
+It is a live handle, not a copy: the records and their text stay in
+`activities.ts` / `guidance.ts`.
 
 ### 2.4 Supervision panel — `GuidanceSupervisionPanel.tsx`
 
@@ -115,52 +145,66 @@ repeated** — a test asserts every suggestion string is absent from the panel.
 - The 5 calligraphy activities still have no invented answer and no button.
 - No lesson content file was modified (`src/data/**` changes are additions only).
 
-## 3. The mandatory triple gate (for every future lesson)
+## 3. The mandatory triple gate (automatic over the registered ledger)
 
-Every lesson must now satisfy three gates that are checked together, from the
-same data, by `src/test/teacherGuidanceCounterpart.test.tsx`:
+The gate is no longer a hand-maintained list of lessons. It walks
+`curriculumRegistry` and resolves each lesson's ORIGINAL records through a
+registered adapter, so expectations are **derived from the data**:
 
 ```
 GATE 1 — student      disclosure decides: approved_key/guidance_only reveal,
                       teacher_only/no_approved_content never do; no text ⇒ no
                       payload; the resolver is the only decision point.
-GATE 2 — teacher      every record the learner can reveal has a teacher link in
-                      the same lesson; a declared-absence lesson that shows
-                      guidance must carry studentGuidanceNote; and that note
-                      without a registry is an error (A13.8).
-GATE 3 — supervision  counts re-derived from links match the declared counts;
+GATE 2 — teacher      for every lesson: approved guide ⇒ one solution per source
+                      record (1:1); declared absence ⇒ a registry is REQUIRED as
+                      soon as anything is revealable, and it must cover every
+                      record with matching classification and sourceRef.
+GATE 3 — supervision  counts re-derived from links equal the declared counts;
                       the four classifications add to the total; inside a
                       declared absence approved_key must be 0. Status, counts and
                       gaps are shown without repeating any guidance text.
 ```
 
-`expectTripleGate({ label, records, registry, guide })` is the reusable helper.
-It is executed against:
+### Automatic coverage, and how a new lesson is caught
 
-- **U3L1** (declared absence, 52 + 5) — must pass,
-- **U2L2** (a previously working approved lesson, 22 approved + 29 guidance) — the
-  comparison lesson, proving the gate is not special-cased to U3L1,
-- **U2L3** (43 × `no_approved_content`, nothing revealable) — the contrast case
-  where no counterpart is required and A13 stays silent.
+`src/test/teacherGuidanceCounterpart.test.tsx` iterates
+`curriculumRegistry.units.flatMap(u => u.lessons)` — **every registered lesson**,
+with no per-lesson test edit. A lesson added to the registry is picked up
+immediately:
 
-### Applying the gate to a new lesson
+- if its record adapter is missing, the test fails loudly
+  (`no record adapter registered for lesson …`) instead of skipping it;
+- if it is an approved guide, its solutions must cover its records 1:1;
+- if it is a declared absence with anything revealable, it must ship a
+  source-bound registry that matches record-for-record;
+- if nothing is revealable (like U2L3), no registry is needed and A13 stays silent.
 
-1. Build the registry: `buildTeacherGuidanceRegistry({ lessonId, unitId, lessonTitle, recordLocation, items })`
-   where each item holds the **original** record (via the lesson's existing
-   adapter such as `fromKeyedLesson` / `u3l1RevealRecord`).
-2. Register it in `App.tsx` → `TEACHER_GUIDANCE_REGISTRIES`.
-3. Add it to `expectTripleGate` in the test. A13 then blocks any lesson that shows
-   the learner guidance with no teacher counterpart.
+`expectTripleGate({ label, records, registry, guide })` remains the reusable
+per-lesson assertion; the automatic loop above is the guarantee that no lesson is
+forgotten.
 
-If a lesson has nothing revealable (like U2L3), no registry is needed — A13.8 only
-fires when a `studentGuidanceNote` promises guidance that has no registry.
+### Negative tests (the gap this revision closes)
+
+Each of these fails the audit, and each is a test:
+
+| Mutation | Caught by |
+|---|---|
+| delete one link | A13.6 missing + A13.5 (declared count vs links) |
+| delete the link of a *revealable* activity | A13.6 missing, and the record is still revealable from the source |
+| change a classification (`guidance_only` → `approved_key`) | A13.6 drift + A13.9 laundering |
+| change a `sourceRef` | A13.6 reference drift |
+| change a `sourceActivityId` | A13.6 printed-task drift |
+| add a dangling link | A13.6 extra |
+| shrink `activityIds` | A13.8 omission |
+| add a revealable activity to the ledger with no counterpart | A13.6 missing (the regression case) |
+| drop the `source` adapter | A13.6 no-source |
 
 ## 4. Verification
 
 | Check | Result |
 |---|---|
 | `npx tsc -b` | pass, no errors |
-| `npx vitest run` | **402 tests / 27 files, all pass** (24 new) |
+| `npx vitest run` | **419 tests / 27 files, all pass** (42 in the guidance suite) |
 | `npm run build` | pass (`dist` built; only the pre-existing chunk-size warning) |
 | Other lessons | untouched: no change to their data files; audit gains no issue for lesson1/2/3, U2L1, U2L2, U2L3 (asserted) |
 | Student surface | 52 payloads with heading «إرشادات للإجابة», 5 nulls (u3l1-a-45…49) |
@@ -171,11 +215,11 @@ fires when a `studentGuidanceNote` promises guidance that has no registry.
 
 1. **Front-end gate only.** The teacher area password is still a client-side
    check in a static bundle — unchanged by this PR, and documented since PR #24.
-2. **Counts are per registered lesson.** A13 validates the registries it is given
-   against the guides it is given. A lesson that shows guidance to the learner
-   *and* is missing from both lists would only be caught once its registry is
-   added; the gate prevents the shipped configuration from drifting, not a future
-   omission at authoring time.
+2. **A new lesson needs a one-line adapter.** A13 verifies any registry it is
+   given against that registry's own source handle, and the automatic loop fails
+   if a registered lesson has no adapter — but the adapter (four lines: ids,
+   record, source-lock id) must be written when the lesson is registered. That is
+   a data-authoring step, not a test edit.
 3. **U2L2 comparison is built in the test, not shipped.** Its registry is
    constructed inside the test to prove the contract is reusable; shipping one for
    every approved lesson is deferred (it would add teacher-visible projection where

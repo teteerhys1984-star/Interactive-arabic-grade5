@@ -2,8 +2,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import {
   buildTeacherGuidanceRegistry,
+  compareGuidanceToSource,
   declaredContentGaps,
   studentVisibleGuidance,
+  TeacherGuidanceSource,
   TeacherGuidanceSourceItem,
 } from '../data/guidanceRegistry';
 import { U3L1_GUIDANCE_REGISTRY } from '../data/unit3Lesson1/guidanceRegistry';
@@ -15,6 +17,9 @@ import { U2L3_SOLUTIONS_DECLARATION } from '../data/unit2Lesson3/solutions';
 import { U2L3_ACTIVITIES } from '../data/unit2Lesson3/activities';
 import { LESSON2_TEACHER_GUIDE } from '../data/lesson2/teacherGuide';
 import { LESSON2_ACTIVITIES } from '../data/lesson2/activities';
+import { TEXTBOOK_ACTIVITIES } from '../data/lesson1/activities';
+import { LESSON3_ACTIVITIES } from '../data/lesson3/activities';
+import { U2L1_ACTIVITIES } from '../data/unit2Lesson1/activities';
 import { curriculumRegistry } from '../data/curriculumRegistry';
 import { ALL_ASSESSMENTS } from '../data/assessments';
 import { TeacherSolutionsBrowser } from '../components/teacher/TeacherSolutionsBrowser';
@@ -24,7 +29,8 @@ import {
   TeacherGuidanceSection,
 } from '../components/teacher/TeacherGuidanceSection';
 import { auditCurriculum } from '../utils/audit';
-import { resolveAnswerReveal } from '../components/common/answerDisclosure';
+import { fromKeyedLesson, fromLesson1, resolveAnswerReveal } from '../components/common/answerDisclosure';
+import type { DisclosureBearingRecord } from '../components/common/answerDisclosure';
 import { LESSON1_TEACHER_GUIDE } from '../data/lesson1/teacherGuide';
 import { LESSON3_TEACHER_GUIDE } from '../data/lesson3/teacherGuide';
 import { U2L1_TEACHER_GUIDE } from '../data/unit2Lesson1/teacherGuide';
@@ -56,6 +62,22 @@ const SHIPPED_GUIDES: TeacherSolutionsModel[] = [
 ];
 
 const SHIPPED_REGISTRIES = [U3L1_GUIDANCE_REGISTRY];
+
+/** Minimal source adapter over a lesson's own activity list (tests only). */
+const sourceOf = <T extends { id: string; sourceActivityId?: string }>(
+  activities: T[],
+  toRecord: (activity: T) => DisclosureBearingRecord,
+): TeacherGuidanceSource => ({
+  activityIds: () => activities.map((activity) => activity.id),
+  record: (activityId) => {
+    const activity = activities.find((entry) => entry.id === activityId);
+    return activity ? toRecord(activity) : null;
+  },
+  sourceActivityId: (activityId) =>
+    activities.find((entry) => entry.id === activityId)?.sourceActivityId,
+});
+
+const U3L1_SOURCE = sourceOf(U3L1_ACTIVITIES, (activity) => u3l1RevealRecord(activity));
 
 const audit = (
   guides: TeacherSolutionsModel[] = SHIPPED_GUIDES,
@@ -178,6 +200,7 @@ describe('Audit A13 — student-visible guidance needs a teacher counterpart', (
       lessonTitle: 'العُلَماءُ الصِّغارُ',
       recordLocation: 'src/data/unit3Lesson1/guidance.ts',
       items,
+      source: U3L1_SOURCE,
     });
     broken.links[0] = { ...broken.links[0], sourceRef: '   ' };
     broken.links[1] = { ...broken.links[1], notice: '   ' };
@@ -298,6 +321,14 @@ describe('Reusable triple gate — student / teacher / supervision', () => {
       unitId: 'unit2',
       lessonTitle: 'الذَّكاءُ الاصطِناعيُّ',
       recordLocation: 'src/data/unit2Lesson2/activities.ts',
+      source: sourceOf(U2L2_ACTIVITIES, (activity) => ({
+        id: activity.id,
+        sourceActivityId: activity.sourceActivityId,
+        disclosure: activity.disclosure,
+        modelAnswer: activity.teacher.answerOrGuidance,
+        explanation: activity.checkExplanation,
+        teacher: activity.teacher,
+      })),
       items: U2L2_TEACHER_GUIDE.sourceCoverage
         ? U2L2_ACTIVITIES.map((activity) => ({
             activityId: activity.id,
@@ -338,6 +369,11 @@ describe('Reusable triple gate — student / teacher / supervision', () => {
       unitId: 'unit2',
       lessonTitle: 'بِالْعِلْمِ تَرْقَى',
       recordLocation: 'src/data/unit2Lesson3/activities.ts',
+      source: sourceOf(U2L3_ACTIVITIES, (activity) => ({
+        id: activity.id,
+        sourceActivityId: activity.sourceActivityId,
+        disclosure: activity.disclosure,
+      })),
       items: U2L3_ACTIVITIES.map((activity) => ({
         activityId: activity.id,
         sourceActivityId: activity.sourceActivityId,
@@ -365,6 +401,309 @@ describe('Reusable triple gate — student / teacher / supervision', () => {
     expect(report.issues.some((issue) => issue.message.includes('lesson2'))).toBe(false);
     expect(LESSON2_ACTIVITIES.length).toBe(53);
     expect(LESSON2_TEACHER_GUIDE.exerciseSolutions).toHaveLength(53);
+  });
+});
+
+
+describe('A13 is bound to the ORIGINAL activity ledger (source-verified)', () => {
+  /** A registry clone with one mutation applied — never touching shipped data. */
+  const mutate = (mutator: (links: typeof U3L1_GUIDANCE_REGISTRY['links']) => typeof U3L1_GUIDANCE_REGISTRY['links']) => {
+    const links = mutator([...U3L1_GUIDANCE_REGISTRY.links]);
+    return {
+      ...U3L1_GUIDANCE_REGISTRY,
+      links,
+      counts: {
+        total: links.length,
+        approved_key: links.filter((link) => link.classification === 'approved_key').length,
+        guidance_only: links.filter((link) => link.classification === 'guidance_only').length,
+        teacher_only: links.filter((link) => link.classification === 'teacher_only').length,
+        no_approved_content: links.filter((link) => link.classification === 'no_approved_content').length,
+      },
+    };
+  };
+
+  it('the shipped registry matches the source record for record', () => {
+    const comparison = compareGuidanceToSource(
+      U3L1_GUIDANCE_REGISTRY,
+      (record) => resolveAnswerReveal(record, 'student') !== null,
+    );
+    expect(comparison.missing).toEqual([]);
+    expect(comparison.extra).toEqual([]);
+    expect(comparison.classificationDrift).toEqual([]);
+    expect(comparison.sourceRefDrift).toEqual([]);
+    expect(comparison.sourceIdDrift).toEqual([]);
+    expect(comparison.unresolved).toEqual([]);
+    expect(comparison.withoutTeacherCounterpart).toEqual([]);
+    /* 52 of the 57 records are revealable, and all 52 have a counterpart. */
+    expect(comparison.studentVisible).toHaveLength(52);
+  });
+
+  it('DELETING one link fails the audit (missing record, incomplete coverage)', () => {
+    const oneRemoved = mutate((links) => links.filter((link) => link.activityId !== 'u3l1-a-01'));
+    const report = audit(SHIPPED_GUIDES, [oneRemoved]);
+    expect(
+      errors(report).some(
+        (issue) =>
+          issue.entityId === 'unit3-lesson1:u3l1-a-01' &&
+          issue.message.includes('بلا رابط إرشاد معلمي'),
+      ),
+    ).toBe(true);
+    /* The declared activity count (57) is now larger than the links (56): the
+       completeness accounting catches the deletion even though counts were
+       recomputed, because the source still has 57 records. */
+    expect(
+      errors(report).some((issue) => issue.message.includes('بينما يحوي')),
+    ).toBe(true);
+  });
+
+  it('DELETING the link of a revealable activity is specifically a missing counterpart', () => {
+    /* u3l1-a-45 is a declared gap; u3l1-a-01 is revealable. Deleting the latter
+       removes the teacher counterpart of something the learner can see. */
+    const withoutRevealable = mutate((links) =>
+      links.filter((link) => link.activityId !== 'u3l1-a-01'),
+    );
+    const comparison = compareGuidanceToSource(
+      withoutRevealable,
+      (record) => resolveAnswerReveal(record, 'student') !== null,
+    );
+    expect(comparison.missing).toContain('u3l1-a-01');
+    /* The learner can still reveal it — the source did not change. */
+    const record = U3L1_GUIDANCE_REGISTRY.source.record('u3l1-a-01');
+    expect(record).not.toBeNull();
+    expect(resolveAnswerReveal(record!, 'student')).not.toBeNull();
+  });
+
+  it('CHANGING a classification fails the audit (drift from the disclosure)', () => {
+    const drifted = mutate((links) =>
+      links.map((link) =>
+        link.activityId === 'u3l1-a-02'
+          ? { ...link, classification: 'approved_key' as const }
+          : link,
+      ),
+    );
+    const report = audit(SHIPPED_GUIDES, [drifted]);
+    expect(
+      errors(report).some(
+        (issue) =>
+          issue.entityId === 'unit3-lesson1:u3l1-a-02' &&
+          issue.message.includes('يخالف تصريح النشاط الأصلي'),
+      ),
+    ).toBe(true);
+    expect(
+      errors(report).some((issue) => issue.message.includes('لا يجوز تحويل إرشاد إلى مفتاح معتمد')),
+    ).toBe(true);
+  });
+
+  it('CHANGING a sourceRef fails the audit (no unattributable reference)', () => {
+    const rewired = mutate((links) =>
+      links.map((link) =>
+        link.activityId === 'u3l1-a-03'
+          ? { ...link, sourceRef: 'src/data/unit3Lesson1/guidance.ts#somewhere-else' }
+          : link,
+      ),
+    );
+    const report = audit(SHIPPED_GUIDES, [rewired]);
+    expect(
+      errors(report).some(
+        (issue) =>
+          issue.entityId === 'unit3-lesson1:u3l1-a-03' &&
+          issue.message.includes('لا يطابق مرجع النشاط الأصلي'),
+      ),
+    ).toBe(true);
+  });
+
+  it('CHANGING a source-lock id fails the audit (link points at the wrong printed task)', () => {
+    const mislabelled = mutate((links) =>
+      links.map((link) =>
+        link.activityId === 'u3l1-a-04'
+          ? { ...link, sourceActivityId: 'U3L1-99-99' }
+          : link,
+      ),
+    );
+    const report = audit(SHIPPED_GUIDES, [mislabelled]);
+    expect(
+      errors(report).some((issue) => issue.message.includes('بينما الأصل')),
+    ).toBe(true);
+  });
+
+  it('ADDING a dangling link fails the audit (no invented activity)', () => {
+    const withExtra = mutate((links) => [
+      ...links,
+      {
+        activityId: 'u3l1-a-99',
+        sourceRef: 'src/data/unit3Lesson1/guidance.ts#u3l1-a-99',
+        classification: 'guidance_only' as const,
+        notice: 'تنبيه',
+      },
+    ]);
+    const report = audit(SHIPPED_GUIDES, [withExtra]);
+    expect(
+      errors(report).some((issue) => issue.message.includes('نشاط غير موجود في السجل الأصلي')),
+    ).toBe(true);
+  });
+
+  it('SHRINKING activityIds fails the audit (declared coverage cannot prove itself)', () => {
+    const shrunk = {
+      ...U3L1_GUIDANCE_REGISTRY,
+      activityIds: U3L1_GUIDANCE_REGISTRY.activityIds.slice(0, 10),
+    };
+    const report = audit(SHIPPED_GUIDES, [shrunk]);
+    expect(
+      errors(report).some((issue) => issue.message.includes('غير مذكور في قائمة الأنشطة المعلنة')),
+    ).toBe(true);
+    expect(errors(report).some((issue) => issue.message.includes('التغطية ناقصة أو زائدة'))).toBe(true);
+  });
+
+  it('ADDING a revealable activity to the ledger without a counterpart fails the audit', () => {
+    /* A new printed activity appears in the source and the learner can reveal it,
+       but nobody adds a teacher link. This is exactly the regression the gate
+       exists to prevent — and the audit must catch it from the data alone. */
+    const syntheticRecord: DisclosureBearingRecord = {
+      id: 'u3l1-a-88',
+      sourceActivityId: 'U3L1-88-01',
+      disclosure: { kind: 'guidance_only', sourceRef: 'U3L1-88-01' },
+      modelAnswer: 'إرشاد جديد',
+    };
+    const sourceWithNewActivity: TeacherGuidanceSource = {
+      activityIds: () => [...U3L1_ACTIVITIES.map((a) => a.id), 'u3l1-a-88'],
+      record: (activityId) =>
+        activityId === 'u3l1-a-88'
+          ? syntheticRecord
+          : U3L1_GUIDANCE_REGISTRY.source.record(activityId),
+      sourceActivityId: (activityId) =>
+        activityId === 'u3l1-a-88'
+          ? 'U3L1-88-01'
+          : U3L1_GUIDANCE_REGISTRY.source.sourceActivityId(activityId),
+    };
+    /* The learner can indeed reveal it, so it demands a counterpart. */
+    expect(resolveAnswerReveal(syntheticRecord, 'student')).not.toBeNull();
+
+    const registry = { ...U3L1_GUIDANCE_REGISTRY, source: sourceWithNewActivity };
+    const report = audit(SHIPPED_GUIDES, [registry]);
+    expect(
+      errors(report).some(
+        (issue) =>
+          issue.entityId === 'unit3-lesson1:u3l1-a-88' &&
+          issue.message.includes('بلا رابط إرشاد معلمي'),
+      ),
+    ).toBe(true);
+    expect(
+      errors(report).some((issue) => issue.message.includes('بينما السجل الأصلي يحوي')),
+    ).toBe(true);
+  });
+
+  it('a registry with no SOURCE adapter is rejected outright', () => {
+    const { source: _omitted, ...withoutSource } = U3L1_GUIDANCE_REGISTRY;
+    const report = audit(SHIPPED_GUIDES, [withoutSource as never]);
+    expect(
+      errors(report).some((issue) => issue.message.includes('بلا مصدر سجلات أصلي')),
+    ).toBe(true);
+  });
+});
+
+describe('Triple gate is AUTOMATIC over the registered ledger', () => {
+  /**
+   * The gate is no longer a hand-maintained list. It walks the curriculum
+   * registry, resolves each lesson's ORIGINAL records through registered
+   * adapters, and derives the expectations from the data itself. A new lesson is
+   * covered the moment it is registered — no test edit required.
+   */
+  const REGISTERED_RECORD_SOURCES: Record<string, { activities: { id: string }[]; toRecord: (activity: never) => DisclosureBearingRecord }> = {
+    lesson1: { activities: TEXTBOOK_ACTIVITIES, toRecord: (activity) => fromLesson1(activity) },
+    lesson2: { activities: LESSON2_ACTIVITIES, toRecord: (activity) => fromKeyedLesson(activity) },
+    lesson3: { activities: LESSON3_ACTIVITIES, toRecord: (activity) => fromKeyedLesson(activity) },
+    'unit2-lesson1': { activities: U2L1_ACTIVITIES, toRecord: (activity) => fromKeyedLesson(activity) },
+    'unit2-lesson2': { activities: U2L2_ACTIVITIES, toRecord: (activity) => fromKeyedLesson(activity) },
+    'unit2-lesson3': { activities: U2L3_ACTIVITIES, toRecord: (activity) => activity },
+    'unit3-lesson1': { activities: U3L1_ACTIVITIES, toRecord: (activity) => u3l1RevealRecord(activity) },
+  };
+
+  const registeredLessonIds = curriculumRegistry.units.flatMap((unit) =>
+    unit.lessons.map((lesson) => lesson.metadata.id),
+  );
+
+  it.each(registeredLessonIds)(
+    '%s: student-visible records all have a teacher counterpart in the registry',
+    (lessonId) => {
+      const source = REGISTERED_RECORD_SOURCES[lessonId];
+      /* A newly registered lesson with no adapter fails loudly instead of being
+         skipped silently — that is the whole point of "automatic". */
+      expect(source, `no record adapter registered for lesson ${lessonId}`).toBeDefined();
+
+      const revealable = source.activities.filter(
+        (activity) =>
+          resolveAnswerReveal(source.toRecord(activity as never), 'student') !== null,
+      );
+      const registry = U3L1_GUIDANCE_REGISTRY;
+      if (lessonId !== registry.lessonId) {
+        /* Only lessons that ship a guidance registry are in scope today; the
+           assertion above guarantees they cannot be *forgotten* silently. */
+        expect(registry.lessonId).not.toBe(lessonId);
+        return;
+      }
+      expect(revealable).toHaveLength(52);
+      for (const activity of revealable) {
+        expect(
+          registry.links.some((link) => link.activityId === activity.id),
+          `${lessonId}: ${activity.id} is revealable but has no teacher link`,
+        ).toBe(true);
+      }
+    },
+  );
+
+  it('every registered lesson satisfies the automatic counterpart contract', () => {
+    /*
+     * AUTOMATIC RULE (no per-lesson test edits):
+     *  - approved guide    → its solutions view IS the teacher counterpart, so it
+     *                        must carry one solution per source record (1:1).
+     *  - declared absence  → a registry is REQUIRED as soon as the learner can
+     *                        reveal anything, and it must match the source.
+     * A lesson with nothing revealable needs neither, and A13 stays silent.
+     */
+    for (const lessonId of registeredLessonIds) {
+      const source = REGISTERED_RECORD_SOURCES[lessonId];
+      const records = source.activities;
+      const revealable = records.filter(
+        (activity) =>
+          resolveAnswerReveal(source.toRecord(activity as never), 'student') !== null,
+      );
+      const registry = SHIPPED_REGISTRIES.find((entry) => entry.lessonId === lessonId);
+      const guide = SHIPPED_GUIDES.find((entry) => entry.lessonId === lessonId);
+
+      expect(guide, `${lessonId} has no solutions record`).toBeDefined();
+
+      if (registry) {
+        const comparison = compareGuidanceToSource(
+          registry,
+          (record) => resolveAnswerReveal(record, 'student') !== null,
+        );
+        expect(comparison.missing, `${lessonId}: missing links`).toEqual([]);
+        expect(comparison.extra, `${lessonId}: dangling links`).toEqual([]);
+        expect(comparison.classificationDrift, `${lessonId}: classification drift`).toEqual([]);
+        expect(comparison.withoutTeacherCounterpart, `${lessonId}: uncovered`).toEqual([]);
+        expect(comparison.studentVisible.length, `${lessonId}: revealable`).toBe(revealable.length);
+        /* Coverage is proven above via `missing`: every record has a link, so the
+           five calligraphy gaps are linked too (they just reveal nothing). */
+        expect(comparison.missing, `${lessonId}: full coverage`).toEqual([]);
+        expect(registry.links.length, `${lessonId}: links`).toBe(records.length);
+        continue;
+      }
+
+      if (guide!.kind === 'approved') {
+        /* The approved solutions view must cover every record 1:1. */
+        expect(
+          guide!.exerciseSolutions.length,
+          `${lessonId}: approved guide does not cover every source record`,
+        ).toBe(records.length);
+        continue;
+      }
+
+      /* Declared absence with no registry is only legal when nothing is shown. */
+      expect(
+        revealable,
+        `${lessonId} shows ${revealable.length} revealable records but ships no guidance registry`,
+      ).toHaveLength(0);
+    }
   });
 });
 

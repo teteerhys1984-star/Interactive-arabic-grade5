@@ -1,4 +1,4 @@
-import { U3L1_ACTIVITIES, U3L1Activity } from './activities';
+import { U3L1_ACTIVITIES, U3L1_ACTIVITY_BY_ID, U3L1Activity } from './activities';
 import {
   U3L1_GUIDANCE_NOTICE,
   U3L1_SUGGESTED_ANSWERS,
@@ -40,10 +40,24 @@ const toItem = (activity: U3L1Activity): TeacherGuidanceSourceItem => {
   };
 };
 
+/**
+ * The ORIGINAL U3L1 ledger, exposed so A13 compares links against the authority
+ * instead of trusting the registry's own declared coverage.
+ */
+const U3L1_GUIDANCE_SOURCE = {
+  activityIds: () => U3L1_ACTIVITIES.map((activity) => activity.id),
+  record: (activityId: string) => {
+    const activity = U3L1_ACTIVITY_BY_ID[activityId];
+    return activity ? u3l1RevealRecord(activity) : null;
+  },
+  sourceActivityId: (activityId: string) => U3L1_ACTIVITY_BY_ID[activityId]?.sourceActivityId,
+};
+
 export const U3L1_GUIDANCE_REGISTRY: TeacherGuidanceRegistry = buildTeacherGuidanceRegistry({
   lessonId: 'unit3-lesson1',
   unitId: 'unit3',
   lessonTitle: 'العُلَماءُ الصِّغارُ',
   recordLocation: U3L1_GUIDANCE_RECORD_LOCATION,
   items: U3L1_ACTIVITIES.map(toItem),
+  source: U3L1_GUIDANCE_SOURCE,
 });
