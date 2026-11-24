@@ -10,6 +10,8 @@ import {
 import { ArabicNumber } from '../common/BiDi';
 import { toArabicDigits } from '../../utils/arabicDigits';
 import { Breadcrumbs } from '../ui/PageChrome';
+import { TeacherGuidanceRegistry } from '../../data/guidanceRegistry';
+import { TeacherGuidanceSection } from './TeacherGuidanceSection';
 
 /**
  * Teacher solutions browser — «الأدلة وحلول التدريبات» drill-down.
@@ -49,6 +51,13 @@ export interface TeacherSolutionsBrowserProps {
   curriculum: CurriculumRegistry;
   teacherGuides: TeacherSolutionsModel[];
   unitReviewSolutions?: UnitReviewSolutionsEntry[];
+  /**
+   * Link-only teacher guidance projections, keyed by lesson id. A lesson that
+   * shows the learner platform suggestions MUST have an entry here — audit A13
+   * enforces that — and the entry is rendered as its own advisory section inside
+   * that lesson's declared-absence view. It never adds solutions to the record.
+   */
+  guidanceRegistries?: TeacherGuidanceRegistry[];
 }
 
 type SolutionsView =
@@ -109,7 +118,10 @@ const ApprovedGuideBody: React.FC<{ guide: ApprovedLessonSolutions }> = ({ guide
  * sourced. It NEVER renders an answer, a model solution or an empty solution
  * card: there is nothing approved to show, and no guess is offered instead.
  */
-const DeclaredAbsenceBody: React.FC<{ record: DeclaredAbsenceLessonSolutions }> = ({ record }) => {
+const DeclaredAbsenceBody: React.FC<{
+  record: DeclaredAbsenceLessonSolutions;
+  guidance?: TeacherGuidanceRegistry;
+}> = ({ record, guidance }) => {
   const { declaration, sourceRecords } = record;
   return (
     <div className="teacher-guide teacher-declared-absence">
@@ -135,6 +147,8 @@ const DeclaredAbsenceBody: React.FC<{ record: DeclaredAbsenceLessonSolutions }> 
           </p>
         )}
       </div>
+      {/* The student's advisory counterpart — its own section, clearly NOT solutions. */}
+      {guidance && <TeacherGuidanceSection registry={guidance} />}
       <details className="teacher-coverage-ledger teacher-absence-ledger">
         <summary>
           سجل المصادر المدقق: <ArabicNumber value={toArabicDigits(sourceRecords.length)} /> نشاطاً مطبوعاً
@@ -168,9 +182,12 @@ const DeclaredAbsenceBody: React.FC<{ record: DeclaredAbsenceLessonSolutions }> 
 };
 
 /** One entry point for all three states — used by the lesson level view. */
-const LessonSolutionsBody: React.FC<{ record: TeacherSolutionsModel | undefined }> = ({ record }) => {
+const LessonSolutionsBody: React.FC<{
+  record: TeacherSolutionsModel | undefined;
+  guidance?: TeacherGuidanceRegistry;
+}> = ({ record, guidance }) => {
   if (!record) return <p className="teacher-missing-note">{LESSON_MISSING_NOTE}</p>;
-  if (isDeclaredAbsence(record)) return <DeclaredAbsenceBody record={record} />;
+  if (isDeclaredAbsence(record)) return <DeclaredAbsenceBody record={record} guidance={guidance} />;
   if (isApproved(record)) return <ApprovedGuideBody guide={record} />;
   /* Unknown kind: fail closed — never render a solutions body. */
   return <p className="teacher-missing-note">{LESSON_MISSING_NOTE}</p>;
@@ -315,6 +332,7 @@ export const TeacherSolutionsBrowser: React.FC<TeacherSolutionsBrowserProps> = (
   curriculum,
   teacherGuides,
   unitReviewSolutions = [],
+  guidanceRegistries = [],
 }) => {
   const headingRef = useRef<HTMLHeadingElement | null>(null);
   const [view, setView] = useState<SolutionsView>({ level: 'units' });
@@ -329,6 +347,9 @@ export const TeacherSolutionsBrowser: React.FC<TeacherSolutionsBrowserProps> = (
   const allLessons = units.flatMap((unit) => lessonsOf(unit));
   const lessonById = new Map(allLessons.map((lesson) => [lesson.metadata.id, lesson]));
   const unitById = new Map(units.map((unit) => [unit.metadata.id, unit]));
+  const guidanceByLessonId = new Map(
+    guidanceRegistries.map((registry) => [registry.lessonId, registry]),
+  );
 
   // Join guides to the REGISTRY (source of truth for unit and order).
   const guidesByLessonId = new Map<string, TeacherSolutionsModel>();
@@ -505,6 +526,7 @@ export const TeacherSolutionsBrowser: React.FC<TeacherSolutionsBrowserProps> = (
               );
             }
             if (isDeclaredAbsence(guide)) {
+              const guidance = guidanceByLessonId.get(lesson.metadata.id);
               return (
                 <div
                   key={lesson.metadata.id}
@@ -519,8 +541,9 @@ export const TeacherSolutionsBrowser: React.FC<TeacherSolutionsBrowserProps> = (
                   <p className="teacher-missing-note teacher-declared-note">
                     {LESSON_DECLARED_ABSENCE_NOTE}
                   </p>
-                  {/* The gap is documented IN the card: no open button, because
-                      there is no solutions view to open and no answer to show. */}
+                  {/* The gap is documented IN the card. There is no solutions view
+                      to open — only, where one exists, the teacher's advisory
+                      guidance counterpart, clearly labelled as not solutions. */}
                   <dl className="teacher-absence-inline">
                     <dt>سبب الغياب</dt>
                     <dd>{guide.declaration.reason}</dd>
@@ -541,7 +564,26 @@ export const TeacherSolutionsBrowser: React.FC<TeacherSolutionsBrowserProps> = (
                         <dd>{guide.declaration.studentGuidanceNote}</dd>
                       </>
                     )}
+                    {guidance && (
+                      <>
+                        <dt>مقابل الطالب المعلمي</dt>
+                        <dd>
+                          <ArabicNumber value={toArabicDigits(guidance.counts.guidance_only)} /> إرشادًا
+                          مقترحًا (<ArabicNumber value={toArabicDigits(guidance.counts.no_approved_content)} />{' '}
+                          بلا محتوى معتمد) — في قسم مستقل، وليس حلولًا معتمدة.
+                        </dd>
+                      </>
+                    )}
                   </dl>
+                  {guidance && (
+                    <button
+                      type="button"
+                      className="btn btn-secondary teacher-card-cta-btn"
+                      onClick={() => openLesson(lesson.metadata.id)}
+                    >
+                      عرض الإرشادات المقترحة للدرس {lessonOrdinal(lesson.metadata.order)}: {lesson.metadata.title}
+                    </button>
+                  )}
                 </div>
               );
             }
@@ -649,7 +691,10 @@ export const TeacherSolutionsBrowser: React.FC<TeacherSolutionsBrowserProps> = (
           onBackToUnits={openUnits}
           unitTitle={unit.metadata.title}
         />
-        <LessonSolutionsBody record={guide} />
+        <LessonSolutionsBody
+          record={guide}
+          guidance={guidanceByLessonId.get(lesson.metadata.id)}
+        />
       </>
     );
   };

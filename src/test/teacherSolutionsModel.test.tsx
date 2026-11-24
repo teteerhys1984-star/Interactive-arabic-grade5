@@ -11,6 +11,7 @@ import { U2L3_SOLUTIONS_DECLARATION } from '../data/unit2Lesson3/solutions';
 import { U3L1_SOLUTIONS_DECLARATION } from '../data/unit3Lesson1/solutions';
 import { U2L3_ACTIVITIES } from '../data/unit2Lesson3/activities';
 import { U3L1_ACTIVITIES } from '../data/unit3Lesson1/activities';
+import { U3L1_GUIDANCE_REGISTRY } from '../data/unit3Lesson1/guidanceRegistry';
 import { TeacherSolutionsBrowser } from '../components/teacher/TeacherSolutionsBrowser';
 import { auditCurriculum } from '../utils/audit';
 import type {
@@ -29,14 +30,24 @@ const TEACHER_GUIDES: TeacherSolutionsModel[] = [
   U3L1_SOLUTIONS_DECLARATION,
 ];
 
-const auditOf = (guides: TeacherSolutionsModel[]) =>
-  auditCurriculum(curriculumRegistry, ALL_ASSESSMENTS, guides);
+/* The SHIPPED guidance counterparts (audit A13). U3L1 is the only lesson whose
+   learner-facing answers are platform suggestions inside a declared absence. */
+const TEACHER_GUIDANCE_REGISTRIES = [U3L1_GUIDANCE_REGISTRY];
+
+const auditOf = (guides: TeacherSolutionsModel[], registries = TEACHER_GUIDANCE_REGISTRIES) =>
+  auditCurriculum(curriculumRegistry, ALL_ASSESSMENTS, guides, registries);
 
 const errorMessages = (guides: TeacherSolutionsModel[]) =>
   auditOf(guides).issues.filter((issue) => issue.severity === 'error');
 
 const renderBrowser = (guides: TeacherSolutionsModel[]) =>
-  render(<TeacherSolutionsBrowser curriculum={curriculumRegistry} teacherGuides={guides} />);
+  render(
+    <TeacherSolutionsBrowser
+      curriculum={curriculumRegistry}
+      teacherGuides={guides}
+      guidanceRegistries={TEACHER_GUIDANCE_REGISTRIES}
+    />,
+  );
 
 describe('Solutions model — approved guide vs declared absence (contract)', () => {
   it('every registered lesson has exactly one solutions record, and the audit is error-free', () => {
@@ -188,14 +199,13 @@ describe('Audit A1–A11 fail loudly instead of trusting an optional field (D6)'
 });
 
 describe('Teacher portal — the three states of a lesson', () => {
-  it('renders unit 3 lesson 1 with a documented absence and no open button anywhere', () => {
+  it('renders unit 3 lesson 1 with a documented absence and no SOLUTIONS view', () => {
     const { container } = renderBrowser(TEACHER_GUIDES);
 
     fireEvent.click(screen.getByRole('button', { name: /^عرض دروس وحلول الوحدة الثالثة/ }));
     const card = screen.getByText('العُلَماءُ الصِّغارُ').closest('.teacher-lesson-card') as HTMLElement;
     expect(card).not.toBeNull();
     expect(card.className).toContain('teacher-lesson-card--declared-absence');
-    expect(within(card).queryByRole('button')).toBeNull();
     expect(card.textContent).toContain('غياب معلن وموثَّق');
     expect(card.textContent).toContain('docs/source-locks/unit3-lesson-01-al-ulama-as-sighar.md');
     expect(card.textContent).toContain('٥٧'); // 57 audited source records
@@ -205,6 +215,13 @@ describe('Teacher portal — the three states of a lesson', () => {
     expect(container.querySelectorAll('.guide-solution-card')).toHaveLength(0);
     /* The portal states honestly that STUDENT guidance exists and is not a key. */
     expect(within(card).getByText(/إرشادات الطالب/)).toBeInTheDocument();
+
+    /* No SOLUTIONS view exists to open; the only control is the advisory
+       guidance counterpart, which is explicitly labelled as not solutions. */
+    expect(within(card).queryByRole('button', { name: /^عرض حلول الدرس / })).toBeNull();
+    const guidanceButton = within(card).getByRole('button', { name: /^عرض الإرشادات المقترحة للدرس / });
+    expect(guidanceButton.textContent).toContain('الإرشادات المقترحة');
+    expect(guidanceButton.textContent).not.toContain('حلول');
   });
 
   it('never exposes a lesson solution through the declared-absence path', () => {

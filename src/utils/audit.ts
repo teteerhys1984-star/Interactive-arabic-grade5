@@ -5,6 +5,7 @@ import {
   DeclaredAbsenceLessonSolutions,
   TeacherSolutionsModel,
 } from '../types/curriculum';
+import type { TeacherGuidanceRegistry } from '../data/guidanceRegistry';
 
 /**
  * Normalizes Arabic text for duplicate detection: strips diacritics/tatweel,
@@ -46,6 +47,170 @@ export interface AuditReport {
 }
 
 /**
+ * A13 — teacher guidance counterpart.
+ *
+ * WHY: the student surface may show platform suggestions (`guidance_only`) while
+ * the teacher portal registers the lesson as a `declared_absence`. Without a
+ * counterpart, the learner sees wording the teacher cannot audit. A13 makes that
+ * asymmetry an error, and forbids the opposite mistake — laundering a suggestion
+ * into an approved solution.
+ *
+ * LINK-ONLY: the audit reads ONLY ids, classifications, sourceRefs and counts. It
+ * never reads or compares answer text, so it cannot become a second data source.
+ */
+function auditGuidanceCounterparts(
+  teacherGuides: TeacherSolutionsModel[],
+  guidanceRegistries: TeacherGuidanceRegistry[],
+  issues: AuditIssue[],
+): void {
+  const VALID_KINDS = new Set(['approved_key', 'guidance_only', 'teacher_only', 'no_approved_content']);
+  const guideByLessonId = new Map<string, TeacherSolutionsModel>();
+  for (const guide of teacherGuides) guideByLessonId.set(guide.lessonId, guide);
+  const registryByLessonId = new Map<string, TeacherGuidanceRegistry>();
+
+  for (const registry of guidanceRegistries) {
+    const lessonId = registry.lessonId;
+
+    /* A13.1 — one guidance registry per lesson. */
+    if (registryByLessonId.has(lessonId)) {
+      issues.push({
+        severity: 'error',
+        category: 'answer_disclosure',
+        entityId: lessonId,
+        message: `الدرس ${lessonId} له أكثر من سجل إرشادات معلمي؛ يجب أن يكون المقابل المعلمي واحدًا وقاطعًا.`,
+      });
+    }
+    registryByLessonId.set(lessonId, registry);
+
+    /* A13.2 — the guidance registry must belong to a registered solutions record. */
+    if (!guideByLessonId.has(lessonId)) {
+      issues.push({
+        severity: 'error',
+        category: 'answer_disclosure',
+        entityId: lessonId,
+        message: `سجل إرشادات (${lessonId}) بلا سجل حلول مسجل؛ لا مقابل معلمي واضح لما يراه الطالب.`,
+      });
+      continue;
+    }
+
+    /* A13.3 — links must be complete, unique and well formed. */
+    const seenLinkIds = new Set<string>();
+    const derivedCounts = {
+      total: 0,
+      approved_key: 0,
+      guidance_only: 0,
+      teacher_only: 0,
+      no_approved_content: 0,
+    };
+    for (const link of registry.links) {
+      if (!link.activityId || seenLinkIds.has(link.activityId)) {
+        issues.push({
+          severity: 'error',
+          category: 'answer_disclosure',
+          entityId: `${lessonId}:${link.activityId || '?'}`,
+          message: `رابط إرشاد مكرر أو بلا معرّف في ${lessonId}؛ المراجع يجب أن تكون فريدة ومحددة.`,
+        });
+      }
+      seenLinkIds.add(link.activityId);
+
+      if (!link.sourceRef || link.sourceRef.trim().length === 0) {
+        issues.push({
+          severity: 'error',
+          category: 'answer_disclosure',
+          entityId: `${lessonId}:${link.activityId}`,
+          message: `إرشاد في ${lessonId} بلا مرجع مصدر (sourceRef)؛ الإرشاد غير القابل للتتبع لا يُعرض للمعلم كأنه موثق.`,
+        });
+      }
+
+      if (!VALID_KINDS.has(link.classification)) {
+        issues.push({
+          severity: 'error',
+          category: 'answer_disclosure',
+          entityId: `${lessonId}:${link.activityId}`,
+          message: `إرشاد في ${lessonId} يحمل تصنيفًا غير معروف (${String(link.classification)}).`,
+        });
+        continue;
+      }
+      derivedCounts.total += 1;
+      derivedCounts[link.classification as keyof typeof derivedCounts] += 1;
+
+      /* A13.4 — every displayed item carries its notice. */
+      if (!link.notice || link.notice.trim().length === 0) {
+        issues.push({
+          severity: 'error',
+          category: 'answer_disclosure',
+          entityId: `${lessonId}:${link.activityId}`,
+          message: `إرشاد ظاهر في ${lessonId} بلا تنبيه (notice) يوضح أنه ليس حلًا معتمدًا.`,
+        });
+      }
+    }
+
+    /* A13.5 — recorded counts must equal the ones re-derived from the links. */
+    for (const key of Object.keys(derivedCounts) as (keyof typeof derivedCounts)[]) {
+      if (registry.counts?.[key] !== derivedCounts[key]) {
+        issues.push({
+          severity: 'error',
+          category: 'answer_disclosure',
+          entityId: lessonId,
+          message: `أعداد تصنيف الإرشادات في ${lessonId} غير مطابقة للروابط: «${key}» مسجل ${String(
+            registry.counts?.[key],
+          )} والفعلي ${derivedCounts[key]}.`,
+        });
+      }
+    }
+    if (registry.declaredActivityCount !== registry.links.length) {
+      issues.push({
+        severity: 'error',
+        category: 'answer_disclosure',
+        entityId: lessonId,
+        message: `سجل إرشادات ${lessonId} يعلن ${registry.declaredActivityCount} نشاطًا بينما يحوي ${registry.links.length} رابطًا.`,
+      });
+    }
+
+    const guide = guideByLessonId.get(lessonId) as TeacherSolutionsModel;
+    const studentVisible = derivedCounts.guidance_only + derivedCounts.approved_key;
+
+    /* A13.6 — guidance visible to the learner may never be an approved solution. */
+    if (guide.kind === 'declared_absence' && derivedCounts.approved_key > 0) {
+      issues.push({
+        severity: 'error',
+        category: 'answer_disclosure',
+        entityId: lessonId,
+        message: `سجل إرشادات ${lessonId} يعلن ${derivedCounts.approved_key} مفتاحًا معتمدًا بينما حلول الدرس «غياب معلن»؛ لا يجوز تحويل إرشاد إلى مفتاح معتمد داخل واجهة المعلم.`,
+      });
+    }
+
+    /* A13.7 — visible guidance requires the documented teacher counterpart note. */
+    if (
+      studentVisible > 0 &&
+      guide.kind === 'declared_absence' &&
+      !guide.declaration?.studentGuidanceNote
+    ) {
+      issues.push({
+        severity: 'error',
+        category: 'answer_disclosure',
+        entityId: lessonId,
+        message: `الدرس ${lessonId} يعرض ${studentVisible} إرشادًا للطالب دون تنبيه موثق في إعلان الغياب (studentGuidanceNote)؛ المقابل المعلمي غير واضح.`,
+      });
+    }
+  }
+
+  /* A13.8 — a documented student-guidance note MUST have its registry. */
+  for (const guide of teacherGuides) {
+    if (guide.kind !== 'declared_absence') continue;
+    const note = guide.declaration?.studentGuidanceNote;
+    if (note && note.trim().length > 0 && !registryByLessonId.has(guide.lessonId)) {
+      issues.push({
+        severity: 'error',
+        category: 'answer_disclosure',
+        entityId: guide.lessonId,
+        message: `إعلان الغياب (${guide.lessonId}) يذكر إرشادات للطالب دون سجل إرشادات معلمي؛ الطالب يرى ما لا يستطيع المعلم تدقيقه.`,
+      });
+    }
+  }
+}
+
+/**
  * Validates tests and curriculum according to Grade 5 project rules:
  * - Lesson tests must have exactly 20 questions
  * - Unit tests must have 50-60 questions
@@ -57,7 +222,8 @@ export interface AuditReport {
 export function auditCurriculum(
   curriculum: CurriculumRegistry,
   tests: AssessmentTest[] = [],
-  teacherGuides: TeacherSolutionsModel[] = []
+  teacherGuides: TeacherSolutionsModel[] = [],
+  guidanceRegistries: TeacherGuidanceRegistry[] = []
 ): AuditReport {
   const issues: AuditIssue[] = [];
 
@@ -576,6 +742,12 @@ export function auditCurriculum(
       });
     }
   }
+
+  /* ---------------------------------------------------------------- */
+  /* A13 — student-visible guidance MUST have a clear teacher        */
+  /* counterpart, and that counterpart must not become a solution.    */
+  /* ---------------------------------------------------------------- */
+  auditGuidanceCounterparts(teacherGuides, guidanceRegistries, issues);
 
   // Source readability/uncertainty surfacing
   for (const unit of curriculum.units) {
