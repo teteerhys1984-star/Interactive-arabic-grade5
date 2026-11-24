@@ -106,7 +106,7 @@ A13 then re-derives every claim through `compareGuidanceToSource()`:
 | A13.3 | error | duplicate/empty activity id, missing `sourceRef`, unknown classification |
 | A13.4 | error | a displayed item with no notice |
 | A13.5 | error | recorded counts ≠ counts re-derived from the links |
-| A13.6 | error | **a record with no link (incomplete coverage)**, a link to a non-existent record (**extra**), a classification that contradicts the record's `disclosure`, a `sourceRef` that is not the record's own reference, or a `sourceActivityId` that points at the wrong printed task |
+| A13.6 | error | **a record with no link (incomplete coverage)**, a link to a non-existent record (**extra**), a classification that contradicts the record's `disclosure`, a `sourceRef` that is not the record's own reference, or a `sourceActivityId` that is **missing or** points at the wrong printed task |
 | A13.7 | error | any record the **learner can reveal** (decided by the same `toStudentReveal` the student surface uses) with no usable teacher counterpart |
 | A13.8 | error | `activityIds` that omits an original id, lists a foreign id, repeats one, or has a different length than the original ledger |
 | A13.9 | error | `approved_key > 0` inside a `declared_absence` (laundering a suggestion) |
@@ -194,6 +194,7 @@ Each of these fails the audit, and each is a test:
 | change a classification (`guidance_only` → `approved_key`) | A13.6 drift + A13.9 laundering |
 | change a `sourceRef` | A13.6 reference drift |
 | change a `sourceActivityId` | A13.6 printed-task drift |
+| **remove** a `sourceActivityId` (the record has one) | A13.6 printed-task drift — omission fails exactly like a wrong id |
 | add a dangling link | A13.6 extra |
 | shrink `activityIds` | A13.8 omission |
 | add a revealable activity to the ledger with no counterpart | A13.6 missing (the regression case) |
@@ -204,7 +205,7 @@ Each of these fails the audit, and each is a test:
 | Check | Result |
 |---|---|
 | `npx tsc -b` | pass, no errors |
-| `npx vitest run` | **419 tests / 27 files, all pass** (42 in the guidance suite) |
+| `npx vitest run` | **421 tests / 27 files, all pass** (43 in the guidance suite) |
 | `npm run build` | pass (`dist` built; only the pre-existing chunk-size warning) |
 | Other lessons | untouched: no change to their data files; audit gains no issue for lesson1/2/3, U2L1, U2L2, U2L3 (asserted) |
 | Student surface | 52 payloads with heading «إرشادات للإجابة», 5 nulls (u3l1-a-45…49) |

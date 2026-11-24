@@ -227,15 +227,16 @@ function auditGuidanceCounterparts(
         });
       }
 
-      /* The link must point at the same printed activity. */
+      /* The link must point at the same printed activity — a missing id is drift. */
       for (const drift of comparison.sourceIdDrift) {
+        const linked = drift.linked ?? 'مفقود';
         issues.push({
           severity: 'error',
           category: 'answer_disclosure',
           entityId: `${lessonId}:${drift.activityId}`,
-          message: `رابط الإرشاد في ${lessonId} يسند النشاط ${drift.activityId} إلى مصدر ${String(
-            drift.linked,
-          )} بينما الأصل ${String(drift.declared)}.`,
+          message: `رابط الإرشاد في ${lessonId} يسند النشاط ${drift.activityId} إلى مصدر ${linked} بينما الأصل ${String(
+            drift.declared,
+          )}.`,
         });
       }
 

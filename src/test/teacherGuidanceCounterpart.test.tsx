@@ -526,6 +526,42 @@ describe('A13 is bound to the ORIGINAL activity ledger (source-verified)', () =>
     ).toBe(true);
   });
 
+  it('REMOVING a sourceActivityId fails the audit (missing is drift, like wrong)', () => {
+    /* The record has a printed source id; the link drops it. An omitted id must
+       fail exactly like a wrong one — otherwise an unattributable link passes. */
+    const withoutSourceId = mutate((links) =>
+      links.map((link) =>
+        link.activityId === 'u3l1-a-05'
+          ? (() => {
+              const { sourceActivityId: _omitted, ...rest } = link;
+              return rest as typeof link;
+            })()
+          : link,
+      ),
+    );
+    /* The original record does have a source id — so dropping it is drift. */
+    expect(U3L1_GUIDANCE_REGISTRY.source.sourceActivityId('u3l1-a-05')).toBe('U3L1-73-05');
+
+    const comparison = compareGuidanceToSource(
+      withoutSourceId,
+      (record) => resolveAnswerReveal(record, 'student') !== null,
+    );
+    expect(comparison.sourceIdDrift).toHaveLength(1);
+    expect(comparison.sourceIdDrift[0]).toMatchObject({
+      activityId: 'u3l1-a-05',
+      declared: 'U3L1-73-05',
+    });
+    expect(comparison.sourceIdDrift[0].linked).toBeUndefined();
+
+    const report = audit(SHIPPED_GUIDES, [withoutSourceId]);
+    const driftIssue = errors(report).find(
+      (issue) => issue.entityId === 'unit3-lesson1:u3l1-a-05',
+    );
+    expect(driftIssue).toBeDefined();
+    expect(driftIssue!.message).toContain('مفقود');
+    expect(driftIssue!.message).toContain('U3L1-73-05');
+  });
+
   it('ADDING a dangling link fails the audit (no invented activity)', () => {
     const withExtra = mutate((links) => [
       ...links,

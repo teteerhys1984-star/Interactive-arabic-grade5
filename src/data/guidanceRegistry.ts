@@ -316,8 +316,14 @@ export function compareGuidanceToSource(
       });
     }
 
+    /*
+     * The printed source id is mandatory whenever the original record has one:
+     * an OMITTED `sourceActivityId` is drift exactly like a wrong one. Without
+     * this, a link could drop the id and remain unattributable to its printed
+     * task while still passing the audit.
+     */
     const declaredSourceId = registry.source.sourceActivityId(activityId);
-    if (declaredSourceId && link.sourceActivityId && link.sourceActivityId !== declaredSourceId) {
+    if (declaredSourceId && link.sourceActivityId !== declaredSourceId) {
       comparison.sourceIdDrift.push({
         activityId,
         declared: declaredSourceId,
