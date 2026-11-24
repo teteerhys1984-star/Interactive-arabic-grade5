@@ -417,6 +417,13 @@ export interface DeclaredAbsenceStatement {
   declaredOn: string;
   /** The independent, later content task required to fill the gap. */
   deferredContentTask: string;
+  /**
+   * Optional honesty note about the STUDENT-side suggested answers of this
+   * lesson (guidance_only). It never carries an answer, a key or a solution; it
+   * only tells the teacher that platform guidance exists and is not an approved
+   * solution. Declared absences remain solution-free by construction (audit A8).
+   */
+  studentGuidanceNote?: string;
 }
 
 /** One audited source record belonging to a lesson with no answer key. */

@@ -110,9 +110,21 @@ describe('disclosure coverage — every registered record is classified explicit
     expect(count(U2L2_ACTIVITIES, 'approved_key')).toBe(22);
     expect(count(U2L2_ACTIVITIES, 'guidance_only')).toBe(29);
 
-    // The two lessons with no approved key: every record declares it.
+    // unit 2 lesson 3 still has no displayable content for any record.
     expect(count(U2L3_ACTIVITIES, 'no_approved_content')).toBe(43);
-    expect(count(U3L1_ACTIVITIES, 'no_approved_content')).toBe(57);
+
+    /*
+     * unit 3 lesson 1 (PR after #24): the source still has NO approved key, so
+     * `approved_key` stays at ZERO and nothing is attributed to the book. What
+     * changed is the honest middle state the owner asked for: 49 activities get
+     * a platform-authored, grade-5 educational answer ⇒ guidance_only; the 8
+     * that depend on an artifact the source does not contain (3 listening items
+     * with no audio, 5 hand-drawn Ruq'ah models) keep no_approved_content.
+     */
+    expect(count(U3L1_ACTIVITIES, 'approved_key')).toBe(0);
+    expect(count(U3L1_ACTIVITIES, 'teacher_only')).toBe(0);
+    expect(count(U3L1_ACTIVITIES, 'guidance_only')).toBe(49);
+    expect(count(U3L1_ACTIVITIES, 'no_approved_content')).toBe(8);
   });
 
   it('never classifies a source-gap record as displayable, and D14 is the one owner-approved exception', () => {

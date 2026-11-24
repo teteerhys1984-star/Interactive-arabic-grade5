@@ -215,7 +215,11 @@ describe('Unit 3 Lesson 1 — العُلَماءُ الصِّغار (ص٧٣–٨
     expect(within(table).queryByRole('button', { name: /تحقق|الإجابة/ })).toBeNull();
     view.rerender(<Unit3Lesson1StepRenderer step={U3L1_STEPS[9]} />);
     const play = screen.getByLabelText('نشاط المصدر U3L1-83-01');
-    expect(within(play).queryByRole('note')).toBeNull();
+    /* The only note inside an answerable activity is the honesty notice: the
+       suggested answer is not an approved key and is not attributed to the book. */
+    const notes = within(play).getAllByRole('note');
+    expect(notes).toHaveLength(1);
+    expect(notes[0]).toHaveTextContent('ليست إجابة معتمدة من الكتاب');
     const fields = within(play).getAllByRole('textbox');
     expect(fields).toHaveLength(1);
     fields.forEach((field) => expect(field).toHaveValue(''));

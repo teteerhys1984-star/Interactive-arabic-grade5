@@ -131,6 +131,21 @@ describe('Audit A1–A11 fail loudly instead of trusting an optional field (D6)'
     ).toBe(true);
   });
 
+  it('the declared absence stays solution-free while documenting the student guidance', () => {
+    const declaration = U3L1_SOLUTIONS_DECLARATION;
+    /* It carries no solution, no objective, no key — only the honesty note. */
+    const raw = declaration as unknown as Record<string, unknown>;
+    ['exerciseSolutions', 'sourceCoverage', 'lessonTestAnswerKeyRef', 'grammarNotes'].forEach(
+      (field) => expect(raw[field]).toBeUndefined(),
+    );
+    expect(declaration.declaration.studentGuidanceNote).toContain('guidance_only');
+    expect(declaration.declaration.studentGuidanceNote).toContain('ليست إجابات معتمدة');
+    /* The student guidance never became an approved key: still zero approved. */
+    expect(
+      U3L1_ACTIVITIES.some((activity) => activity.disclosure.kind === 'approved_key'),
+    ).toBe(false);
+  });
+
   it('A5: a declared absence without a documented source/date/deferred task is an error', () => {
     const undocumented: DeclaredAbsenceLessonSolutions = {
       ...U3L1_SOLUTIONS_DECLARATION,
@@ -188,6 +203,8 @@ describe('Teacher portal — the three states of a lesson', () => {
     expect(card.textContent).not.toContain('الحل النموذجي:');
     expect(card.textContent).not.toContain('إجابة صحيحة');
     expect(container.querySelectorAll('.guide-solution-card')).toHaveLength(0);
+    /* The portal states honestly that STUDENT guidance exists and is not a key. */
+    expect(within(card).getByText(/إرشادات الطالب/)).toBeInTheDocument();
   });
 
   it('never exposes a lesson solution through the declared-absence path', () => {

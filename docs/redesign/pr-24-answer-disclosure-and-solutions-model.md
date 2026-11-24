@@ -36,7 +36,8 @@ Data-driven per answer type, with **no third copy** of the key:
 | lesson1 | `fromLesson1()` | `interaction` field keys (`acceptedAnswers`, `correctId(s)`, `correctCategoryId`) + `solution` |
 | lesson2, lesson3, unit2Lesson1, unit2Lesson2 | `fromKeyedLesson()` | `answerKey` / `checkExplanation` / `teacher.answerOrGuidance` (located, never re-authored) |
 | platform drills | inline record in the renderer | the drill's own `correct` option / `correctId` |
-| unit2Lesson3, unit3Lesson1 | — | no key exists ⇒ every record declares `no_approved_content` |
+| unit2Lesson3 | — | no key exists ⇒ every record declares `no_approved_content` |
+| unit3Lesson1 | `u3l1RevealRecord()` (`data/unit3Lesson1/guidance.ts`) | platform-authored suggested answers, declared `guidance_only` — never `approved_key` (see §6) |
 
 Every lesson activity carries an explicit, mandatory `disclosure { kind, sourceRef }`.
 Coverage is enforced by `src/test/disclosureCoverage.test.ts` (339 records + platform drills); behavioural equivalence with the previous per-lesson adapters is proven by `src/test/revealParity.test.ts`.
@@ -112,3 +113,33 @@ One linked fix: lesson 1's heading override is now restricted to `approved_key`,
 - `npm run typecheck` — clean.
 - `npm run build` — clean.
 - New: `src/test/teacherSolutionsModel.test.tsx` (contract + A1–A11 negative cases + portal three states, including a lesson with no approved solutions).
+
+---
+
+## 6. Follow-up after this PR — Unit 3 Lesson 1 gets educational answers (not a key)
+
+The declared absence is a **teacher-side** statement (there is no approved key,
+so the portal shows no «solutions»). It was never meant to leave the learner
+without any help, and the owner rejected an answer-less lesson.
+
+`src/data/unit3Lesson1/guidance.ts` now carries a platform-authored, grade-5
+answer for **49** of the 57 activities, built from the printed task plus the book
+content the lesson already reproduces (poem, رفع/نصب/جزم rules, hamza rule,
+dictation passage, letter model) and the platform's image descriptions. Every
+one of those records is declared `guidance_only`:
+
+- heading «إرشادات للإجابة» — never «الحل النموذجي المعتمد»;
+- an explicit on-screen notice that the answer is platform-suggested and is
+  **not** attributed to the textbook or to a teacher guide;
+- revealed only through the unchanged `resolveAnswerReveal()` + `<AnswerReveal>`.
+
+**8** activities stay `no_approved_content` and keep their declared gap: the
+three listening items on ص٧٣ (no audio, no listening text, and the poem is not
+attached to them) and the five calligraphy items on ص٨٠–٨١ (hand-drawn Ruq'ah
+models a machine font cannot reproduce faithfully). No answer was invented for
+them and no button is rendered.
+
+The teacher portal record stays `declared_absence` (zero approved solutions) and
+gains `declaration.studentGuidanceNote`, which tells the teacher that student
+guidance exists and is not an approved solution. Audit A8 still forbids any
+solution field on that record, and `approved_key` remains **0** for this lesson.

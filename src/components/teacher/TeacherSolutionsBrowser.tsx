@@ -125,10 +125,15 @@ const DeclaredAbsenceBody: React.FC<{ record: DeclaredAbsenceLessonSolutions }> 
       <div className="guide-objectives teacher-absence-source-limits">
         <h4>ما لا يمكن عرضه هنا</h4>
         <ul>
-          <li>لا حلول تدريبات، ولا مفاتيح إجابة، ولا تصحيح آلي لهذا الدرس.</li>
+          <li>لا حلول تدريبات معتمدة، ولا مفاتيح إجابة، ولا تصحيح آلي لهذا الدرس.</li>
           <li>لا أهداف تربوية، لأن استنتاجها من نصّ الدرس ممنوع بقرار المالك.</li>
           <li>لا تُملأ هذه الفجوة بالتخمين؛ تُملأ بمهمة محتوى لاحقة بمصدر معتمد.</li>
         </ul>
+        {declaration.studentGuidanceNote && (
+          <p className="teacher-missing-note teacher-guidance-note">
+            <strong>تنبيه:</strong> {declaration.studentGuidanceNote}
+          </p>
+        )}
       </div>
       <details className="teacher-coverage-ledger teacher-absence-ledger">
         <summary>
@@ -530,6 +535,12 @@ export const TeacherSolutionsBrowser: React.FC<TeacherSolutionsBrowserProps> = (
                       <ArabicNumber value={toArabicDigits(guide.sourceRecords.length)} /> نشاطاً مطبوعاً،
                       بلا أي حل معتمد.
                     </dd>
+                    {guide.declaration.studentGuidanceNote && (
+                      <>
+                        <dt>في واجهة الطالب</dt>
+                        <dd>{guide.declaration.studentGuidanceNote}</dd>
+                      </>
+                    )}
                   </dl>
                 </div>
               );

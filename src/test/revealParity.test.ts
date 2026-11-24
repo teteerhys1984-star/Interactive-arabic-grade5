@@ -12,6 +12,7 @@ import { U2L1_ACTIVITIES } from '../data/unit2Lesson1/activities';
 import { U2L2_ACTIVITIES } from '../data/unit2Lesson2/activities';
 import { U2L3_ACTIVITIES } from '../data/unit2Lesson3/activities';
 import { U3L1_ACTIVITIES } from '../data/unit3Lesson1/activities';
+import { u3l1RevealRecord } from '../data/unit3Lesson1/guidance';
 import { LESSON2_PLATFORM_EXERCISES } from '../data/lesson2/platformExplanations';
 import { GRAMMAR_PLATFORM_EXPLANATION, SPELLING_PLATFORM_EXPLANATION } from '../data/lesson1/platformExplanations';
 
@@ -419,13 +420,39 @@ describe('parity 3/3 — the classification never changed what a record contains
     });
   });
 
-  it('the two lessons with no approved content never produce a student payload', () => {
-    [...U2L3_ACTIVITIES, ...U3L1_ACTIVITIES].forEach((activity) => {
+  it('unit 2 lesson 3 still produces no student payload (no content exists)', () => {
+    U2L3_ACTIVITIES.forEach((activity) => {
       expect(
         resolveAnswerReveal(activity as never, 'student'),
         `unexpected reveal on ${activity.sourceActivityId}`,
       ).toBeNull();
     });
+  });
+
+  /*
+   * unit 3 lesson 1 (fix after PR #24): the lesson keeps NO approved key, but it
+   * is no longer button-less. Every answerable activity reveals through the SAME
+   * shared path under «إرشادات للإجابة», and the eight source-gap records stay
+   * unreachable — never a guessed answer, never an empty button.
+   */
+  it('unit 3 lesson 1 reveals its suggested answers only where they exist', () => {
+    const UNDECIDABLE = new Set([
+      'U3L1-73-05', 'U3L1-73-06', 'U3L1-73-07',
+      'U3L1-80-02', 'U3L1-80-03', 'U3L1-80-04', 'U3L1-80-05', 'U3L1-81-01',
+    ]);
+    let revealed = 0;
+    U3L1_ACTIVITIES.forEach((activity) => {
+      const payload = resolveAnswerReveal(u3l1RevealRecord(activity), 'student');
+      if (UNDECIDABLE.has(activity.sourceActivityId)) {
+        expect(payload, `gap record revealed: ${activity.sourceActivityId}`).toBeNull();
+        return;
+      }
+      expect(payload, `missing reveal on ${activity.sourceActivityId}`).not.toBeNull();
+      expect(payload!.heading).toBe('إرشادات للإجابة');
+      expect(payload!.heading).not.toContain('المعتمد');
+      revealed += 1;
+    });
+    expect(revealed).toBe(49);
   });
 
   it('platform drills keep their approved key', () => {
