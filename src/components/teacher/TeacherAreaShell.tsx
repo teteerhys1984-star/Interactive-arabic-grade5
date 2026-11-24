@@ -3,6 +3,8 @@ import { AssessmentTest, CurriculumRegistry, TeacherSolutionsModel } from '../..
 import { auditCurriculum, AuditReport } from '../../utils/audit';
 import { ArabicNumber, LatinText } from '../common/BiDi';
 import { TeacherSolutionsBrowser, UnitReviewSolutionsEntry } from './TeacherSolutionsBrowser';
+import { GuidanceSupervisionPanel } from './GuidanceSupervisionPanel';
+import type { TeacherGuidanceRegistry } from '../../data/guidanceRegistry';
 
 export interface TeacherAreaShellProps {
   curriculum: CurriculumRegistry;
@@ -20,6 +22,12 @@ export interface TeacherAreaShellProps {
    * never inside a lesson.
    */
   unitReviewSolutions?: UnitReviewSolutionsEntry[];
+  /**
+   * Link-only teacher guidance projections (one per lesson that shows platform
+   * suggestions to the learner). Passed to the audit (A13) and rendered as an
+   * independent advisory section inside that lesson's declared-absence view.
+   */
+  guidanceRegistries?: TeacherGuidanceRegistry[];
 }
 
 export const TeacherAreaShell: React.FC<TeacherAreaShellProps> = ({
@@ -28,13 +36,19 @@ export const TeacherAreaShell: React.FC<TeacherAreaShellProps> = ({
   tests = [],
   accessPassword = 'somer173',
   unitReviewSolutions = [],
+  guidanceRegistries = [],
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'audit' | 'solutions'>('overview');
   const [password, setPassword] = useState('');
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
 
-  const auditReport: AuditReport = auditCurriculum(curriculum, tests, teacherGuides);
+  const auditReport: AuditReport = auditCurriculum(
+    curriculum,
+    tests,
+    teacherGuides,
+    guidanceRegistries,
+  );
 
   const handlePasswordSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -148,6 +162,7 @@ export const TeacherAreaShell: React.FC<TeacherAreaShellProps> = ({
             curriculum={curriculum}
             teacherGuides={teacherGuides}
             unitReviewSolutions={unitReviewSolutions}
+            guidanceRegistries={guidanceRegistries}
           />
         </div>
       )}
@@ -180,6 +195,14 @@ export const TeacherAreaShell: React.FC<TeacherAreaShellProps> = ({
               <span className="metric-txt">تنبيهات</span>
             </div>
           </div>
+
+          {/* Supervision: lesson status + classification counts + gaps/mismatches.
+              Counts only — the guidance text stays in its own lesson section. */}
+          <GuidanceSupervisionPanel
+            curriculum={curriculum}
+            teacherGuides={teacherGuides}
+            guidanceRegistries={guidanceRegistries}
+          />
 
           {auditReport.status === 'empty_state' ? (
             <div className="audit-empty-banner">

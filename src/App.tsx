@@ -26,6 +26,7 @@ import { Unit1ReviewFlow } from './components/curriculum/Unit1ReviewFlow';
 import { Unit2ReviewFlow } from './components/curriculum/Unit2ReviewFlow';
 import { Unit1ReviewSolutions } from './components/teacher/Unit1ReviewSolutions';
 import { TeacherAreaShell } from './components/teacher/TeacherAreaShell';
+import { U3L1_GUIDANCE_REGISTRY } from './data/unit3Lesson1/guidanceRegistry';
 import { AssessmentShell } from './components/assessment/AssessmentShell';
 import { TestSolutions } from './components/assessment/TestSolutions';
 import { LatinText } from './components/common/BiDi';
@@ -72,6 +73,13 @@ const TEACHER_GUIDES: TeacherSolutionsModel[] = [
   U2L3_SOLUTIONS_DECLARATION,
   U3L1_SOLUTIONS_DECLARATION,
 ];
+
+/**
+ * Teacher guidance counterparts — LINK-ONLY projections of the records the
+ * learner can reveal. Each one references its original record module; none of
+ * them carries answer text or a second data source (audit A13).
+ */
+const TEACHER_GUIDANCE_REGISTRIES = [U3L1_GUIDANCE_REGISTRY];
 
 const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
 const toArabicDigits = (value: number | string): string =>
@@ -504,6 +512,7 @@ export const App: React.FC = () => {
             teacherGuides={TEACHER_GUIDES}
             tests={ALL_ASSESSMENTS}
             accessPassword="somer173"
+            guidanceRegistries={TEACHER_GUIDANCE_REGISTRIES}
             unitReviewSolutions={[
               {
                 unitId: 'unit1',
