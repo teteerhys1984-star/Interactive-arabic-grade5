@@ -35,6 +35,7 @@ export const LessonShell: React.FC<LessonShellProps> = ({
   const [currentStepIndex, setCurrentStepIndex] = useState(() => initialStepIndex(lesson));
   const stepButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
+  const isLesson2Pilot = lesson.metadata.id === 'lesson2';
   const steps = lesson.steps || [];
   const totalSteps = steps.length;
   const currentStep: LessonStep | undefined = steps[currentStepIndex];
@@ -90,7 +91,7 @@ export const LessonShell: React.FC<LessonShellProps> = ({
       {steps.map((step, index) => {
         const isCurrent = index === currentStepIndex;
         return (
-          <li key={step.id} className={`lesson-nav-item ${isCurrent ? 'is-current' : ''}`}>
+          <li key={step.id} className={`lesson-nav-item ${isCurrent ? 'is-current' : ''}${isLesson2Pilot && !isCurrent ? (index < currentStepIndex ? ' is-earlier' : ' is-later') : ''}`}>
             <button
               ref={(element) => { stepButtonRefs.current[index] = element; }}
               type="button"
@@ -106,6 +107,7 @@ export const LessonShell: React.FC<LessonShellProps> = ({
               </span>
               <span className="lesson-step-name">{step.title}</span>
               {isCurrent && <span className="lesson-step-status status-current">الآن</span>}
+              {isLesson2Pilot && !isCurrent && <span className="lesson-step-order">{index < currentStepIndex ? 'سابقة' : 'قادمة'}</span>}
               {isCurrent && <span className="lesson-step-current-marker" aria-hidden="true" />}
             </button>
           </li>
@@ -115,7 +117,7 @@ export const LessonShell: React.FC<LessonShellProps> = ({
   );
 
   return (
-    <div className="lesson-shell" dir="rtl">
+    <div className={`lesson-shell${isLesson2Pilot ? ' lesson2-pilot' : ''}`} dir="rtl">
       {(unit || onGoHome) && (
         <nav className="lesson-breadcrumbs" aria-label="مسار التنقل">
           {onGoHome && <button type="button" className="breadcrumb-link" onClick={onGoHome}>الرئيسية</button>}
@@ -210,7 +212,7 @@ export const LessonShell: React.FC<LessonShellProps> = ({
               <article className="step-card">
                 <header className="step-card-header">
                   <div className="step-title-group">
-                    <span className="step-content-kicker">محتوى الخطوة</span>
+                    <span className="step-content-kicker">{isLesson2Pilot ? <>الخطوة <ArabicNumber value={currentStepNumber} /> من <ArabicNumber value={totalSteps} /></> : 'محتوى الخطوة'}</span>
                     <h2 id={`current-step-title-${lesson.metadata.id}`} className="step-title" aria-live="polite">
                       {currentStep.title}
                     </h2>
@@ -239,6 +241,7 @@ export const LessonShell: React.FC<LessonShellProps> = ({
             >
               <span className="lesson-nav-arrow" aria-hidden="true" dir="ltr">→</span>
               الخطوة السابقة
+              {isLesson2Pilot && currentStepIndex > 0 && <span className="lesson-neighbor-title" aria-hidden="true">{steps[currentStepIndex - 1].title}</span>}
             </button>
 
             {lesson.testId && currentStepIndex === totalSteps - 1 && totalSteps > 0 && (
@@ -260,6 +263,7 @@ export const LessonShell: React.FC<LessonShellProps> = ({
                 aria-label={`الانتقال إلى الخطوة ${currentStepIndex + 2}`}
               >
                 الخطوة التالية
+                {isLesson2Pilot && <span className="lesson-neighbor-title" aria-hidden="true">{steps[currentStepIndex + 1].title}</span>}
                 <span className="lesson-nav-arrow" aria-hidden="true" dir="ltr">←</span>
               </button>
             )}
