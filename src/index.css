@@ -7591,3 +7591,46 @@ h4 { font-size: var(--text-lg); }
   font-size: 0.87rem;
   color: var(--color-text-primary, #12211d);
 }
+
+/* Phase 2 pilot — lesson 2 only. Existing content and interactions remain in order. */
+.lesson2-pilot { --lesson-rail-width: 270px; gap: .9rem; }
+.lesson2-pilot .lesson-shell-header { background: transparent; border: 0; box-shadow: none; padding: .55rem .25rem 1rem; }
+.lesson2-pilot .lesson-main-title { font-size: 2rem; }
+.lesson2-pilot .lesson-layout { gap: 1.5rem; }
+.lesson2-pilot .lesson-navigation-rail { top: 24px; max-height: calc(100vh - 48px); }
+.lesson2-pilot .lesson-navigation-card { background: #f4f7f4; border: 1px solid #dbe6de; border-radius: 14px; box-shadow: none; padding: 1.2rem .85rem; }
+.lesson2-pilot .lesson-nav-heading { padding: 0 .45rem .75rem; }
+.lesson2-pilot .lesson-nav-heading h2 { font-size: 1.1rem; }
+.lesson2-pilot .lesson-step-position { font-size: .78rem; color: #536b5f; }
+.lesson2-pilot .lesson-nav-list { gap: .28rem; }
+.lesson2-pilot .lesson-nav-button { grid-template-columns: 2rem minmax(0, 1fr) auto; min-height: 48px; font-size: .83rem; }
+.lesson2-pilot .lesson-nav-item.is-current .lesson-nav-button { background: #e2eee7; border-color: #bdd5c8; border-inline-start: 3px solid #28664f; }
+.lesson2-pilot .lesson-step-current-marker { display: none; }
+.lesson2-pilot .lesson-step-order { font-size: .67rem; color: #64766b; }
+.lesson2-pilot .lesson-nav-item.is-later .lesson-step-number { background: transparent; }
+.lesson2-pilot .lesson-step-content { border-radius: 14px; border-color: #e2e8e2; box-shadow: none; }
+.lesson2-pilot .step-card-header { padding: 2rem 2.5rem 1.5rem; background: #fff; border-bottom: 1px solid #e5ebe6; }
+.lesson2-pilot .step-content-kicker { color: #8b6a37; font-size: .8rem; margin-bottom: .5rem; }
+.lesson2-pilot .step-title { font-size: 1.8rem; line-height: 1.5; }
+.lesson2-pilot .step-body-container { padding: 2rem 2.5rem 2.5rem; }
+.lesson2-pilot .lesson2-step-renderer { gap: 1.7rem; }
+.lesson2-pilot .lesson2-step-renderer > section { min-width: 0; }
+.lesson2-pilot .l2-source-info,
+.lesson2-pilot .block-source-sentences,
+.lesson2-pilot .block-vocab,
+.lesson2-pilot .block-instruction { background: #faf8f2; border: 0; border-inline-start: 3px solid #cfb481; border-radius: 0; padding: 1.3rem 1.5rem; }
+.lesson2-pilot .l2-source-info-list,
+.lesson2-pilot .source-sentence-list { color: #34483e; font-size: 1.05rem; line-height: 2.05; }
+.lesson2-pilot .block-rule { background: #edf6f1; border: 0; border-inline-start: 4px solid #397b60; border-radius: 0; padding: 1.35rem 1.5rem; }
+.lesson2-pilot .rule-box { background: transparent; border: 0; padding: .5rem 0 0; font-size: 1.12rem; line-height: 2; }
+.lesson2-pilot .block-explanation { background: #f7f8fa; border: 0; border-inline-start: 3px dashed #8a9da2; border-radius: 0; padding: 1.35rem 1.5rem; }
+.lesson2-pilot .l2-activity-widget { border: 0; border-top: 1px solid #dce5df; border-radius: 0; padding: 1.5rem 0 .35rem; background: transparent; gap: .9rem; }
+.lesson2-pilot .activity-instruction { font-size: 1.1rem; line-height: 1.9; }
+.lesson2-pilot .l2-source-gap-panel { background: #fcf8ee; }
+.lesson2-pilot .l2-gap-notice, .lesson2-pilot .l2-interaction-gap { border-radius: 4px; }
+.lesson2-pilot .block-heading { margin-top: .6rem; margin-bottom: .55rem; }
+.lesson2-pilot .vocab-grid { gap: .5rem; }
+.lesson2-pilot .vocab-card { box-shadow: none; border-radius: 4px; }
+.lesson2-pilot .lesson-shell-footer { background: transparent; border: 0; padding: .25rem 0; align-items: stretch; }
+.lesson2-pilot .lesson-footer-button { min-height: 64px; max-width: 48%; flex-wrap: wrap; gap: .3rem .55rem; }
+.lesson2-pilot .lesson-neighbor-title { flex-basis: 100%; font-size: .75rem; font-weight: 500; line-height: 1.4; }
