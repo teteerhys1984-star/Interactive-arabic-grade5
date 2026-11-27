@@ -1,5 +1,6 @@
 import React from 'react';
 import { AssessmentQuestion, UserAnswerValue } from '../../types/curriculum';
+import { isRiddleQuestionGuardedForStudent } from '../../utils/riddleGuard';
 import { ArabicNumber } from '../common/BiDi';
 import { SourceBadge } from '../common/SourceBadge';
 
@@ -19,6 +20,29 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   isCorrect = false,
 }) => {
   const isDisabled = showReview || !onAnswerChange;
+  const isGuardedRiddle = isRiddleQuestionGuardedForStudent(question.id);
+
+  if (isGuardedRiddle) {
+    return (
+      <article
+        className="question-card question-guarded"
+        aria-labelledby={`q-title-${question.id}`}
+        data-testid={`guarded-question-${question.id}`}
+      >
+        <header className="question-header">
+          <div className="question-badge-row">
+            <span className="question-order-badge">
+              السؤال <ArabicNumber value={question.order} />
+            </span>
+            <SourceBadge source={question.source} compact />
+          </div>
+        </header>
+        <p id={`q-title-${question.id}`} className="riddle-guard-note">
+          هذا السؤال محجوب مؤقتًا حتى تُنهي محاولة أحجية الدرس الثالث (ص٣٥) وتضغط «أنهيت المحاولة».
+        </p>
+      </article>
+    );
+  }
 
   return (
     <article

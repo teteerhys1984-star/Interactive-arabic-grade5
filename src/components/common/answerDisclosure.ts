@@ -1,4 +1,5 @@
 import { AnswerDisclosure, AnswerDisclosureKind } from '../../types/curriculum';
+import { canRevealRecordForScope } from '../../utils/riddleGuard';
 import { AnswerRevealEntry, AnswerRevealProps } from './AnswerReveal';
 
 /**
@@ -179,6 +180,9 @@ export function resolveAnswerReveal(
   record: DisclosureBearingRecord,
   scope: AnswerScope,
 ): StudentRevealPayload | TeacherSolutionView | null {
+  if (!canRevealRecordForScope(record, scope)) {
+    return null;
+  }
   return scope === 'teacher' ? toTeacherSolution(record) : toStudentReveal(record);
 }
 
