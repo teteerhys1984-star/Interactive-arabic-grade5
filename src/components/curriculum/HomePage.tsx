@@ -5,6 +5,7 @@ import { toArabicDigits } from '../../utils/arabicDigits';
 import { Icon } from '../ui/Icon';
 import { SectionHeading, StatusPill } from '../ui/PageChrome';
 import { LearningLocation } from '../../utils/learningProgress';
+import { getStudentSteps } from './studentVisibility';
 
 /**
  * HomePage — the student's launch surface.
@@ -44,7 +45,7 @@ export interface HomePageProps {
  * that appear inside a sentence go through `toArabicDigits`; standalone numbers
  * are rendered by `<ArabicNumber>` so they stay LTR-isolated inside RTL text.
  */
-const lessonStepLabel = (lesson: Lesson): string => `${toArabicDigits(lesson.steps.length)} خطوات`;
+const lessonStepLabel = (lesson: Lesson): string => `${toArabicDigits(getStudentSteps(lesson).length)} خطوات`;
 
 export const HomePage: React.FC<HomePageProps> = ({
   units,

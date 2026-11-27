@@ -3,6 +3,7 @@ import { Lesson, LessonStep, Unit } from '../../types/curriculum';
 import { ArabicNumber } from '../common/BiDi';
 import { SourceBadge } from '../common/SourceBadge';
 import { readLearningLocation, writeLearningLocation } from '../../utils/learningProgress';
+import { getStudentSteps, isStudentStepHidden, resolveStudentStepIndex } from './studentVisibility';
 
 export interface LessonShellProps {
   lesson: Lesson;
@@ -19,7 +20,7 @@ export interface LessonShellProps {
 function initialStepIndex(lesson: Lesson): number {
   const location = readLearningLocation();
   if (!location || location.unitId !== lesson.metadata.unitId || location.lessonId !== lesson.metadata.id) return 0;
-  const index = lesson.steps.findIndex((step) => step.id === location.stepId);
+  const index = resolveStudentStepIndex(lesson, location.stepId);
   return index >= 0 ? index : 0;
 }
 
@@ -36,7 +37,8 @@ export const LessonShell: React.FC<LessonShellProps> = ({
   const stepButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const isLesson2Pilot = lesson.metadata.id === 'lesson2';
-  const steps = lesson.steps || [];
+  // Student view only: hidden listening/oral steps are removed here; data is untouched.
+  const steps = getStudentSteps(lesson);
   const totalSteps = steps.length;
   const currentStep: LessonStep | undefined = steps[currentStepIndex];
   const currentStepNumber = currentStepIndex + 1;
@@ -52,6 +54,16 @@ export const LessonShell: React.FC<LessonShellProps> = ({
   };
 
   useEffect(() => {
+    // A stored position on a hidden step is kept as it is until the student picks a visible step.
+    const stored = readLearningLocation();
+    if (
+      stored &&
+      stored.unitId === lesson.metadata.unitId &&
+      stored.lessonId === lesson.metadata.id &&
+      isStudentStepHidden(lesson.metadata.id, stored.stepId)
+    ) {
+      return;
+    }
     const activeStep = steps[currentStepIndex];
     if (activeStep) persistStep(activeStep);
     // The shell is keyed by lesson ID in the app; write only the initial location here.

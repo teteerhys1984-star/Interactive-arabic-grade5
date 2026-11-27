@@ -98,7 +98,8 @@ describe('Phase 1 — home page lesson entry', () => {
     expect(screen.queryAllByRole('button', { name: /^تابع الدرس \d+:/ })).toHaveLength(0);
 
     fireEvent.click(screen.getByRole('button', { name: 'افتح الدرس 3: لُغَتي' }));
-    fireEvent.click(screen.getByRole('button', { name: /^الخطوة 5:/ }));
+    // PR 3: l3-s4 (oral) is hidden, so visible step 4 is l3-s5.
+    fireEvent.click(screen.getByRole('button', { name: /^الخطوة 4:/ }));
     expect(readLearningLocation()).toEqual({ unitId: 'unit1', lessonId: 'lesson3', stepId: 'l3-s5' });
 
     // Back to the home page through the brand button (top-left of the shell).
@@ -112,7 +113,7 @@ describe('Phase 1 — home page lesson entry', () => {
 
     // RESULT: pressing it re-enters that lesson and restores the saved step.
     fireEvent.click(continueButtons[0]);
-    expect(screen.getByRole('button', { name: /^الخطوة 5:/ })).toHaveAttribute('aria-current', 'step');
+    expect(screen.getByRole('button', { name: /^الخطوة 4:/ })).toHaveAttribute('aria-current', 'step');
   });
 });
 

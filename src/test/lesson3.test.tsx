@@ -69,10 +69,14 @@ describe('Lesson 3 — source-lock implementation', () => {
     const lesson3 = getLessonById('lesson3')!.lesson;
     render(<LessonFlow lesson={lesson3} />);
 
-    expect(screen.getAllByRole('button', { name: /^الخطوة \d+:/ })).toHaveLength(9);
+    // PR 3: the student view hides the oral step l3-s4 (data keeps all 9 steps; see lesson3StudentHiding.test.tsx).
+    expect(screen.getAllByRole('button', { name: /^الخطوة \d+:/ })).toHaveLength(8);
     expect(screen.getByText('لُغَتي')).toBeInTheDocument();
-    expect(screen.getAllByText(/التسجيل الصوتي غير متوفر/).length).toBeGreaterThan(0);
-    expect(screen.getByLabelText('نشاط المصدر L3-25-01')).toBeInTheDocument();
+    // The listening-gap notice belongs to the hidden listening section, so it is not in the student view.
+    expect(screen.queryAllByText(/التسجيل الصوتي غير متوفر/)).toHaveLength(0);
+    // L3-25-01 (l3-a-01, oral description) is hidden in PR 3; L3-25-02 remains visible.
+    expect(screen.queryByLabelText('نشاط المصدر L3-25-01')).toBeNull();
+    expect(screen.getByLabelText('نشاط المصدر L3-25-02')).toBeInTheDocument();
   });
 
   it('has an auditable, correctly distributed 20-question lesson test', () => {
