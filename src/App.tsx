@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   curriculumRegistry,
   getAllUnits,
@@ -28,6 +28,8 @@ import { Unit1ReviewSolutions } from './components/teacher/Unit1ReviewSolutions'
 import { TeacherAreaShell } from './components/teacher/TeacherAreaShell';
 import { U3L1_GUIDANCE_REGISTRY } from './data/unit3Lesson1/guidanceRegistry';
 import { AssessmentShell } from './components/assessment/AssessmentShell';
+import { AssessmentDraftGuardContext, AssessmentDraftGuardRegistry } from './components/assessment/AssessmentDraftGuardContext';
+import { AssessmentLeaveDialog } from './components/assessment/AssessmentLeaveDialog';
 import { TestSolutions } from './components/assessment/TestSolutions';
 import { LatinText } from './components/common/BiDi';
 import { EmptyState } from './components/ui/PageChrome';
@@ -179,24 +181,102 @@ export const App: React.FC = () => {
   const savedStepNumber = savedStepIndex >= 0 ? savedStepIndex + 1 : null;
   const savedStepTotal = savedLesson ? savedLesson.steps.length : null;
 
+  /* PR1 — every navigation handler below routes through `requestRouteChange`
+     (defined with the guard further down), so no in-app route change can
+     bypass the leave confirmation while an assessment holds unsaved answers.
+     A handler is never passed *into* requestRouteChange: the dialog's stored
+     action is always a raw state update, so a confirmed leave can never
+     re-enter the guard. `handleReturnToUnit` therefore stays a raw action
+     factory and its call sites wrap it explicitly. */
   const handleGoHome = () => {
-    setLesson1IrabOpen(false);
-    setRoute({ view: 'home' });
+    requestRouteChange(() => {
+      setLesson1IrabOpen(false);
+      setRoute({ view: 'home' });
+    });
   };
   const handleOpenUnit = (unitId: string) => {
+    requestRouteChange(() => {
+      setLesson1IrabOpen(false);
+      setRoute({ view: 'unit', unitId });
+    });
+  };
+  const handleSelectLesson = (lessonId: string) => {
+    if (!getLessonById(lessonId)) return;
+    requestRouteChange(() => {
+      setLesson1IrabOpen(false);
+      setRoute({ view: 'lesson', lessonId });
+    });
+  };
+  const handleReturnToUnit = (unitId: string) => () => {
     setLesson1IrabOpen(false);
     setRoute({ view: 'unit', unitId });
   };
-  const handleSelectLesson = (lessonId: string) => {
-    setLesson1IrabOpen(false);
-    if (getLessonById(lessonId)) setRoute({ view: 'lesson', lessonId });
+  const handleOpenTeacher = () => requestRouteChange(() => setRoute({ view: 'teacher' }));
+  const handleOpenSolutions = () => requestRouteChange(() => setRoute({ view: 'solutions' }));
+
+  /* PR1 — central navigation guard for in-progress assessments.
+     A mounted assessment registers itself here only while it holds answers
+     whose most recent save failed. Route changes requested from anywhere in
+     the app shell (header links, return buttons) are then intercepted with an
+     explicit leave confirmation instead of silently dropping the answers. */
+  const assessmentGuardRef = useRef<{
+    hasUnsavedAnswers: () => boolean;
+    retrySave: () => boolean;
+  } | null>(null);
+  const assessmentGuardRegistry = useMemo<AssessmentDraftGuardRegistry>(
+    () => ({
+      register: (guard) => {
+        assessmentGuardRef.current = guard;
+      },
+    }),
+    [],
+  );
+  const [leavePrompt, setLeavePrompt] = useState<{ run: () => void; losingConfirmed: boolean } | null>(
+    null,
+  );
+
+  const requestRouteChange = (run: () => void) => {
+    if (assessmentGuardRef.current?.hasUnsavedAnswers()) {
+      setLeavePrompt({ run, losingConfirmed: false });
+      return;
+    }
+    run();
   };
-  const handleReturnToUnit = (unitId: string) => () => handleOpenUnit(unitId);
-  const handleOpenTeacher = () => setRoute({ view: 'teacher' });
-  const handleOpenSolutions = () => setRoute({ view: 'solutions' });
+
+  const handleLeaveDialogStay = () => setLeavePrompt(null);
+
+  const handleLeaveDialogRetrySave = () => {
+    const prompt = leavePrompt;
+    if (!prompt) return;
+    /* A successful save makes the pending leave safe: complete it. On failure
+       the dialog stays open and the shell keeps warning — nothing is claimed. */
+    if (assessmentGuardRef.current?.retrySave()) {
+      setLeavePrompt(null);
+      prompt.run();
+    }
+  };
+
+  const handleLeaveDialogLeaveAnyway = () => {
+    const prompt = leavePrompt;
+    if (!prompt) return;
+    /* Final save attempt: success leaves cleanly; failure requires one more
+       explicit confirmation before the learner may lose unsaved answers. */
+    if (assessmentGuardRef.current?.retrySave()) {
+      setLeavePrompt(null);
+      prompt.run();
+      return;
+    }
+    if (!prompt.losingConfirmed) {
+      setLeavePrompt({ ...prompt, losingConfirmed: true });
+      return;
+    }
+    setLeavePrompt(null);
+    prompt.run();
+  };
 
   return (
-    <div className="app-root" dir="rtl" lang="ar">
+    <AssessmentDraftGuardContext.Provider value={assessmentGuardRegistry}>
+      <div className="app-root" dir="rtl" lang="ar">
       <a className="skip-to-content" href="#main-content">
         تجاوز إلى المحتوى
       </a>
@@ -250,8 +330,8 @@ export const App: React.FC = () => {
             isUnitTestAvailable={isUnitTestAvailable}
             onOpenUnit={handleOpenUnit}
             onSelectLesson={handleSelectLesson}
-            onOpenReview={(unitId) => setRoute({ view: 'unit_review', unitId })}
-            onOpenUnitTest={(unitId) => setRoute({ view: 'unit_test', unitId })}
+            onOpenReview={(unitId) => requestRouteChange(() => setRoute({ view: 'unit_review', unitId }))}
+            onOpenUnitTest={(unitId) => requestRouteChange(() => setRoute({ view: 'unit_test', unitId }))}
           />
         )}
 
@@ -282,11 +362,13 @@ export const App: React.FC = () => {
                 onSelectLesson={handleSelectLesson}
                 onOpenUnitTest={
                   isUnitTestAvailable(unit.metadata.id)
-                    ? () => setRoute({ view: 'unit_test', unitId: unit.metadata.id })
+                    ? () => requestRouteChange(() => setRoute({ view: 'unit_test', unitId: unit.metadata.id }))
                     : undefined
                 }
                 onOpenReview={
-                  review ? () => setRoute({ view: 'unit_review', unitId: unit.metadata.id }) : undefined
+                  review
+                    ? () => requestRouteChange(() => setRoute({ view: 'unit_review', unitId: unit.metadata.id }))
+                    : undefined
                 }
               />
             );
@@ -320,9 +402,9 @@ export const App: React.FC = () => {
                       lesson={result.lesson}
                       unit={result.unit}
                       onGoHome={handleGoHome}
-                      onExit={handleReturnToUnit(result.unit.metadata.id)}
+                      onExit={() => requestRouteChange(handleReturnToUnit(result.unit.metadata.id))}
                       onSelectLesson={handleSelectLesson}
-                      onOpenTest={() => setRoute({ view: 'lesson_test', lessonId: route.lessonId })}
+                      onOpenTest={() => requestRouteChange(() => setRoute({ view: 'lesson_test', lessonId: route.lessonId }))}
                       renderStepContent={(step) => (
                         <Lesson1StepRenderer step={step} onOpenIrab={() => setLesson1IrabOpen(true)} />
                       )}
@@ -341,9 +423,9 @@ export const App: React.FC = () => {
                 lesson={result.lesson}
                 unit={result.unit}
                 onGoHome={handleGoHome}
-                onExit={handleReturnToUnit(result.unit.metadata.id)}
+                onExit={() => requestRouteChange(handleReturnToUnit(result.unit.metadata.id))}
                 onSelectLesson={handleSelectLesson}
-                onOpenTest={() => setRoute({ view: 'lesson_test', lessonId: route.lessonId })}
+                onOpenTest={() => requestRouteChange(() => setRoute({ view: 'lesson_test', lessonId: route.lessonId }))}
               />
             );
           })()}
@@ -376,7 +458,7 @@ export const App: React.FC = () => {
             return (
               <AssessmentShell
                 test={test}
-                onExit={() => setRoute({ view: 'lesson', lessonId: route.lessonId })}
+                onExit={() => requestRouteChange(() => setRoute({ view: 'lesson', lessonId: route.lessonId }))}
               />
             );
           })()}
@@ -390,7 +472,11 @@ export const App: React.FC = () => {
                   title="اختبار الوحدة غير متاح قبل اكتمال الوحدة رسمياً"
                   description="يُفتح اختبار الوحدة فقط بعد إعلان صاحب المشروع أن آخر درس في الوحدة قد سُجّل."
                   action={
-                    <button type="button" className="btn btn-primary" onClick={handleReturnToUnit(route.unitId)}>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => requestRouteChange(handleReturnToUnit(route.unitId))}
+                    >
                       العودة إلى الوحدة
                     </button>
                   }
@@ -404,14 +490,23 @@ export const App: React.FC = () => {
                   icon={<Icon name="exam" size={26} />}
                   title="لا يتوفر اختبار لهذه الوحدة"
                   action={
-                    <button type="button" className="btn btn-primary" onClick={handleReturnToUnit(route.unitId)}>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => requestRouteChange(handleReturnToUnit(route.unitId))}
+                    >
                       العودة إلى الوحدة
                     </button>
                   }
                 />
               );
             }
-            return <AssessmentShell test={test} onExit={handleReturnToUnit(route.unitId)} />;
+            return (
+              <AssessmentShell
+                test={test}
+                onExit={() => requestRouteChange(handleReturnToUnit(route.unitId))}
+              />
+            );
           })()}
 
         {route.view === 'unit_review' &&
@@ -423,7 +518,11 @@ export const App: React.FC = () => {
                   icon={<Icon name="review" size={26} />}
                   title="لا يتوفر تقويم رسمي مسجَّل لهذه الوحدة"
                   action={
-                    <button type="button" className="btn btn-primary" onClick={handleReturnToUnit(route.unitId)}>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => requestRouteChange(handleReturnToUnit(route.unitId))}
+                    >
                       العودة إلى الوحدة
                     </button>
                   }
@@ -433,9 +532,9 @@ export const App: React.FC = () => {
             // Each registered review renders through its own student flow; the
             // route stays the same (`unit_review`) for every unit.
             return review.metadata.unitId === 'unit2' ? (
-              <Unit2ReviewFlow review={review} onExit={handleReturnToUnit(route.unitId)} />
+              <Unit2ReviewFlow review={review} onExit={() => requestRouteChange(handleReturnToUnit(route.unitId))} />
             ) : (
-              <Unit1ReviewFlow review={review} onExit={handleReturnToUnit(route.unitId)} />
+              <Unit1ReviewFlow review={review} onExit={() => requestRouteChange(handleReturnToUnit(route.unitId))} />
             );
           })()}
 
@@ -469,7 +568,7 @@ export const App: React.FC = () => {
                         key={test.id}
                         type="button"
                         className="test-solutions-hub-card"
-                        onClick={() => setRoute({ view: 'solutions', testId: test.id })}
+                        onClick={() => requestRouteChange(() => setRoute({ view: 'solutions', testId: test.id }))}
                       >
                         <span>حلول اختبار الدرس</span>
                         <strong>{test.title}</strong>
@@ -485,7 +584,7 @@ export const App: React.FC = () => {
                           key={test.id}
                           type="button"
                           className="test-solutions-hub-card"
-                          onClick={() => setRoute({ view: 'solutions', testId: test.id })}
+                          onClick={() => requestRouteChange(() => setRoute({ view: 'solutions', testId: test.id }))}
                         >
                           <span>حلول اختبار الوحدة الأولى</span>
                           <strong>{test.title}</strong>
@@ -503,7 +602,12 @@ export const App: React.FC = () => {
                 (assessment.scope === 'lesson' || (assessment.scope === 'unit' && isUnitTestAvailable(assessment.unitId))),
             );
             if (!test) return null;
-            return <TestSolutions test={test} onExit={() => setRoute({ view: 'solutions' })} />;
+            return (
+              <TestSolutions
+                test={test}
+                onExit={() => requestRouteChange(() => setRoute({ view: 'solutions' }))}
+              />
+            );
           })()}
 
         {route.view === 'teacher' && (
@@ -538,6 +642,16 @@ export const App: React.FC = () => {
           </p>
         </div>
       </footer>
-    </div>
+      </div>
+
+      {leavePrompt && (
+        <AssessmentLeaveDialog
+          losingConfirmed={leavePrompt.losingConfirmed}
+          onStay={handleLeaveDialogStay}
+          onRetrySave={handleLeaveDialogRetrySave}
+          onLeaveAnyway={handleLeaveDialogLeaveAnyway}
+        />
+      )}
+    </AssessmentDraftGuardContext.Provider>
   );
 };

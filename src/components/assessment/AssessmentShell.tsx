@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { AssessmentTest, UserAssessmentAttempt, UserAnswerValue } from '../../types/curriculum';
 import { QuestionRenderer } from './QuestionRenderer';
 import { evaluateAssessmentAttempt, createFreshAttempt } from '../../utils/testEvaluator';
 import { ArabicNumber } from '../common/BiDi';
 import { clearDraft, readDraftValue, writeDraftValue } from '../../utils/draftStorage';
+import { AssessmentDraftGuardContext } from './AssessmentDraftGuardContext';
 
 const ASSESSMENT_DRAFT_SCOPE = 'assessment-answers';
 
@@ -50,18 +51,60 @@ export const AssessmentShell: React.FC<AssessmentShellProps> = ({ test, onExit }
     answers: readValidAnswers(test),
   }));
 
+  /**
+   * PR1 — honest draft-failure handling. `saveFailed` is set ONLY when a real
+   * write returned false, and cleared ONLY when a real write succeeds. The
+   * answers themselves always live in component state, so a failed write never
+   * costs the learner their in-progress work and never claims a save that did
+   * not happen.
+   */
+  const [saveFailed, setSaveFailed] = useState(false);
+  const [retryFailedNotice, setRetryFailedNotice] = useState(false);
+  const guardRegistry = useContext(AssessmentDraftGuardContext);
+
+  const retrySave = useCallback((): boolean => {
+    const persisted = writeDraftValue(ASSESSMENT_DRAFT_SCOPE, test.id, attempt.answers);
+    setSaveFailed(!persisted);
+    setRetryFailedNotice(!persisted);
+    return persisted;
+  }, [test.id, attempt.answers]);
+
+  /* Let the app shell intercept navigation while unsaved answers exist. */
+  useEffect(() => {
+    if (!guardRegistry) return;
+    guardRegistry.register({
+      hasUnsavedAnswers: () => saveFailed,
+      retrySave,
+    });
+    return () => guardRegistry.register(null);
+  }, [guardRegistry, retrySave, saveFailed]);
+
+  /* Best-effort only: browser close/reload warnings are not guaranteed, so the
+     dependable protection is the in-app navigation guard in App.tsx. */
+  useEffect(() => {
+    if (!saveFailed) return;
+    const warnBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warnBeforeUnload);
+    return () => window.removeEventListener('beforeunload', warnBeforeUnload);
+  }, [saveFailed]);
+
   const handleAnswerChange = (questionId: string, answer: UserAnswerValue) => {
     if (attempt.isSubmitted) return;
-    setAttempt((prev) => {
-      const answers = { ...prev.answers, [questionId]: answer };
-      writeDraftValue(ASSESSMENT_DRAFT_SCOPE, test.id, answers);
-      return { ...prev, answers };
-    });
+    const answers = { ...attempt.answers, [questionId]: answer };
+    const persisted = writeDraftValue(ASSESSMENT_DRAFT_SCOPE, test.id, answers);
+    setSaveFailed(!persisted);
+    setRetryFailedNotice(false);
+    setAttempt((prev) => ({ ...prev, answers }));
   };
 
   const handleSubmit = () => {
     const evalResult = evaluateAssessmentAttempt(test, attempt.answers);
     clearDraft(ASSESSMENT_DRAFT_SCOPE, test.id);
+    setSaveFailed(false);
+    setRetryFailedNotice(false);
     setAttempt((prev) => ({
       ...prev,
       isSubmitted: true,
@@ -76,6 +119,8 @@ export const AssessmentShell: React.FC<AssessmentShellProps> = ({ test, onExit }
 
   const handleRestart = () => {
     clearDraft(ASSESSMENT_DRAFT_SCOPE, test.id);
+    setSaveFailed(false);
+    setRetryFailedNotice(false);
     setAttempt(createFreshAttempt(test.id));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -118,6 +163,27 @@ export const AssessmentShell: React.FC<AssessmentShellProps> = ({ test, onExit }
           </div>
         )}
       </header>
+
+      {/* PR1 — honest warning: the draft did NOT persist. It stays visible
+          until a write actually succeeds, and offers an explicit retry. */}
+      {saveFailed && !attempt.isSubmitted && (
+        <div className="assessment-save-warning" role="alert">
+          <p className="assessment-save-warning-text">
+            تعذّر حفظ مسودّة إجاباتك في هذه الجلسة؛ إجاباتك لم تُحفظ، وهي موجودة في ذاكرة هذه الصفحة
+            فقط وستضيع بمغادرة الصفحة. انسخ إجابتك قبل المغادرة.
+          </p>
+          <div className="assessment-save-warning-actions">
+            <button type="button" className="btn btn-secondary btn-small" onClick={retrySave}>
+              إعادة محاولة الحفظ
+            </button>
+            {retryFailedNotice && (
+              <span className="assessment-save-retry-note" role="status">
+                لم تنجح إعادة المحاولة الأخيرة.
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Results Summary banner after submit */}
       {attempt.isSubmitted && evalResult && (
