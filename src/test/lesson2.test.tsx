@@ -72,9 +72,12 @@ describe('Lesson 2 — source-lock implementation', () => {
     const lesson2 = getLessonById('lesson2')!.lesson;
     render(<LessonFlow lesson={lesson2} />);
 
-    expect(screen.getAllByRole('button', { name: /^الخطوة \d+:/ })).toHaveLength(9);
+    // PR 3b: l2-s4 (oral communication) is hidden → 8 visible steps of 9 registered.
+    expect(screen.getAllByRole('button', { name: /^الخطوة \d+:/ })).toHaveLength(8);
     expect(screen.getByText('بالرأي والرأي الآخر')).toBeInTheDocument();
-    expect(screen.getAllByText(/المادة السمعية غير متوفرة في المصدر المتاح/).length).toBeGreaterThan(0);
+    /* PR 3b: the listening block is hidden from the student, so its declared
+       audio gap is no longer on the student surface. */
+    expect(screen.queryByText(/المادة السمعية غير متوفرة في المصدر المتاح/)).toBeNull();
     expect(screen.getByLabelText('نشاط المصدر L2-12-01')).toBeInTheDocument();
   });
 

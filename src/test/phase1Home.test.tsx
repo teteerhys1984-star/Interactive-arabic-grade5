@@ -5,6 +5,7 @@ import { getAllUnits, getLessonById, getUnitById } from '../data/curriculumRegis
 import { getLessonTestByLessonId } from '../data/assessments';
 import { readLearningLocation } from '../utils/learningProgress';
 import { toArabicDigits } from '../utils/arabicDigits';
+import { getStudentSteps } from '../components/curriculum/studentVisibility';
 
 /**
  * PHASE 1 — behavioural coverage for the redesigned student entry points.
@@ -53,8 +54,10 @@ describe('Phase 1 — home page lesson entry', () => {
 
     // RESULT: lesson 1's own shell is on screen…
     expect(lessonHeading(firstLesson.metadata.title)).toBeInTheDocument();
+    // PR 3b: the two listening/oral steps of Lesson 1 are hidden from the student,
+    // so the visible count is the registered count minus the hidden ones.
     expect(screen.getAllByRole('button', { name: /^الخطوة \d+:/ })).toHaveLength(
-      firstLesson.steps.length,
+      getStudentSteps(firstLesson).length,
     );
     // …the unit page it used to open never appeared…
     expect(currentUnitHeading()).toBeNull();
@@ -77,10 +80,11 @@ describe('Phase 1 — home page lesson entry', () => {
     // Press the second lesson's row button in the first unit panel.
     fireEvent.click(screen.getByRole('button', { name: 'افتح الدرس 2: بالرأي والرأي الآخر' }));
 
-    // RESULT: the Lesson 2 shell is on screen (its own title + its 9 steps),
+    // RESULT: the Lesson 2 shell is on screen (its own title + its visible steps),
     // and no other lesson's shell is.
     expect(lessonHeading('بالرأي والرأي الآخر')).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: /^الخطوة \d+:/ })).toHaveLength(9);
+    // PR 3b: l2-s4 (oral communication) is hidden, so Lesson 2 shows 8 of its 9 steps.
+    expect(screen.getAllByRole('button', { name: /^الخطوة \d+:/ })).toHaveLength(8);
     expect(screen.queryByRole('heading', { level: 1, name: /أهلاً بك في/ })).toBeNull();
 
     // RESULT: the session position now points at that lesson's first step.
@@ -135,7 +139,7 @@ describe('Phase 1 — "continue learning" resume card', () => {
 
     // RESULT: the resume card now exists and names the real saved position.
     const resumeCard = screen.getByRole('complementary', { name: 'متابعة التعلّم' });
-    expect(textOf(resumeCard.querySelector('.home-resume-meta'))).toContain('الخطوة ٤ من ١٠');
+    expect(textOf(resumeCard.querySelector('.home-resume-meta'))).toContain('الخطوة ٤ من ٨');
     expect(textOf(resumeCard.querySelector('.home-resume-meta'))).toContain(UNIT1);
     expect(textOf(resumeCard.querySelector('.home-resume-title'))).toBe('السَّمَكَةُ الذَّهَبِيَّةُ');
     expect(screen.queryByRole('button', { name: 'ابدأ من أول درس' })).toBeNull();
@@ -143,7 +147,8 @@ describe('Phase 1 — "continue learning" resume card', () => {
     // RESULT: pressing it returns to that step, not to the first step.
     fireEvent.click(within(resumeCard).getByRole('button', { name: /تابع من حيث توقّفت/ }));
     expect(screen.getByRole('button', { name: /^الخطوة 4:/ })).toHaveAttribute('aria-current', 'step');
-    expect(readLearningLocation()).toEqual({ unitId: 'unit1', lessonId: 'lesson1', stepId: 'l1-s4' });
+    // PR 3b: student-visible step 4 of Lesson 1 is l1-s6 (l1-s2 and l1-s5 are hidden).
+    expect(readLearningLocation()).toEqual({ unitId: 'unit1', lessonId: 'lesson1', stepId: 'l1-s6' });
   });
 
   it('never advertises progress or completion percentages', () => {
@@ -176,7 +181,8 @@ describe('Phase 1 — unit page round trip', () => {
     expect(screen.getByRole('heading', { level: 1, name: UNIT1 })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /تابع الدرس 2:/ })).toBeInTheDocument();
     expect(textOf(document.querySelector('.unit-page-resume-note'))).toBe(
-      'آخر موضع وصلت إليه: الخطوة ١ من ٩',
+      // PR 3b: Lesson 2's visible steps are 8 after hiding l2-s4.
+      'آخر موضع وصلت إليه: الخطوة ١ من ٨',
     );
   });
 
@@ -268,7 +274,10 @@ describe('Phase 1 — assessment entries', () => {
     const lesson1 = getLessonById('lesson1')!.lesson;
     fireEvent.click(screen.getByRole('button', { name: `عرض دروس ${UNIT1}` }));
     fireEvent.click(screen.getByRole('button', { name: /ابدأ الدرس 1:/ }));
-    fireEvent.click(screen.getByRole('button', { name: new RegExp(`^الخطوة ${lesson1.steps.length}:`) }));
+    // PR 3b: last student-visible step (Lesson 1 shows 8 of its 10 registered steps).
+    fireEvent.click(
+      screen.getByRole('button', { name: new RegExp(`^الخطوة ${getStudentSteps(lesson1).length}:`) }),
+    );
 
     // Only the last step offers the lesson test.
     fireEvent.click(screen.getByRole('button', { name: /بدء اختبار الدرس/ }));
@@ -323,8 +332,9 @@ describe('Phase 1 — numerals on the Arabic surfaces', () => {
     // The lesson rows carry step counts and durations as Arabic-Indic numbers.
     const lesson1 = getLessonById('lesson1')!.lesson;
     const firstRow = document.querySelector('.unit-lesson-row')!;
+    // PR 3b: the row counts the student-visible steps, not the registered ones.
     expect(textOf(firstRow.querySelector('.unit-lesson-meta'))).toContain(
-      toArabicDigits(lesson1.steps.length) + ' خطوات',
+      toArabicDigits(getStudentSteps(lesson1).length) + ' خطوات',
     );
     expect(textOf(firstRow.querySelector('.unit-lesson-meta'))).toContain(
       toArabicDigits(lesson1.metadata.estimatedMinutes) + ' دقيقة',

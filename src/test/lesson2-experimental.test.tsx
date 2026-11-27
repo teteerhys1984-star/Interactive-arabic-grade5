@@ -107,20 +107,21 @@ describe('Lesson 2 Experimental — Source Gap', () => {
     // Step l2-s1 has a source_info block with availability: 'gap' and
     // gapReason: LISTENING_SOURCE_GAP.
     const step = getStep('l2-s1');
-    render(<Lesson2StepRenderer step={step} />);
+    const { container } = render(<Lesson2StepRenderer step={step} />);
 
     // Fixed reference text for the listening source gap reason.
     // Written independently here — not imported from the data under test.
     const LISTENING_GAP_TEXT = 'المادة السمعية غير متوفرة في المصدر المتاح';
 
-    // Find the gap notice that carries this exact text.
-    const notes = screen.getAllByRole('note');
-    const gapNotice = notes.find(
-      (el) => el.textContent && el.textContent.includes(LISTENING_GAP_TEXT),
+    /* PR 3b: the listening section is hidden from the student, so this step now shows
+       the image-observation block only. The gap text is still in the DATA (asserted
+       below through LESSON2_STEP_CONTENT) but must not reach the student surface. */
+    expect(screen.queryByText(LISTENING_GAP_TEXT, { exact: false })).toBeNull();
+    expect(container.querySelector('.l2-source-gap-panel')).toBeNull();
+    const dataGap = LESSON2_STEP_CONTENT['l2-s1'].blocks.find(
+      (block) => block.kind === 'source_info' && block.heading === 'تنبيه المصدر: الاستماع',
     );
-    expect(gapNotice).toBeDefined();
-    expect(gapNotice!.textContent).toContain('حدّ مصدر معلن:');
-    expect(gapNotice!.textContent).toContain(LISTENING_GAP_TEXT);
+    expect(dataGap && 'gapReason' in dataGap ? dataGap.gapReason : '').toContain(LISTENING_GAP_TEXT);
   });
 
   it('renders source_gap activity with exact reason and preservedPrompt texts', () => {

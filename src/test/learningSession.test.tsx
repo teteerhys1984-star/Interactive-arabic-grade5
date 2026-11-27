@@ -59,7 +59,7 @@ describe('session-only learning location', () => {
     expect(container.querySelector('.l1-activity input')).toHaveValue('إجابة محفوظة للجلسة');
 
     fireEvent.click(screen.getByRole('button', { name: 'العودة إلى صفحة الوحدة' }));
-    expect(container.querySelector('.unit-page-resume-note')).toHaveTextContent('آخر موضع وصلت إليه: الخطوة ٤ من ١٠');
+    expect(container.querySelector('.unit-page-resume-note')).toHaveTextContent('آخر موضع وصلت إليه: الخطوة ٤ من ٨');
     fireEvent.click(screen.getByRole('button', { name: /تابع الدرس 1:/ }));
     expect(screen.getByRole('button', { name: /^الخطوة 4:/ })).toHaveAttribute('aria-current', 'step');
     expect(container.querySelector('.l1-activity input')).toHaveValue('إجابة محفوظة للجلسة');

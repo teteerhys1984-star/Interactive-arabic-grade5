@@ -407,16 +407,19 @@ describe('Lesson 1 — standalone i‘rab page', () => {
     fireEvent.click(screen.getByRole('button', { name: 'عرض دروس الوحدة الأولى: أحلامي وطموحاتي' }));
     fireEvent.click(screen.getByRole('button', { name: /ابدأ الدرس 1: السَّمَكَةُ الذَّهَبِيَّةُ/ }));
     const stepButtons = screen.getAllByRole('button', { name: /^الخطوة \d+:/ });
-    expect(stepButtons).toHaveLength(10);
-    fireEvent.click(stepButtons[5]);
-    expect(stepButtons[5]).toHaveAttribute('aria-current', 'step');
+    // PR 3b: Lesson 1's listening (l1-s2) and oral (l1-s5) steps are hidden → 8 visible.
+    expect(stepButtons).toHaveLength(8);
+    // l1-s6 (the step that offers the i‘rab page) is now the student's 4th visible step.
+    const irabStep = screen.getByRole('button', { name: /^الخطوة 4: قَواعِدُ اللُّغَةِ/ });
+    fireEvent.click(irabStep);
+    expect(irabStep).toHaveAttribute('aria-current', 'step');
 
     fireEvent.click(screen.getByRole('button', { name: 'افتح صفحة الإعراب التطبيقي' }));
     expect(screen.getByRole('heading', { level: 2, name: /الإعراب التطبيقي/ })).toBeInTheDocument();
 
     fireEvent.click(screen.getAllByRole('button', { name: /العودة إلى خطوات الدرس/ })[0]);
     expect(screen.queryByRole('heading', { level: 2, name: /الإعراب التطبيقي/ })).not.toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: /^الخطوة \d+:/ })[5]).toHaveAttribute('aria-current', 'step');
+    expect(screen.getByRole('button', { name: /^الخطوة 4: قَواعِدُ اللُّغَةِ/ })).toHaveAttribute('aria-current', 'step');
   });
 
   it('does not expose the Lesson-1 i‘rab page from other lessons', () => {

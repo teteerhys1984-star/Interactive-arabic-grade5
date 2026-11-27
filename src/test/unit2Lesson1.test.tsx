@@ -111,7 +111,8 @@ describe('Unit 2 Lesson 1 — مخترعٌ من بلادي source-lock implement
   it('D14: the dictated spelling task shows nothing to the learner but keeps its grading basis for the teacher', () => {
     const lesson = getLessonById('unit2-lesson1')!.lesson;
     render(<LessonFlow lesson={lesson} />);
-    fireEvent.click(screen.getByRole('button', { name: /^الخطوة 7:/ }));
+    // PR 3b: u2l1-s4 is hidden, so the step's student-facing number is 6 (it was 7).
+    fireEvent.click(screen.getByRole('button', { name: /^الخطوة 6: إملاء/ }));
 
     const activity = screen.getByLabelText('نشاط المصدر U2L1-46-07');
     // The writing space is a student surface; the key and the grading basis are not.
@@ -132,7 +133,8 @@ describe('Unit 2 Lesson 1 — مخترعٌ من بلادي source-lock implement
     expect(screen.queryByRole('button', { name: /اختبار الوحدة الثانية/ })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'عرض دروس الوحدة الثانية' }));
     fireEvent.click(screen.getByRole('button', { name: /ابدأ الدرس 1: مُخْتَرِعٌ مِنْ بِلَادِي/ }));
-    expect(screen.getAllByRole('button', { name: /^الخطوة \d+:/ })).toHaveLength(11);
+    // PR 3b: u2l1-s4 (oral communication) is hidden → 10 visible steps of 11 registered.
+    expect(screen.getAllByRole('button', { name: /^الخطوة \d+:/ })).toHaveLength(10);
     expect(screen.getByLabelText('نشاط المصدر U2L1-40-01')).toBeInTheDocument();
   });
 
@@ -140,9 +142,12 @@ describe('Unit 2 Lesson 1 — مخترعٌ من بلادي source-lock implement
     const lesson = getLessonById('unit2-lesson1')!.lesson;
     render(<LessonFlow lesson={lesson} />);
 
-    expect(screen.getAllByRole('button', { name: /^الخطوة \d+:/ })).toHaveLength(11);
+    // PR 3b: u2l1-s4 (oral communication) is hidden → 10 visible steps of 11 registered.
+    expect(screen.getAllByRole('button', { name: /^الخطوة \d+:/ })).toHaveLength(10);
     expect(screen.getByText('مُخْتَرِعٌ مِنْ بِلَادِي')).toBeInTheDocument();
-    expect(screen.getAllByText(/التسجيل الصوتي غير متوفر/).length).toBeGreaterThan(0);
+    /* PR 3b: the listening block of step 1 is hidden from the student, so its declared
+       audio gap is no longer rendered on the student surface. */
+    expect(screen.queryByText(/التسجيل الصوتي غير متوفر/)).toBeNull();
     expect(screen.getByLabelText('نشاط المصدر U2L1-40-01')).toBeInTheDocument();
 
     const draft = screen.getByLabelText('الرابط الذي اكتشفته:');

@@ -9,6 +9,7 @@ import { ALL_ASSESSMENTS } from '../data/assessments';
 import { auditCurriculum } from '../utils/audit';
 import { LESSON1_STEP_CONTENT, LESSON1_STEPS } from '../data/lesson1/content';
 import { COVERAGE, TEXTBOOK_ACTIVITIES } from '../data/lesson1/activities';
+import { getStudentSteps } from '../components/curriculum/studentVisibility';
 import { LESSON1_IRAB } from '../data/lesson1/irab';
 import { LESSON1_TEST } from '../data/lesson1/lessonTest';
 import { SOURCE_UNCERTAINTIES } from '../data/lesson1/sourceMeta';
@@ -35,7 +36,9 @@ describe('Lesson side navigation', () => {
     const buttons = screen.getAllByRole('button', { name: /^الخطوة \d+:/ });
 
     expect(container.querySelector('.lesson-shell')).toHaveAttribute('dir', 'rtl');
-    expect(buttons).toHaveLength(10);
+    // PR 3b: Lesson 1's two listening/oral steps are hidden from the student → 8 visible.
+    expect(buttons).toHaveLength(getStudentSteps(lesson).length);
+    expect(buttons).toHaveLength(8);
     expect(buttons[0]).toHaveAttribute('aria-current', 'step');
     expect(buttons[0]).toHaveAccessibleName(/الخطوة الحالية/);
     expect(buttons[1]).toHaveAccessibleName(/انتقل إليها/);
@@ -59,10 +62,11 @@ describe('Lesson side navigation', () => {
     expect(screen.queryByRole('progressbar')).toBeNull();
 
     // The existing product permits selecting later steps; preserve that behavior.
-    fireEvent.click(buttons[9]);
-    expect(buttons[9]).toHaveAttribute('aria-current', 'step');
+    const last = buttons.length - 1;
+    fireEvent.click(buttons[last]);
+    expect(buttons[last]).toHaveAttribute('aria-current', 'step');
     expect(buttons[3]).not.toHaveAttribute('aria-current');
-    expect(buttons[8]).toHaveAccessibleName(/انتقل إليها/);
+    expect(buttons[last - 1]).toHaveAccessibleName(/انتقل إليها/);
     expect(screen.queryByRole('progressbar')).toBeNull();
     expect(screen.getByRole('button', { name: 'بدء اختبار الدرس، عشرون سؤالاً' })).toBeInTheDocument();
   });
@@ -76,11 +80,12 @@ describe('Lesson side navigation', () => {
     expect(buttons[1]).toHaveFocus();
     expect(buttons[1]).toHaveAttribute('aria-current', 'step');
 
+    const last = buttons.length - 1;
     fireEvent.keyDown(buttons[1], { key: 'End' });
-    expect(buttons[9]).toHaveFocus();
-    expect(buttons[9]).toHaveAttribute('aria-current', 'step');
+    expect(buttons[last]).toHaveFocus();
+    expect(buttons[last]).toHaveAttribute('aria-current', 'step');
 
-    fireEvent.keyDown(buttons[9], { key: 'Home' });
+    fireEvent.keyDown(buttons[last], { key: 'Home' });
     expect(buttons[0]).toHaveFocus();
     expect(buttons[0]).toHaveAttribute('aria-current', 'step');
   });
@@ -90,7 +95,7 @@ describe('Lesson side navigation', () => {
     render(<LessonFlow lesson={lesson} />);
     const select = screen.getByLabelText('اختر خطوة للانتقال إليها') as HTMLSelectElement;
 
-    expect(select.options).toHaveLength(10);
+    expect(select.options).toHaveLength(getStudentSteps(lesson).length);
     fireEvent.change(select, { target: { value: '5' } });
     expect(select.value).toBe('5');
     expect(screen.getByRole('button', { name: /^الخطوة 6:/ })).toHaveAttribute('aria-current', 'step');

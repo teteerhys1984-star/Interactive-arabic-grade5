@@ -134,7 +134,9 @@ describe('Unit 2 Lesson 2 — الذَّكاءُ الاصطِناعيُّ source
 
     expect(screen.getAllByRole('button', { name: /^الخطوة \d+:/ })).toHaveLength(11);
     expect(screen.getByText('الذَّكاءُ الاصطِناعيُّ')).toBeInTheDocument();
-    expect(screen.getAllByText(/التسجيل الصوتي غير متوفر/).length).toBeGreaterThan(0);
+    /* PR 3b: no step is removed in this lesson, but the listening section of step 1 is
+       hidden from the student — so its declared source gap is no longer on the surface. */
+    expect(screen.queryByText(/التسجيل الصوتي غير متوفر/)).toBeNull();
     expect(screen.getByLabelText('نشاط المصدر U2L2-50-01')).toBeInTheDocument();
 
     const draft = screen.getByLabelText('برنامج أعرفه') as HTMLInputElement;
@@ -151,21 +153,26 @@ describe('Unit 2 Lesson 2 — الذَّكاءُ الاصطِناعيُّ source
     const lesson = getLessonById('unit2-lesson2')!.lesson;
     render(<LessonFlow lesson={lesson} />);
 
-    const activitySection = screen.getByLabelText('نشاط المصدر U2L2-50-04');
+    /* PR 3b: the listening item U2L2-50-04 is hidden from the student, so the closed
+       activity used here is the comprehension item U2L2-52-04 (same protocol). */
+    fireEvent.click(screen.getByRole('button', { name: /^الخطوة 3:/ }));
+    const activitySection = screen.getByLabelText('نشاط المصدر U2L2-52-04');
     // The rationale text must not be in the DOM before any attempt.
-    expect(within(activitySection).queryByText(/فالإجابة المعتمدة/)).toBeNull();
+    expect(within(activitySection).queryByText(/فلم يرد له ذكر/)).toBeNull();
     expect(within(activitySection).getByRole('button', { name: 'تحقق من إجابتي' })).toBeDisabled();
 
     // Wrong classification first.
-    fireEvent.change(within(activitySection).getByLabelText('تصنيف مراد سامي من جلوسه أمام حاسبه'), { target: { value: 'game' } });
+    fireEvent.change(within(activitySection).getByLabelText('تصنيف الفكرة التي لم ترد في النص'), { target: { value: 'feelings' } });
     fireEvent.click(within(activitySection).getByRole('button', { name: 'تحقق من إجابتي' }));
     expect(within(activitySection).getByRole('status')).toHaveTextContent('من 1 عناصر');
 
+    // The educational explanation appears only after the attempt, and it is the
+    // comprehension rationale of this item — never an approved-key label.
     fireEvent.click(within(activitySection).getByRole('button', { name: 'اعرض التفسير التعليمي' }));
-    expect(within(activitySection).getByText(/فالإجابة المعتمدة/)).toBeInTheDocument();
+    expect(within(activitySection).getByText(/فلم يرد له ذكر/)).toBeInTheDocument();
 
     // Retry reaches full correctness.
-    fireEvent.change(within(activitySection).getByLabelText('تصنيف مراد سامي من جلوسه أمام حاسبه'), { target: { value: 'family' } });
+    fireEvent.change(within(activitySection).getByLabelText('تصنيف الفكرة التي لم ترد في النص'), { target: { value: 'saving' } });
     fireEvent.click(within(activitySection).getByRole('button', { name: 'تحقق من إجابتي' }));
     expect(within(activitySection).getByRole('status')).toHaveTextContent('صحيحة');
   });

@@ -12,6 +12,7 @@ import {
 import { U2L3Block, U2L3_POEM, U2L3_STEP_CONTENT } from '../../data/unit2Lesson3/content';
 import { U2L3_LISTENING_AUDIO_GAP, U2L3_LOCKED_SOURCE_NOTES } from '../../data/unit2Lesson3/sourceMeta';
 import { clearDraft, readDraft, writeDraft } from '../../utils/draftStorage';
+import { isStudentBlockVisible } from './studentVisibility';
 import './unit2Lesson3.css';
 
 /**
@@ -48,9 +49,13 @@ export const Unit2Lesson3StepRenderer: React.FC<{ step: LessonStep }> = ({ step 
   }
   return (
     <div className="step-renderer lesson2-step-renderer u2l3-step-renderer">
-      {content.blocks.map((block, index) => (
-        <U2L3BlockView key={`${step.id}-${index}`} block={block} />
-      ))}
+      {content.blocks
+        // Student view only (§٦): listening / oral-communication blocks are removed by
+        // explicit identifier in `studentVisibility.ts`; the data is untouched.
+        .filter((block) => isStudentBlockVisible('unit2-lesson3', step.id, block))
+        .map((block, index) => (
+          <U2L3BlockView key={`${step.id}-${index}`} block={block} />
+        ))}
     </div>
   );
 };

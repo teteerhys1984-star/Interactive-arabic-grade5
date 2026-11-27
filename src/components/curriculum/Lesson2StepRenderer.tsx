@@ -8,6 +8,7 @@ import { getLesson2Activity, Lesson2Activity, Lesson2Interaction } from '../../d
 import { LESSON2_STEP_CONTENT, Lesson2Block } from '../../data/lesson2/content';
 import { clearDraft, readDraft, writeDraft } from '../../utils/draftStorage';
 import { Lesson2Explanations } from './Lesson2Explanations';
+import { isStudentBlockVisible } from './studentVisibility';
 
 const LESSON2_DRAFT_SCOPE = 'lesson2';
 
@@ -38,13 +39,17 @@ export const Lesson2StepRenderer: React.FC<{ step: LessonStep }> = ({ step }) =>
 
   return (
     <div className="step-renderer lesson2-step-renderer">
-      {content.blocks.map((block, index) => (
-        <React.Fragment key={`${step.id}-${index}`}>
-          <Lesson2BlockView block={block} />
-          {block.kind === 'explanation' && step.id === 'l2-s5' && block.heading === 'كيف أتحقق؟' && <Lesson2Explanations stepId="l2-s5" />}
-          {block.kind === 'explanation' && step.id === 'l2-s6' && block.heading === 'طريقة فحص سريعة' && <Lesson2Explanations stepId="l2-s6" />}
-        </React.Fragment>
-      ))}
+      {content.blocks
+        // Student view only: listening / oral-communication blocks removed by explicit
+        // identifier here; the lesson data itself is untouched (see studentVisibility.ts).
+        .filter((block) => isStudentBlockVisible('lesson2', step.id, block))
+        .map((block, index) => (
+          <React.Fragment key={`${step.id}-${index}`}>
+            <Lesson2BlockView block={block} />
+            {block.kind === 'explanation' && step.id === 'l2-s5' && block.heading === 'كيف أتحقق؟' && <Lesson2Explanations stepId="l2-s5" />}
+            {block.kind === 'explanation' && step.id === 'l2-s6' && block.heading === 'طريقة فحص سريعة' && <Lesson2Explanations stepId="l2-s6" />}
+          </React.Fragment>
+        ))}
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import { App } from '../App';
 import { LessonFlow } from '../components/curriculum/LessonFlow';
 import { Unit3Lesson1StepRenderer } from '../components/curriculum/Unit3Lesson1StepRenderer';
+import { isStudentBlockVisible } from '../components/curriculum/studentVisibility';
 import { SourceBadge } from '../components/common/SourceBadge';
 import {
   curriculumRegistry,
@@ -121,15 +122,18 @@ describe('Unit 3 Lesson 1 — العُلَماءُ الصِّغار (ص٧٣–٨
     const rows = document.querySelectorAll('.unit-page-lesson-row .unit-page-lesson-copy h3');
     expect(Array.from(rows).map((row) => row.textContent)).toEqual(['العُلَماءُ الصِّغارُ']);
     fireEvent.click(screen.getByRole('button', { name: /ابدأ الدرس 1: العُلَماءُ الصِّغارُ/ }));
+    // PR 3b: u3l1-s1 shows image observation only; no step is removed in this lesson.
     expect(document.querySelector('.lesson-step-position')).toHaveTextContent('الخطوة 1 من 11');
     expect(screen.getByText(/أَعُدُّ عَناصِرَ الصُّورَتَيْنِ/)).toBeInTheDocument();
-    expect(screen.getAllByText(/التسجيل غير متوفر/).length).toBeGreaterThan(0);
+    /* PR 3b: the listening section (and its declared audio gap) is hidden. */
+    expect(screen.queryByText(/التسجيل غير متوفر/)).toBeNull();
     expect(screen.getByRole('button', { name: 'العودة إلى صفحة الوحدة' })).toBeInTheDocument();
   });
 
   it('supports step navigation, previous/next, and the saved learning position', () => {
     const { lesson, unit } = getLessonById('unit3-lesson1')!;
     const first = render(<LessonFlow lesson={lesson} unit={unit} />);
+    // PR 3b: u3l1-s1 shows image observation only; no step is removed in this lesson.
     expect(document.querySelector('.lesson-step-position')).toHaveTextContent('الخطوة 1 من 11');
     fireEvent.click(screen.getByRole('button', { name: 'الانتقال إلى الخطوة 2' }));
     expect(readLearningLocation()).toEqual({ unitId: 'unit3', lessonId: 'unit3-lesson1', stepId: 'u3l1-s2' });
@@ -182,7 +186,9 @@ describe('Unit 3 Lesson 1 — العُلَماءُ الصِّغار (ص٧٣–٨
     const view = render(<Unit3Lesson1StepRenderer step={U3L1_STEPS[0]} />);
     U3L1_STEPS.forEach((step) => {
       view.rerender(<Unit3Lesson1StepRenderer step={step} />);
-      const blocks = U3L1_STEP_CONTENT[step.id].blocks;
+      /* PR 3b: only blocks that survive the student-visibility filter are compared. */
+      const blocks = U3L1_STEP_CONTENT[step.id].blocks
+        .filter((block) => isStudentBlockVisible('unit3-lesson1', step.id, block));
       const gapBlocks = blocks.filter((block) => block.kind === 'source_info' && block.gap);
       const gapActivities = blocks.filter((block) => block.kind === 'activity' && U3L1_ACTIVITY_BY_ID[block.activityId]?.gapNote);
       expect(view.container.querySelectorAll('.l2-source-gap-panel')).toHaveLength(gapBlocks.length);

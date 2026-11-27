@@ -6,6 +6,7 @@ import { fromKeyedLesson, resolveAnswerReveal } from '../common/answerDisclosure
 import { getU2L2Activity, U2L2Activity, U2L2Interaction } from '../../data/unit2Lesson2/activities';
 import { U2L2_STEP_CONTENT, U2L2Block } from '../../data/unit2Lesson2/content';
 import { clearDraft, readDraft, writeDraft } from '../../utils/draftStorage';
+import { getStudentBlockLines, isStudentBlockVisible } from './studentVisibility';
 
 const U2L2_DRAFT_SCOPE = 'unit2lesson2';
 const U2L2_CHECK_SCOPE = 'unit2lesson2-checks';
@@ -54,9 +55,13 @@ export const Unit2Lesson2StepRenderer: React.FC<{ step: LessonStep }> = ({ step 
 
   return (
     <div className="step-renderer lesson2-step-renderer u2l2-step-renderer">
-      {content.blocks.map((block, index) => (
-        <U2L2BlockView key={`${step.id}-${index}`} block={block} />
-      ))}
+      {content.blocks
+        // Student view only (§٦): listening and oral-communication blocks are removed by
+        // explicit identifier (activity id / heading / check id) in `studentVisibility.ts`.
+        .filter((block) => isStudentBlockVisible('unit2-lesson2', step.id, block))
+        .map((block, index) => (
+          <U2L2BlockView key={`${step.id}-${index}`} stepId={step.id} block={block} />
+        ))}
     </div>
   );
 };
@@ -83,7 +88,7 @@ const SourceSection: React.FC<{
   </section>
 );
 
-const U2L2BlockView: React.FC<{ block: U2L2Block }> = ({ block }) => {
+const U2L2BlockView: React.FC<{ stepId: string; block: U2L2Block }> = ({ stepId, block }) => {
   switch (block.kind) {
     case 'source_info':
       return (
@@ -133,7 +138,9 @@ const U2L2BlockView: React.FC<{ block: U2L2Block }> = ({ block }) => {
         <section className="block-explanation l2-platform-explanation">
           <span className="source-label-explain">شرح المنصة</span>
           <h3 className="block-heading">{block.heading}</h3>
-          {block.lines.map((line, index) => <p key={index}>{line}</p>)}
+          {/* A shared explanation keeps its comprehension lines and loses only the
+              identified oral-communication line (§٦, u2l2-s4). */}
+          {getStudentBlockLines('unit2-lesson2', stepId, block.heading, block.lines).map((line, index) => <p key={index}>{line}</p>)}
         </section>
       );
     case 'worked_example':

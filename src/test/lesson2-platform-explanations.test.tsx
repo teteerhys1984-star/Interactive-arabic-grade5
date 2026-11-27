@@ -32,7 +32,9 @@ describe('Lesson 2 platform explanations', () => {
     rerender(<Lesson2StepRenderer step={step('l2-s1')} />);
     expect(screen.queryByRole('region', { name: grammar })).not.toBeInTheDocument();
     expect(screen.queryByRole('region', { name: spelling })).not.toBeInTheDocument();
-    expect(screen.getAllByText(/المادة السمعية غير متوفرة/).length).toBeGreaterThan(0);
+    /* PR 3b: step 1 now shows image observation only — the listening gap is hidden. */
+    expect(screen.queryByText(/المادة السمعية غير متوفرة/)).toBeNull();
+    expect(screen.getByLabelText('نشاط المصدر L2-12-01')).toBeInTheDocument();
   });
 
   it('checks each classification row, explains mistakes, and clears stale feedback', () => {
@@ -111,19 +113,24 @@ describe('Lesson 2 platform explanations', () => {
     const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
     const lesson = getLessonById('lesson2')!.lesson;
     render(<LessonFlow lesson={lesson} />);
-    fireEvent.click(screen.getByRole('button', { name: /^الخطوة 5:/ }));
+    /* PR 3b: l2-s4 (oral communication) is hidden, so the student numbering shifts:
+       l2-s5 is visible step 4 and l2-s6 is visible step 5. Steps are addressed by title
+       so the intent survives any future visibility change. */
+    const goto = (title: string) =>
+      fireEvent.click(screen.getByRole('button', { name: new RegExp(`^الخطوة \\d+: ${title}`) }));
+    goto('قواعد اللغة');
     const reason = exercise('أفسّر السبب');
     select(reason, 'القراءة مصدر', 'event'); select(reason, 'قرأَ فعل', 'past');
     fireEvent.click(within(reason).getByRole('button', { name: 'تحقّق' }));
-    fireEvent.click(screen.getByRole('button', { name: /^الخطوة 6:/ }));
+    goto('إملاء');
     const spellingTask = exercise('أعلّل همزة القطع');
     select(spellingTask, 'السبب', 'past3');
     fireEvent.click(within(spellingTask).getByRole('button', { name: 'تحقّق' }));
-    fireEvent.click(screen.getByRole('button', { name: /^الخطوة 5:/ }));
+    goto('قواعد اللغة');
     expect(within(exercise('أفسّر السبب')).getByLabelText('القراءة مصدر')).toHaveValue('event');
     expect(within(exercise('أفسّر السبب')).getByLabelText('قرأَ فعل')).toHaveValue('past');
     expect(within(exercise('أفسّر السبب')).queryByRole('status')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /^الخطوة 6:/ }));
+    goto('إملاء');
     expect(within(exercise('أعلّل همزة القطع')).getByLabelText('السبب')).toHaveValue('past3');
     expect(within(exercise('أعلّل همزة القطع')).queryByRole('status')).not.toBeInTheDocument();
     expect(readDraft('lesson2-platform-checks', 'l2p-g-reason')).toEqual({ 'l2p-g-reason-qiraa': 'event', 'l2p-g-reason-qaraa': 'past' });
