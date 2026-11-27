@@ -20,6 +20,7 @@ import { HomePage } from './components/curriculum/HomePage';
 import { UnitPage } from './components/curriculum/UnitPage';
 import { LessonFlow } from './components/curriculum/LessonFlow';
 import { LessonShell } from './components/curriculum/LessonShell';
+import { getStudentSteps, resolveStudentStepIndex } from './components/curriculum/studentVisibility';
 import { Lesson1StepRenderer } from './components/curriculum/Lesson1StepRenderer';
 import { Lesson1IrabPage } from './components/curriculum/Lesson1IrabPage';
 import { Unit1ReviewFlow } from './components/curriculum/Unit1ReviewFlow';
@@ -176,10 +177,10 @@ export const App: React.FC = () => {
   const savedLesson = savedLocation ? getLessonById(savedLocation.lessonId)?.lesson : undefined;
   const savedUnit = savedLocation ? getUnitById(savedLocation.unitId) : undefined;
   const savedStepIndex = savedLesson && savedLocation
-    ? savedLesson.steps.findIndex((step) => step.id === savedLocation.stepId)
+    ? resolveStudentStepIndex(savedLesson, savedLocation.stepId)
     : -1;
   const savedStepNumber = savedStepIndex >= 0 ? savedStepIndex + 1 : null;
-  const savedStepTotal = savedLesson ? savedLesson.steps.length : null;
+  const savedStepTotal = savedLesson ? getStudentSteps(savedLesson).length : null;
 
   /* PR1 — every navigation handler below routes through `requestRouteChange`
      (defined with the guard further down), so no in-app route change can

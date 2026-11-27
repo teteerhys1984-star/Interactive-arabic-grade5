@@ -6,6 +6,7 @@ import { fromKeyedLesson, resolveAnswerReveal } from '../common/answerDisclosure
 import { getLesson3Activity, Lesson3Activity, Lesson3Interaction } from '../../data/lesson3/activities';
 import { LESSON3_STEP_CONTENT, Lesson3Block } from '../../data/lesson3/content';
 import { clearDraft, readDraft, writeDraft } from '../../utils/draftStorage';
+import { isStudentBlockVisible } from './studentVisibility';
 import {
   areRiddleFieldsComplete,
   canRevealRiddleForStudent,
@@ -37,9 +38,11 @@ export const Lesson3StepRenderer: React.FC<{ step: LessonStep }> = ({ step }) =>
 
   return (
     <div className="step-renderer lesson2-step-renderer lesson3-step-renderer">
-      {content.blocks.map((block, index) => (
-        <Lesson3BlockView key={`${step.id}-${index}`} block={block} />
-      ))}
+      {content.blocks
+        .filter((block) => isStudentBlockVisible('lesson3', step.id, block))
+        .map((block, index) => (
+          <Lesson3BlockView key={`${step.id}-${index}`} block={block} />
+        ))}
     </div>
   );
 };

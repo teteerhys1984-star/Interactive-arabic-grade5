@@ -6,6 +6,7 @@ import { getLessonTestByLessonId } from '../../data/assessments';
 import { Icon } from '../ui/Icon';
 import { Breadcrumbs, PageHeader, SectionHeading, StatusPill } from '../ui/PageChrome';
 import { LearningLocation } from '../../utils/learningProgress';
+import { getStudentSteps, resolveStudentStepIndex } from './studentVisibility';
 
 export interface UnitPageProps {
   unit: Unit;
@@ -113,9 +114,10 @@ export const UnitPage: React.FC<UnitPageProps> = ({
             {lessons.map((lesson) => {
               const isSavedLesson =
                 savedLocation?.unitId === metadata.id && savedLocation.lessonId === lesson.metadata.id;
-              const savedStepIndex = isSavedLesson
-                ? lesson.steps.findIndex((step) => step.id === savedLocation?.stepId)
+              const savedStepIndex = isSavedLesson && savedLocation
+                ? resolveStudentStepIndex(lesson, savedLocation.stepId)
                 : -1;
+              const visibleStepCount = getStudentSteps(lesson).length;
               const hasValidSavedStep = savedStepIndex >= 0;
               // The question count is READ from the registered assessment, never
               // hard-coded: a lesson with no registered test shows no exam chip.
@@ -152,7 +154,7 @@ export const UnitPage: React.FC<UnitPageProps> = ({
                     <div className="lesson-card-meta">
                       <span>
                         <Icon name="steps" size={14} />{' '}
-                        <ArabicNumber value={toArabicDigits(lesson.steps.length)} /> خطوات
+                        <ArabicNumber value={toArabicDigits(visibleStepCount)} /> خطوات
                       </span>
                       <span aria-hidden="true">·</span>
                       <span>
@@ -173,7 +175,7 @@ export const UnitPage: React.FC<UnitPageProps> = ({
                       <p className="unit-page-resume-note">
                         آخر موضع وصلت إليه: الخطوة{' '}
                         <ArabicNumber value={toArabicDigits(savedStepIndex + 1)} /> من{' '}
-                        <ArabicNumber value={toArabicDigits(lesson.steps.length)} />
+                        <ArabicNumber value={toArabicDigits(visibleStepCount)} />
                       </p>
                     )}
                   </div>
