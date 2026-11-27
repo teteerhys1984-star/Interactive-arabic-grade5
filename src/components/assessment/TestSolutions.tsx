@@ -69,7 +69,7 @@ export const TestSolutions: React.FC<{
   test: AssessmentTest;
   onExit?: () => void;
   scope?: 'student' | 'teacher';
-}> = ({ test, onExit, scope = 'teacher' }) => {
+}> = ({ test, onExit, scope = 'student' }) => {
   const sorted = [...test.questions].sort((a, b) => a.order - b.order);
   const GROUPS = buildGroups(test);
 

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
+import { App } from '../App';
 import { Lesson3StepRenderer } from '../components/curriculum/Lesson3StepRenderer';
 import { LESSON3_STEPS } from '../data/lesson3/content';
 import { getLesson3Activity } from '../data/lesson3/activities';
@@ -137,5 +138,42 @@ describe('PR2 — Riddle & Assessment Guard (l3-a-49, l3-t-20, u1-t-50)', () => 
     expect(areRiddleFieldsComplete({ b1: '  ', b2: 'أ', b3: 'ب', b4: 'ج' })).toBe(false);
     expect(confirmRiddleAttempt({ b1: '  ', b2: 'أ', b3: 'ب', b4: 'ج' })).toBe(false);
     expect(canRevealRiddleForStudent()).toBe(false);
+  });
+
+  it('integration: App TestSolutions route guards l3-t-20 and u1-t-50 before confirmation and reveals them after confirmation', () => {
+    const { unmount } = render(<App />);
+
+    // Open «حلول الاختبارات» from the app header and unlock the solutions gate
+    fireEvent.click(screen.getByRole('button', { name: 'حلول الاختبارات' }));
+    fireEvent.change(screen.getByLabelText('كلمة مرور الحلول'), { target: { value: 'st12' } });
+    fireEvent.click(screen.getByRole('button', { name: 'دخول منطقة الحلول' }));
+
+    // Open Lesson 3 test solutions
+    fireEvent.click(screen.getByRole('button', { name: /اختبار الدرس الثالث: لغتي/i }));
+    expect(screen.getByTestId('guarded-solution-l3-t-20')).toBeInTheDocument();
+    expect(screen.queryByText('أحجية «ألعب وأتعلم» في الدرس تصف:')).not.toBeInTheDocument();
+    // Other questions in Lesson 3 test solutions remain visible
+    expect(screen.getAllByText(/الإجابَةُ الصَّحيحَةُ/).length).toBe(19);
+
+    // Go back to solutions index and open Unit 1 test solutions
+    fireEvent.click(screen.getByRole('button', { name: /العودة/ }));
+    fireEvent.click(screen.getByRole('button', { name: /اختبار الوحدة الأولى: أحلامي وطموحاتي/i }));
+    expect(screen.getByTestId('guarded-solution-u1-t-50')).toBeInTheDocument();
+    expect(screen.queryByText(/وسبعةٌ حروفُهُ/)).not.toBeInTheDocument();
+    expect(screen.getAllByText(/الإجابَةُ الصَّحيحَةُ/).length).toBe(49);
+    unmount();
+
+    // Confirm riddle attempt, then re-open App TestSolutions route
+    expect(confirmRiddleAttempt({ b1: '١', b2: '٢', b3: '٣', b4: '٤' })).toBe(true);
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'حلول الاختبارات' }));
+    fireEvent.click(screen.getByRole('button', { name: /اختبار الدرس الثالث: لغتي/i }));
+    expect(screen.queryByTestId('guarded-solution-l3-t-20')).not.toBeInTheDocument();
+    expect(screen.getByText('أحجية «ألعب وأتعلم» في الدرس تصف:')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /العودة/ }));
+    fireEvent.click(screen.getByRole('button', { name: /اختبار الوحدة الأولى: أحلامي وطموحاتي/i }));
+    expect(screen.queryByTestId('guarded-solution-u1-t-50')).not.toBeInTheDocument();
+    expect(screen.getByText(/وسبعةٌ حروفُهُ/)).toBeInTheDocument();
   });
 });
