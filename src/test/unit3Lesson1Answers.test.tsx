@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { Unit3Lesson1StepRenderer } from '../components/curriculum/Unit3Lesson1StepRenderer';
+import { isStudentBlockVisible } from '../components/curriculum/studentVisibility';
 import { AnswerReveal } from '../components/common/AnswerReveal';
 import { resolveAnswerReveal } from '../components/common/answerDisclosure';
 import { U3L1_ACTIVITIES, U3L1_ACTIVITY_BY_ID } from '../data/unit3Lesson1/activities';
@@ -133,9 +134,12 @@ describe('U3L1 — the student sees the button and the answer', () => {
   it('renders a button for every answerable activity and none for the source-gap ones', () => {
     for (const step of U3L1_STEPS) {
       const view = render(<Unit3Lesson1StepRenderer step={step} />);
+      /* PR 3b: hidden activities (the listening trio and the oral-communication item)
+         are not rendered for the student, so they are not expected here either. */
       const activityIds = U3L1_STEP_CONTENT[step.id].blocks
         .filter((block) => block.kind === 'activity')
-        .map((block) => (block as { activityId: string }).activityId);
+        .map((block) => (block as { activityId: string }).activityId)
+        .filter((activityId) => isStudentBlockVisible('unit3-lesson1', step.id, { kind: 'activity', activityId }));
 
       activityIds.forEach((activityId) => {
         const section = screen.getByLabelText(`نشاط المصدر ${U3L1_ACTIVITY_BY_ID[activityId].sourceActivityId}`);

@@ -6,6 +6,7 @@ import { fromKeyedLesson, resolveAnswerReveal } from '../common/answerDisclosure
 import { getU2L1Activity, U2L1Activity, U2L1Interaction } from '../../data/unit2Lesson1/activities';
 import { U2L1_STEP_CONTENT, U2L1Block } from '../../data/unit2Lesson1/content';
 import { clearDraft, readDraft, writeDraft } from '../../utils/draftStorage';
+import { isStudentBlockVisible } from './studentVisibility';
 
 const U2L1_DRAFT_SCOPE = 'unit2lesson1';
 const U2L1_CHECK_SCOPE = 'unit2lesson1-checks';
@@ -26,9 +27,13 @@ export const Unit2Lesson1StepRenderer: React.FC<{ step: LessonStep }> = ({ step 
 
   return (
     <div className="step-renderer lesson2-step-renderer u2l1-step-renderer">
-      {content.blocks.map((block, index) => (
-        <U2L1BlockView key={`${step.id}-${index}`} block={block} />
-      ))}
+      {content.blocks
+        // Student view only (§٦): the listening section is removed by explicit identifier
+        // here; the lesson data and the teacher area are untouched.
+        .filter((block) => isStudentBlockVisible('unit2-lesson1', step.id, block))
+        .map((block, index) => (
+          <U2L1BlockView key={`${step.id}-${index}`} block={block} />
+        ))}
     </div>
   );
 };

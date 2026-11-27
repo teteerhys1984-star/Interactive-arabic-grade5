@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import { App } from '../App';
 import { LessonFlow } from '../components/curriculum/LessonFlow';
 import { Unit2Lesson3StepRenderer } from '../components/curriculum/Unit2Lesson3StepRenderer';
+import { isStudentBlockVisible } from '../components/curriculum/studentVisibility';
 import {
   curriculumRegistry,
   getLessonById,
@@ -171,9 +172,11 @@ describe('Unit 2 Lesson 3 — بِالْعِلْمِ تَرْقَى (ص٦١–٦
   });
   it('labels and summarizes every source limit without exposing audit details', () => {
     const expected: Record<number, string[]> = {
+      // PR 3b: the listening gap is declared in the data but hidden from the student
+      // surface with the rest of the listening section, so step 1 now shows only the
+      // frame-wording gap.
       0: [
         'اللفظان في الإطار مثبتان. بعض الحركات الدقيقة فقط تحتاج صورة أوضح.',
-        'تسجيل الاستماع غير متوفر. اقرأ نص ص٦٢ بصوت عالٍ أو اطلب إلى معلّمك قراءته، ثم نفّذ النشاطين.',
       ],
       1: ['الكلمة الأخيرة في الشطر الأول غير واضحة في الصورة المتاحة، لذلك لم نكتبها. الشطر الثاني مثبت.'],
       5: ['بعض البطاقات والدوائر فارغة في الكتاب. اكتب عملك وفق المثال؛ لا تضع المنصة إجابات في الفراغات.'],
@@ -191,7 +194,9 @@ describe('Unit 2 Lesson 3 — بِالْعِلْمِ تَرْقَى (ص٦١–٦
     U2L3_STEPS.forEach((step, index) => {
       view.rerender(<Unit2Lesson3StepRenderer step={step} />);
       (expected[index] || []).forEach((text) => expect(screen.getAllByText(text).length).toBeGreaterThan(0));
-      const blocks = U2L3_STEP_CONTENT[step.id].blocks;
+      /* PR 3b: only blocks that survive the student-visibility filter are compared. */
+      const blocks = U2L3_STEP_CONTENT[step.id].blocks
+        .filter((block) => isStudentBlockVisible('unit2-lesson3', step.id, block));
       const gapBlocks = blocks.filter((block) => block.kind === 'source_info' && block.gap);
       const gapActivities = blocks.filter((block) => block.kind === 'activity' && U2L3_ACTIVITY_BY_ID[block.activityId]?.gapNote);
       expect(view.container.querySelectorAll('.l2-source-gap-panel')).toHaveLength(gapBlocks.length);

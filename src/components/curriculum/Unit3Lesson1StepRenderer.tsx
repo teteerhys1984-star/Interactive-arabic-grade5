@@ -12,6 +12,7 @@ import {
 import { U3L1Block, U3L1_POEM, U3L1_STEP_CONTENT } from '../../data/unit3Lesson1/content';
 import { U3L1_LISTENING_AUDIO_GAP, U3L1_LOCKED_SOURCE_NOTES } from '../../data/unit3Lesson1/sourceMeta';
 import { clearDraft, readDraft, writeDraft } from '../../utils/draftStorage';
+import { isStudentBlockVisible } from './studentVisibility';
 import { u3l1RevealRecord, u3l1GuidanceNotice } from '../../data/unit3Lesson1/guidance';
 import './unit3Lesson1.css';
 
@@ -53,9 +54,13 @@ export const Unit3Lesson1StepRenderer: React.FC<{ step: LessonStep }> = ({ step 
   }
   return (
     <div className="step-renderer lesson2-step-renderer u3l1-step-renderer">
-      {content.blocks.map((block, index) => (
-        <U3L1BlockView key={`${step.id}-${index}`} block={block} />
-      ))}
+      {content.blocks
+        // Student view only (§٦): listening / oral-communication blocks are removed by
+        // explicit identifier in `studentVisibility.ts`; the data is untouched.
+        .filter((block) => isStudentBlockVisible('unit3-lesson1', step.id, block))
+        .map((block, index) => (
+          <U3L1BlockView key={`${step.id}-${index}`} block={block} />
+        ))}
     </div>
   );
 };

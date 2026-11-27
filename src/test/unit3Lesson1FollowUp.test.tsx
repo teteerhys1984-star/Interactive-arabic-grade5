@@ -142,21 +142,26 @@ describe('point 1 — conditional guidance based on the PRINTED poem, never answ
     });
   });
 
-  it('the student sees the conditional notice next to the listening activity', () => {
-    render(<Unit3Lesson1StepRenderer step={U3L1_STEPS[0]} />);
+  it('hides the listening items from the student, and keeps their guidance in the data', () => {
+    /* PR 3b turned these three items into hidden listening material: the student
+       surface no longer shows them at all, so the conditional notice is checked
+       through the record itself (still present, still conditional, still not a key). */
+    U3L1_STEPS.forEach((step) => {
+      const view = render(<Unit3Lesson1StepRenderer step={step} />);
+      LISTENING.forEach((id) => {
+        expect(
+          view.queryByLabelText(`نشاط المصدر ${U3L1_ACTIVITY_BY_ID[id].sourceActivityId}`),
+        ).toBeNull();
+      });
+      view.unmount();
+    });
 
-    const item05 = screen.getByLabelText('نشاط المصدر U3L1-73-05');
-    fireEvent.click(within(item05).getByRole('button', { name: 'أظهر الجواب' }));
-    expect(within(item05).getByText(U3L1_LISTENING_GUIDANCE_NOTICE)).toBeVisible();
-    expect(within(item05).queryByText(U3L1_GUIDANCE_NOTICE)).toBeNull();
-    expect(within(item05).getByText('إرشادات للإجابة')).toBeInTheDocument();
-    expect(within(item05).queryByText('الحل النموذجي المعتمد')).toBeNull();
-    expect(within(item05).getByText(U3L1_SUGGESTED_ANSWERS['u3l1-a-05'].modelAnswer)).toHaveTextContent(
-      'إذا كان النص المقصود',
-    );
-    /* The declared audio gap is still on screen for the same activity. */
-    const notes = within(item05).getAllByRole('note').map((note) => note.textContent ?? '');
-    expect(notes.some((note) => note.includes('التسجيل'))).toBe(true);
+    /* Data layer untouched: the guidance and its notice are exactly as approved. */
+    LISTENING.forEach((id) => {
+      expect(U3L1_SUGGESTED_ANSWERS[id].notice).toBe(U3L1_LISTENING_GUIDANCE_NOTICE);
+      expect(U3L1_SUGGESTED_ANSWERS[id].modelAnswer).toContain('إذا كان النص المقصود');
+    });
+    expect(U3L1_ACTIVITY_BY_ID['u3l1-a-05'].disclosure.kind).toBe('guidance_only');
   });
 
   it('a record declared no_approved_content still yields nothing (guard)', () => {
