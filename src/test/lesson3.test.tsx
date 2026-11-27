@@ -126,7 +126,7 @@ describe('Lesson 3 — source-lock implementation', () => {
   });
 
   it('renders all 20 explanatory test solutions separately from the test interface', () => {
-    render(<TestSolutions test={LESSON3_TEST} />);
+    render(<TestSolutions test={LESSON3_TEST} scope="teacher" />);
     expect(screen.getAllByText(/الإجابَةُ الصَّحيحَةُ:/)).toHaveLength(20);
     expect(screen.getAllByText(/التَّعليلُ:/)).toHaveLength(20);
   });

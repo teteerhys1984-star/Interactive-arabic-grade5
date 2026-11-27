@@ -91,7 +91,7 @@ describe('Unit 1 comprehensive test and its independent solutions area', () => {
     expect(screen.getByRole('button', { name: 'ابدأ اختبار الوحدة' })).toBeInTheDocument();
 
     cleanup();
-    render(<TestSolutions test={UNIT1_TEST} />);
+    render(<TestSolutions test={UNIT1_TEST} scope="teacher" />);
     expect(screen.getAllByText(/الإجابَةُ الصَّحيحَةُ:/)).toHaveLength(50);
     expect(screen.getAllByText(/التَّعليلُ:/)).toHaveLength(50);
     // grouped by tens for the unit test

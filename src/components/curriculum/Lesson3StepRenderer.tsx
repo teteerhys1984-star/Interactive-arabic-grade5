@@ -6,6 +6,13 @@ import { fromKeyedLesson, resolveAnswerReveal } from '../common/answerDisclosure
 import { getLesson3Activity, Lesson3Activity, Lesson3Interaction } from '../../data/lesson3/activities';
 import { LESSON3_STEP_CONTENT, Lesson3Block } from '../../data/lesson3/content';
 import { clearDraft, readDraft, writeDraft } from '../../utils/draftStorage';
+import {
+  areRiddleFieldsComplete,
+  canRevealRiddleForStudent,
+  clearRiddleAttemptConfirmation,
+  confirmRiddleAttempt,
+  isRiddleActivity,
+} from '../../utils/riddleGuard';
 
 const LESSON3_DRAFT_SCOPE = 'lesson3';
 
@@ -136,6 +143,11 @@ const Lesson3ActivityWidget: React.FC<{ activity: Lesson3Activity }> = ({ activi
   const [saved, setSaved] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   const [cleared, setCleared] = useState(false);
+  const isRiddle = isRiddleActivity(activity.id, activity.sourceActivityId);
+  const [riddleConfirmed, setRiddleConfirmed] = useState<boolean>(() =>
+    isRiddle ? canRevealRiddleForStudent() : false,
+  );
+  const riddleFieldsReady = isRiddle ? areRiddleFieldsComplete(values) : false;
 
   const update = (id: string, value: string) => {
     setSaved(false);
@@ -161,6 +173,21 @@ const Lesson3ActivityWidget: React.FC<{ activity: Lesson3Activity }> = ({ activi
     setSaved(false);
     setSaveFailed(false);
     setCleared(true);
+    if (isRiddle) {
+      clearRiddleAttemptConfirmation();
+      setRiddleConfirmed(false);
+    }
+  };
+
+  const handleConfirmRiddle = () => {
+    if (!isRiddle || !areRiddleFieldsComplete(values)) return;
+    const ok = writeDraft(LESSON3_DRAFT_SCOPE, activity.sourceActivityId, values);
+    setSaved(ok);
+    setSaveFailed(!ok);
+    setCleared(false);
+    if (confirmRiddleAttempt(values)) {
+      setRiddleConfirmed(true);
+    }
   };
 
   /* Owner directive: student-facing reveal payload, or null ⇒ no button. */
@@ -185,6 +212,21 @@ const Lesson3ActivityWidget: React.FC<{ activity: Lesson3Activity }> = ({ activi
         </details>
       )}
       <Lesson3InteractionView interaction={activity.interaction} values={values} update={update} />
+      {isRiddle && !riddleConfirmed && (
+        <div className="riddle-attempt-guard" data-testid="riddle-attempt-guard">
+          <p className="riddle-guard-note">
+            أكمل الحقول الأربعة (الأبيات ١–٤) ثم اضغط «أنهيت المحاولة» لتتمكن من الاطلاع على إرشادات الحل.
+          </p>
+          <button
+            type="button"
+            className="btn btn-primary btn-small"
+            onClick={handleConfirmRiddle}
+            disabled={!riddleFieldsReady}
+          >
+            أنهيت المحاولة
+          </button>
+        </div>
+      )}
       {/* Owner-mandated «أظهر الجواب», student/teacher separated: concrete
           approved answers under «الحل النموذجي المعتمد», honest open-task
           guidance under «إرشادات للإجابة», and availability-gap activities

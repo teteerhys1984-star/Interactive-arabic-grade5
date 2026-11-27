@@ -1,5 +1,6 @@
 import React from 'react';
 import { AssessmentQuestion, AssessmentTest } from '../../types/curriculum';
+import { isRiddleQuestionGuardedForStudent } from '../../utils/riddleGuard';
 import { ArabicNumber, LatinText } from '../common/BiDi';
 
 /**
@@ -64,7 +65,11 @@ function buildGroups(test: AssessmentTest): { label: string; from: number; to: n
   return groups;
 }
 
-export const TestSolutions: React.FC<{ test: AssessmentTest; onExit?: () => void }> = ({ test, onExit }) => {
+export const TestSolutions: React.FC<{
+  test: AssessmentTest;
+  onExit?: () => void;
+  scope?: 'student' | 'teacher';
+}> = ({ test, onExit, scope = 'student' }) => {
   const sorted = [...test.questions].sort((a, b) => a.order - b.order);
   const GROUPS = buildGroups(test);
 
@@ -87,8 +92,23 @@ export const TestSolutions: React.FC<{ test: AssessmentTest; onExit?: () => void
         return (
           <div key={g.label} className="solutions-group">
             <h2 className="solutions-group-title">{g.label}</h2>
-            {inGroup.map((q) => (
-              <article key={q.id} className="solution-card">
+            {inGroup.map((q) => {
+              if (scope === 'student' && isRiddleQuestionGuardedForStudent(q.id)) {
+                return (
+                  <article key={q.id} className="solution-card solution-card-guarded" data-testid={`guarded-solution-${q.id}`}>
+                    <header className="solution-card-head">
+                      <span className="solution-order">
+                        سؤال <ArabicNumber value={q.order} />
+                      </span>
+                    </header>
+                    <p className="riddle-guard-note">
+                      حل هذا السؤال محجوب عن الطالب حتى يُنهي محاولة أحجية الدرس الثالث (ص٣٥) ويضغط «أنهيت المحاولة».
+                    </p>
+                  </article>
+                );
+              }
+              return (
+                <article key={q.id} className="solution-card">
                 <header className="solution-card-head">
                   <span className="solution-order">
                     سؤال <ArabicNumber value={q.order} />
@@ -104,7 +124,8 @@ export const TestSolutions: React.FC<{ test: AssessmentTest; onExit?: () => void
                   {q.source.sectionName ? ` — ${q.source.sectionName}` : ''} <LatinText>({q.id})</LatinText>
                 </p>
               </article>
-            ))}
+              );
+            })}
           </div>
         );
       })}

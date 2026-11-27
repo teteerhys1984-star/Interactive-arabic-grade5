@@ -605,6 +605,7 @@ export const App: React.FC = () => {
             return (
               <TestSolutions
                 test={test}
+                scope="student"
                 onExit={() => requestRouteChange(() => setRoute({ view: 'solutions' }))}
               />
             );
