@@ -17,7 +17,8 @@ import { LESSON2_STEP_CONTENT } from '../data/lesson2/content';
 import { U2L1_STEP_CONTENT } from '../data/unit2Lesson1/content';
 import { U2L2_STEP_CONTENT } from '../data/unit2Lesson2/content';
 import { U2L3_STEP_CONTENT } from '../data/unit2Lesson3/content';
-import { U3L1_STEP_CONTENT } from '../data/unit3Lesson1/content';
+import { U3L1_STEP_CONTENT, U3L1_STEPS } from '../data/unit3Lesson1/content';
+import { U3L1_LOCKED_SOURCE_NOTES } from '../data/unit3Lesson1/sourceMeta';
 import { U3L1_ACTIVITY_BY_ID } from '../data/unit3Lesson1/activities';
 import { U3L1_SUGGESTED_ANSWERS } from '../data/unit3Lesson1/guidance';
 import { readLearningLocation, writeLearningLocation } from '../utils/learningProgress';
@@ -560,6 +561,11 @@ describe('PR 3b — navigation across hidden steps', () => {
 /* ------------------------------------------------------------------ */
 
 describe('PR 3b — title and source-name overrides are literal truncations', () => {
+  const sectionOf = (step: { source?: unknown }) =>
+    step.source && 'sectionName' in (step.source as object)
+      ? (step.source as { sectionName?: string }).sectionName
+      : undefined;
+
   it.each([
     'lesson1',
     'lesson2',
@@ -573,9 +579,8 @@ describe('PR 3b — title and source-name overrides are literal truncations', ()
     getStudentSteps(data).forEach((shown) => {
       const registered = data.steps.find((step) => step.id === shown.id)!;
       expect(registered.title.includes(shown.title), `${shown.id} title: «${shown.title}»`).toBe(true);
-      const registeredSection =
-        registered.source && 'sectionName' in registered.source ? registered.source.sectionName : undefined;
-      const shownSection = shown.source && 'sectionName' in shown.source ? shown.source.sectionName : undefined;
+      const registeredSection = sectionOf(registered);
+      const shownSection = sectionOf(shown);
       if (shownSection !== undefined) {
         expect(registeredSection, `${shown.id} has a section override but no registered section`).toBeDefined();
         expect(registeredSection!.includes(shownSection), `${shown.id} section: «${shownSection}»`).toBe(true);
@@ -583,16 +588,85 @@ describe('PR 3b — title and source-name overrides are literal truncations', ()
     });
   });
 
+  /**
+   * `includes` alone is a weak proof: a single inserted character in the middle
+   * keeps the string a substring. These tests pin the EXACT cut — the shown text
+   * must be a contiguous slice of the registered text, the leftovers before and
+   * after it must be exactly the listening/oral wording, and the codepoints of
+   * the kept slice must be identical one by one.
+   */
+  const cutProof = (registered: string, shown: string) => {
+    const at = registered.indexOf(shown);
+    return {
+      at,
+      before: at < 0 ? null : registered.slice(0, at),
+      after: at < 0 ? null : registered.slice(at + shown.length),
+      codepointsMatch:
+        at >= 0 &&
+        [...shown].map((char) => char.codePointAt(0)).join(',') ===
+          [...registered.slice(at, at + shown.length)].map((char) => char.codePointAt(0)).join(','),
+    };
+  };
+
+  it('u2l3-s5 (APPROVED): the kept slice is exactly «قواعد اللغة» and only the oral wording is cut', () => {
+    const data = lesson('unit2-lesson3');
+    const registered = data.steps.find((step) => step.id === 'u2l3-s5')!;
+    const shown = getStudentSteps(data).find((step) => step.id === 'u2l3-s5')!;
+
+    // The registered wording is untouched in the data.
+    expect(registered.title).toBe('التواصل الشفهي وقواعد اللغة');
+    expect(sectionOf(registered)).toBe('أتواصل شفوياً وقواعد اللغة');
+
+    const titleCut = cutProof(registered.title, shown.title);
+    expect(shown.title).toBe('قواعد اللغة'); // the approved slice, verbatim
+    expect(titleCut.at).toBeGreaterThan(0); // a real cut, not the whole string
+    expect(titleCut.before).toBe('التواصل الشفهي و'); // only the oral wording goes
+    expect(titleCut.after).toBe(''); // nothing was cut from the end
+    expect(titleCut.codepointsMatch).toBe(true);
+
+    const sectionCut = cutProof(sectionOf(registered)!, sectionOf(shown)!);
+    expect(sectionOf(shown)).toBe('قواعد اللغة');
+    expect(sectionCut.before).toBe('أتواصل شفوياً و');
+    expect(sectionCut.after).toBe('');
+    expect(sectionCut.codepointsMatch).toBe(true);
+
+    // What was removed mentions nothing but the oral-communication wording.
+    expect(titleCut.before).not.toMatch(/قواعد|اللغة|نحو|إعراب/);
+    expect(sectionCut.before).not.toMatch(/قواعد|اللغة|نحو|إعراب/);
+  });
+
+  it('u3l1-s1 (APPROVED): the kept slice is exactly «أتأمّل الصورتين» and only the listening wording is cut', () => {
+    const data = lesson('unit3-lesson1');
+    const registered = data.steps.find((step) => step.id === 'u3l1-s1')!;
+    const shown = getStudentSteps(data).find((step) => step.id === 'u3l1-s1')!;
+
+    expect(registered.title).toBe('أتأمّل الصورتين وأستمع');
+    expect(sectionOf(registered)).toBe('أتأمّل الصورتين وأستمع إلى النص');
+
+    const titleCut = cutProof(registered.title, shown.title);
+    expect(shown.title).toBe('أتأمّل الصورتين');
+    expect(titleCut.at).toBe(0); // the kept slice starts the registered string
+    expect(titleCut.before).toBe('');
+    expect(titleCut.after).toBe(' وأستمع');
+    expect(titleCut.codepointsMatch).toBe(true);
+
+    const sectionCut = cutProof(sectionOf(registered)!, sectionOf(shown)!);
+    expect(sectionOf(shown)).toBe('أتأمّل الصورتين');
+    expect(sectionCut.at).toBe(0);
+    expect(sectionCut.before).toBe('');
+    expect(sectionCut.after).toBe(' وأستمع إلى النص');
+    expect(sectionCut.codepointsMatch).toBe(true);
+
+    // What was removed mentions nothing but the listening wording.
+    expect(titleCut.after).not.toMatch(/صور|تأمل|تأمّل/);
+    expect(sectionCut.after).not.toMatch(/صور|تأمل|تأمّل/);
+  });
+
   it('fixes the exact overrides this PR introduces', () => {
     const shownTitle = (lessonId: string, stepId: string) =>
       getStudentSteps(lesson(lessonId)).find((step) => step.id === stepId)!.title;
-    const shownSection = (lessonId: string, stepId: string) => {
-      const step = getStudentSteps(lesson(lessonId)).find((candidate) => candidate.id === stepId)!;
-      return step.source && 'sectionName' in step.source ? step.source.sectionName : undefined;
-    };
 
     expect(shownTitle('lesson2', 'l2-s1')).toBe('أستكشف الصور');
-    expect(shownSection('lesson2', 'l2-s1')).toBe('أتأمل الصور');
     expect(shownTitle('unit2-lesson1', 'u2l1-s1')).toBe('أتأمّل الصور');
     expect(shownTitle('unit2-lesson2', 'u2l2-s1')).toBe('أتأمّل الصور');
     expect(shownTitle('unit2-lesson2', 'u2l2-s4')).toBe('الفهم القرائي (٦–٩)');
@@ -603,5 +677,116 @@ describe('PR 3b — title and source-name overrides are literal truncations', ()
     // Steps with no override keep the registered wording verbatim.
     expect(shownTitle('unit2-lesson1', 'u2l1-s2')).toBe('أقرأ النصّ');
     expect(shownTitle('lesson1', 'l1-s3')).toBe(lesson('lesson1').steps[2].title);
+  });
+
+  /**
+   * The other five overrides are not §9 rulings, but they are held to the same
+   * standard: a contiguous prefix/suffix slice with an identical codepoint run.
+   */
+  it.each([
+    ['lesson2', 'l2-s1'],
+    ['unit2-lesson1', 'u2l1-s1'],
+    ['unit2-lesson2', 'u2l2-s1'],
+    ['unit2-lesson2', 'u2l2-s4'],
+    ['unit2-lesson3', 'u2l3-s1'],
+  ])('%s / %s: the override is an exact slice of the registered wording', (lessonId, stepId) => {
+    const data = lesson(lessonId);
+    const registered = data.steps.find((step) => step.id === stepId)!;
+    const shown = getStudentSteps(data).find((step) => step.id === stepId)!;
+
+    const titleCut = cutProof(registered.title, shown.title);
+    expect(titleCut.at, `${stepId} title not a slice`).toBeGreaterThanOrEqual(0);
+    expect(titleCut.codepointsMatch).toBe(true);
+    // Either a prefix or a suffix — never an interior fragment that drops a middle part.
+    expect(
+      titleCut.before === '' || titleCut.after === '',
+      `${stepId}: title override is not a prefix/suffix slice`,
+    ).toBe(true);
+
+    const registeredSection = sectionOf(registered);
+    const shownSection = sectionOf(shown);
+    if (shownSection !== undefined) {
+      const sectionCut = cutProof(registeredSection!, shownSection);
+      expect(sectionCut.codepointsMatch).toBe(true);
+      expect(sectionCut.before === '' || sectionCut.after === '').toBe(true);
+    }
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* «ملاحظة عن القصيدة» — subordinate to the hidden listening section  */
+/* ------------------------------------------------------------------ */
+
+describe('PR 3b — «ملاحظة عن القصيدة» is hidden because it is not about the poem', () => {
+  const NOTE_HEADING = 'ملاحظة عن القصيدة';
+
+  const noteLines = () => {
+    const block = U3L1_STEP_CONTENT['u3l1-s2'].blocks.find(
+      (candidate) => candidate.kind === 'platform_note' && candidate.heading === NOTE_HEADING,
+    );
+    return block && block.kind === 'platform_note' ? block.lines : [];
+  };
+
+  it('carries no teaching content about the poem itself', () => {
+    const text = noteLines().join(' ');
+    expect(noteLines()).toHaveLength(1);
+    // Nothing about meaning, structure, wording or grammar of the poem.
+    ['معنى', 'شرح', 'بيت', 'أبيات', 'تشكيل', 'إعراب', 'مفردات', 'فكرة'].forEach((word) => {
+      expect(text, `the note should not teach «${word}»`).not.toContain(word);
+    });
+  });
+
+  it('its only subject is the relation to the listening section on page 73', () => {
+    const text = noteLines().join(' ');
+    expect(text).toContain('نصّ الاستماع في ص٧٣');
+    expect(text).toContain('لا تُنسب');
+    // The whole note is that relation plus its bare classification — nothing else.
+    expect(text.replace('القصيدة نصّ قراءة فقط؛ ', '')).toContain('لا تُنسب إلى نصّ الاستماع');
+  });
+
+  it('is hidden in u3l1-s2, and it is the ONLY block hidden there', () => {
+    const blocks = U3L1_STEP_CONTENT['u3l1-s2'].blocks;
+    const hidden = blocks.filter((block) => !isStudentBlockVisible('unit3-lesson1', 'u3l1-s2', block));
+    expect(hidden).toHaveLength(1);
+    expect(hidden[0]).toMatchObject({ kind: 'platform_note', heading: NOTE_HEADING });
+
+    // Everything else in the step survives: the reading instruction, the poem and three activities.
+    const kept = blocks
+      .filter((block) => isStudentBlockVisible('unit3-lesson1', 'u3l1-s2', block))
+      .map((block) => block.kind);
+    expect(kept).toEqual(['instruction', 'poem', 'activity', 'activity', 'activity']);
+  });
+
+  it('is not hidden in any other step, because it exists only here', () => {
+    const occurrences = U3L1_STEPS.flatMap((step) =>
+      U3L1_STEP_CONTENT[step.id].blocks
+        .filter((block) => 'heading' in block && block.heading === NOTE_HEADING)
+        .map(() => step.id),
+    );
+    expect(occurrences).toEqual(['u3l1-s2']);
+    expect(isStudentBlockVisible('unit3-lesson1', 'u3l1-s2', {
+      kind: 'platform_note',
+      heading: NOTE_HEADING,
+    })).toBe(false);
+  });
+
+  it('the student still reads the whole poem and its three activities', () => {
+    render(<LessonFlow lesson={lesson('unit3-lesson1')} />);
+    fireEvent.click(screen.getByRole('button', { name: /^الخطوة 2: أقرأ/ }));
+    expect(screen.queryByText(NOTE_HEADING)).toBeNull();
+    expect(screen.getByText(/وَسَعَادَتُنا أَنَّا/)).toBeInTheDocument();
+    expect(screen.getByLabelText('نشاط المصدر U3L1-74-01')).toBeInTheDocument();
+  });
+
+  it('the claim itself survives in the data and the teacher layer', () => {
+    // The note is not deleted — it stays in the source notes and in the data block.
+    expect(noteLines()[0]).toContain('لا تُنسب إلى نصّ الاستماع');
+    expect(U3L1_LOCKED_SOURCE_NOTES.poemListeningRelation).toContain('لا تُنسب');
+    // And the two blocks that carried it in the hidden listening section are still there.
+    expect(
+      U3L1_STEP_CONTENT['u3l1-s1'].blocks.some(
+        (block) => block.kind === 'platform_note' && block.heading === 'تنفيذ أسئلة الاستماع',
+      ),
+    ).toBe(true);
   });
 });
