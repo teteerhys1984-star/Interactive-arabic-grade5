@@ -181,7 +181,7 @@ const Lesson3ActivityWidget: React.FC<{ activity: Lesson3Activity }> = ({ activi
 
   const handleConfirmRiddle = () => {
     if (!isRiddle || !areRiddleFieldsComplete(values)) return;
-    const ok = writeDraft(LESSON3_DRAFT_SCOPE, activity.id, values);
+    const ok = writeDraft(LESSON3_DRAFT_SCOPE, activity.sourceActivityId, values);
     setSaved(ok);
     setSaveFailed(!ok);
     setCleared(false);

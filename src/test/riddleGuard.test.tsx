@@ -69,15 +69,16 @@ describe('PR2 — Riddle & Assessment Guard (l3-a-49, l3-t-20, u1-t-50)', () => 
     expect(canRevealRiddleForStudent()).toBe(false);
     expect(within(remountedRiddleSection).queryByRole('button', { name: /أظهر الجواب|إرشادات للإجابة/ })).not.toBeInTheDocument();
 
-    // Explicit press of "أنهيت المحاولة" unlocks the reveal button and preserves draft
+    // Explicit press of "أنهيت المحاولة" unlocks the reveal button and preserves draft under L3-35-01
     fireEvent.click(within(remountedRiddleSection).getByRole('button', { name: 'أنهيت المحاولة' }));
     expect(canRevealRiddleForStudent()).toBe(true);
-    expect(readDraft('lesson3', 'l3-a-49')).toEqual({
+    expect(readDraft('lesson3', 'L3-35-01')).toEqual({
       b1: 'تبدأ بفعل',
       b2: 'الفاعل',
       b3: 'المفعول به',
       b4: 'الجملة الفعلية',
     });
+    expect(readDraft('lesson3', 'l3-a-49')).toEqual({});
     expect(within(remountedRiddleSection).getByRole('button', { name: /أظهر الجواب/ })).toBeInTheDocument();
   });
 
